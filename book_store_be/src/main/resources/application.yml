@@ -1,0 +1,50 @@
+spring:
+    application:
+        name: book_store_be
+    datasource:
+        url: jdbc:postgresql://localhost:5432/book_store_db
+        username: postgres
+        password: BookStoreDB
+        driver-class-name: org.postgresql.Driver
+    jpa:
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                format_sql: true
+
+        database: postgresql
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+    security:
+        user:
+            name: admin
+            password: admin
+            roles: USER
+    mail:
+        host: pro55.emailserver.vn
+        port: 465
+        username: admin@khiemcongdinh.id.vn
+        password: Khiem_2004
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+                        required: true
+                    ssl:
+                        enable: true
+application:
+    security:
+        jwt:
+            secret-key: 36d40671a0dfd75dc62f1e0b7e72f73a11b418e51cc62adc7d06febce98c01ef
+            expiration: 86400000 # a day
+            refresh-token:
+                expiration: 604800000 # 7 days
+client:
+    url: http://localhost:3000
+
+information:
+    nameShop: Book Bazaar
+    emailShop: admin@khiemcongdinh.id.vn
+    ccGmailShop: phamthihue3340@gmail.com

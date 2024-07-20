@@ -7,7 +7,7 @@ networks:
 services:
   db:
     image: postgres:16.2-alpine
-    container_name: shop_db
+    container_name: book_store_db
     restart: always
     environment:
       - POSTGRES_USER=postgres

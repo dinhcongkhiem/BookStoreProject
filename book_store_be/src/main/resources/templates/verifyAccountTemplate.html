@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>Hello <span th:text="${user.fullName}"></span></h1>
+<p>Welcome to SHOPNAME</p>
+<p>Please click this link to active your account, thanks !</p>
+<a th:href="${clientUrl} + '/verify/redirect?activeKey=' + ${user.verifyKey}">Click here to activate</a>
+
+</body>
+</html>
