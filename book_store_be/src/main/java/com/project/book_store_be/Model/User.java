@@ -19,13 +19,14 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @ManyToOne
+    @JoinColumn(name = "address_id")
+    private Address address;
     private String fullName;
     private String email;
     private String phoneNum;
     private String password;
-    @ManyToOne
-    @JoinColumn(name = "address_id")
-    private Address address;
+
     @NaturalId(mutable = true)
     private String verifyKey;
     @NaturalId(mutable = true)
