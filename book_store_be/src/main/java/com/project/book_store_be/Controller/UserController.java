@@ -7,13 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/v1/user")
 public class UserController {
     private final UserService userService;
 
@@ -23,7 +20,12 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PutMapping("/change-password")
+    @PatchMapping()
+    public ResponseEntity<String> updateUser(@RequestBody UpdateUserRequest updateUserRequest){
+        userService.updateUser(updateUserRequest);
+        return ResponseEntity.ok("Cập nhập thông tin người dùng thành công");
+    }
+    @PatchMapping("/change-password")
     public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
         try {
             userService.changePassword(request);
@@ -33,9 +35,5 @@ public class UserController {
         }
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<String> updateUser(@RequestBody UpdateUserRequest updateUserRequest){
-        userService.updateUser(updateUserRequest);
-        return ResponseEntity.ok("Cập nhập thông tin người dùng thành công");
-    }
+
 }

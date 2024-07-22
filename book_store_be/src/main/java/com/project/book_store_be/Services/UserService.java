@@ -19,9 +19,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final AddressRepository addressRepository;
     private final PasswordEncoder passwordEncoder;
-    private AddressService addressService;
+    private final AddressService addressService;
 
     public User getCurrentStudent() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -60,28 +59,9 @@ public class UserService {
         }
         user.setFullName(request.getFullName());
         user.setPhoneNum(request.getPhoneNum());
-        if (request.getAddress() != null) {
-            Address address = request.getAddress();
-            Optional<Address> existingAddress = addressRepository.findTheSameAddress(
-                    address.getProvinces().getValue(),
-                    address.getProvinces().getLabel(),
-                    address.getDistricts().getValue(),
-                    address.getDistricts().getLabel(),
-                    address.getCommunes().getValue(),
-                    address.getCommunes().getLabel(),
-                    address.getAddressDetail()
-            );
-
-            if (existingAddress.isPresent()) {
-                user.setAddress(existingAddress.get());
-            } else {
-                addressRepository.save(address);
-                user.setAddress(address);
-            }
-        }
+        user.setAddress(addressService.createAddress(request.getAddress()));
 
         userRepository.save(user);
-
     }
 
 }
