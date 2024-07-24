@@ -1,25 +1,69 @@
-import logo from './logo.svg';
-import './App.css';
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import DefaultLayout from './layouts';
+import { adminRoutes, userRoutes, publicRoutes } from './routes/routes';
+import { AdminRoute, PrivateRoute } from './component/PrivateRoute/PrivateRoute';
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <Router>
+            <Routes>
+                {publicRoutes.map((route, index) => {
+                    const Page = route.component;
+                    return (
+                        <Route
+                            key={route.path || index}
+                            path={route.path}
+                            element={
+                                <DefaultLayout>
+                                    <Page />
+                                </DefaultLayout>
+                            }
+                        />
+                    );
+                })}
+                {userRoutes.map((route, index) => {
+                    const Page = route.component;
+                    let Layout = DefaultLayout;
+                    if (route.layout) {
+                        Layout = route.layout;
+                    }
+                    return (
+                        <Route
+                            key={route.path || index}
+                            path={route.path}
+                            element={
+                                <userRoutes>
+                                    <Layout>
+                                        <Page />
+                                    </Layout>
+                                </userRoutes>
+                            }
+                        />
+                    );
+                })}
+
+                {adminRoutes.map((route, index) => {
+                    const Page = route.component;
+                    let Layout = DefaultLayout;
+                    if (route.layout) {
+                        Layout = route.layout;
+                    }
+                    return (
+                        <Route
+                            key={route.path || index}
+                            path={route.path}
+                            element={
+                                <AdminRoute>
+                                    <Layout>
+                                        <Page />
+                                    </Layout>
+                                </AdminRoute>
+                            }
+                        />
+                    );
+                })}
+            </Routes>
+        </Router>
+    );
 }
 
 export default App;
