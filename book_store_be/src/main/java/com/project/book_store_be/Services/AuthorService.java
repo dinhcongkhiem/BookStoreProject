@@ -23,7 +23,7 @@ public class AuthorService {
     }
 
     public Author saveAuthor(Author author){
-//        Optional<Author> existingAuthorByName = repo.findByName(author.getName());
+
         Optional<Author> existingAuthorByPseudonym = repo.findByPseudonym(author.getPseudonym());
         if( existingAuthorByPseudonym.isPresent()){
             throw new IllegalArgumentException("Author with the same name and pseudonym already exists");
@@ -31,8 +31,14 @@ public class AuthorService {
         return repo.save(author);
     }
 
-    public Author updateAuthor(Integer id, Author authorDetails){
-        Author author = repo.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
+    public Author updateAuthor(Integer id, Author authorDetails) {
+        Author author = repo.findById(id).orElseThrow(() -> new AuthorNotFoundException("Author not found"));
+
+        Optional<Author> existingAuthorWithPseudonym = repo.findByPseudonym(authorDetails.getPseudonym());
+        if (existingAuthorWithPseudonym.isPresent() && !existingAuthorWithPseudonym.get().getId().equals(id)) {
+            throw new DuplicatePseudonymException("Pseudonym already in use");
+        }
+
         author.setName(authorDetails.getName());
         author.setNationality(authorDetails.getNationality());
         author.setPseudonym(authorDetails.getPseudonym());
@@ -40,9 +46,25 @@ public class AuthorService {
         return repo.save(author);
     }
 
+    public static class AuthorNotFoundException extends RuntimeException {
+        public AuthorNotFoundException(String message) {
+            super(message);
+        }
+    }
+
+    public static class DuplicatePseudonymException extends RuntimeException {
+        public DuplicatePseudonymException(String message) {
+            super(message);
+        }
+    }
+
+
     public void  deleteAuthor(Integer id){
+        Author author = repo.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
         repo.deleteById(id);
     }
+
+
 
 
 }

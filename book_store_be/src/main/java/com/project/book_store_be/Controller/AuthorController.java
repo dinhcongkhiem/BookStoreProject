@@ -3,6 +3,7 @@ package com.project.book_store_be.Controller;
 import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Services.AuthorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/authors")
+@RequestMapping("/api/v1/authors")
 public class AuthorController {
     @Autowired
     private AuthorService authorService;
@@ -27,15 +28,17 @@ public class AuthorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Author> updateAuthor(@PathVariable Integer id, @RequestBody Author authorDetails){
-        try{
+    public ResponseEntity<String> updateAuthor(@PathVariable Integer id, @RequestBody Author authorDetails) {
+        try {
             Author updateAuthor = authorService.updateAuthor(id, authorDetails);
-            return ResponseEntity.ok(updateAuthor);
-        }catch (RuntimeException e){
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.ok("Author update successfully");
+        } catch (AuthorService.DuplicatePseudonymException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-    @PostMapping("/add")
+    @PostMapping
     public ResponseEntity<String> createAuthor(@RequestBody Author author) {
         try{
             Author savedAuthor = authorService.saveAuthor(author);
@@ -47,8 +50,13 @@ public class AuthorController {
 
 
     @DeleteMapping("/{id}")
-    public  ResponseEntity<Void> deleteAuthor(@PathVariable Integer id){
-        authorService.deleteAuthor(id);
-        return  ResponseEntity.noContent().build();
+    public  ResponseEntity<String> deleteAuthor(@PathVariable Integer id){
+        try {
+            authorService.deleteAuthor(id);
+            return ResponseEntity.ok("Author delete successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Author not found");
+        }
     }
+
 }
