@@ -1,8 +1,11 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Exception.AuthorNotFoundException;
+import com.project.book_store_be.Exception.DuplicatePseudonymException;
 import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Repository.AuthorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,7 +35,7 @@ public class AuthorService {
     }
 
     public Author updateAuthor(Integer id, Author authorDetails) {
-        Author author = repo.findById(id).orElseThrow(() -> new AuthorNotFoundException("Author not found"));
+        Author author = repo.findById(id).orElseThrow(() ->  new AuthorNotFoundException("Author not found"));
 
         Optional<Author> existingAuthorWithPseudonym = repo.findByPseudonym(authorDetails.getPseudonym());
         if (existingAuthorWithPseudonym.isPresent() && !existingAuthorWithPseudonym.get().getId().equals(id)) {
@@ -46,17 +49,6 @@ public class AuthorService {
         return repo.save(author);
     }
 
-    public static class AuthorNotFoundException extends RuntimeException {
-        public AuthorNotFoundException(String message) {
-            super(message);
-        }
-    }
-
-    public static class DuplicatePseudonymException extends RuntimeException {
-        public DuplicatePseudonymException(String message) {
-            super(message);
-        }
-    }
 
 
     public void  deleteAuthor(Integer id){
