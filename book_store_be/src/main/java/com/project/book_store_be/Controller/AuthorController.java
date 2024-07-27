@@ -1,5 +1,7 @@
 package com.project.book_store_be.Controller;
 
+import com.project.book_store_be.Exception.AuthorNotFoundException;
+import com.project.book_store_be.Exception.DuplicatePseudonymException;
 import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Services.AuthorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +32,11 @@ public class AuthorController {
     @PutMapping("/{id}")
     public ResponseEntity<String> updateAuthor(@PathVariable Integer id, @RequestBody Author authorDetails) {
         try {
-            Author updateAuthor = authorService.updateAuthor(id, authorDetails);
-            return ResponseEntity.ok("Author update successfully");
-        } catch (AuthorService.DuplicatePseudonymException e) {
+            Author updatedAuthor = authorService.updateAuthor(id, authorDetails);
+            return ResponseEntity.ok("Author updated successfully");
+        } catch (AuthorNotFoundException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        } catch (RuntimeException e) {
+        } catch (DuplicatePseudonymException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
