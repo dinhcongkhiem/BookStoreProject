@@ -15,16 +15,12 @@ import java.util.Date;
 public class Author {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer id;
-    @Column(name = "name")
-    String name ;
+    private Integer id;
+    private String name ;
 
-    @Column(name = "nationality")
-    String nationality;
+    private String nationality;
 
-    @Column(name = "pseudonym")
-    String pseudonym;
+    private String pseudonym;
 
-    @Column(name = "publishedBooks")
-    Integer publishedBooks;
+    private Integer publishedBooks;
 }
