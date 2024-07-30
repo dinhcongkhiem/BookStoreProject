@@ -34,7 +34,9 @@ public class SecurityConfiguration {
 
     private static final String[] WHITE_LIST_URL = {
             "/api/v1/auth/**",
-            "/api/v1/product/**"
+            "/api/v1/product/**",
+            "/api/v1/category/**"
+
 //            list url with permitAll;
     };
     private static final String[] USER_LIST_URL = {
@@ -42,7 +44,7 @@ public class SecurityConfiguration {
 //            list url with user role
     };
     private static final String[] ADMIN_LIST_URL = {
-            "/api/v1/admin/**"
+            "/api/v1/admin/**",
 //            list url with admin role
     };
 
