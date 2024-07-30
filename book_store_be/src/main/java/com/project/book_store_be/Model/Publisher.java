@@ -17,7 +17,7 @@ public class Publisher {
 
     private String name;
 
-    private String national;
+    private String Address;
 
 
 
