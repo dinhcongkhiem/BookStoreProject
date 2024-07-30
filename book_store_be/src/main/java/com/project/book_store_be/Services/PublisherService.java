@@ -28,9 +28,6 @@ public class PublisherService {
     public Publisher updatePublisher(Integer id, Publisher publisherDetails){
         Publisher publisher = repo.findById(id).orElseThrow(() ->new RuntimeException("Publisher not found"));
         publisher.setName(publisherDetails.getName());
-        publisher.setAddress(publisher.getAddress());
-        publisher.setNational(publisher.getNational());
-        publisher.setEmail(publisher.getEmail());
         publisher.setNational(publisher.getNational());
         return repo.save(publisher);
     }

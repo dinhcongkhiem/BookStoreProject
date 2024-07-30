@@ -15,14 +15,10 @@ public class Publisher {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    String name;
+    private String name;
 
-    String national;
+    private String national;
 
-    String address;
 
-    String phoneNumber;
-
-    String email;
 
 }
