@@ -1,7 +1,12 @@
-import { Home, Profile } from '../page';
+import layouts from '../layouts';
+import { Home, Profile, Login, Register } from '../page';
 
 // Public routes
-const publicRoutes = [{ path: '/', component: Home }];
+const publicRoutes = [
+    { path: '/', component: Home },
+    { path: '/login', component: Login, layout: null },
+    { path: '/register', component: Register, layout: null },
+];
 
 const userRoutes = [{ path: '/profile/info', component: Profile }];
 

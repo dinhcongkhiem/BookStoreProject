@@ -1,10 +1,11 @@
 import { createContext, useCallback, useEffect, useState } from 'react';
-// import AuthenticationService from '../service/AuthenticationService';
+import AuthService from '../service/AuthService';
 import { toast } from 'react-toastify';
 
 const AuthenticationContext = createContext();
 
 function AuthenticationProvider({ children }) {
+    const [isLoading, setIsLoading] = useState(false);
     const [authentication, SetAuthentication] = useState({
         isAuthen: false,
         refreshToken: '',
@@ -24,28 +25,28 @@ function AuthenticationProvider({ children }) {
         setLoading(false);
     }, []);
 
-    const login = useCallback((email, password, isRemember, setIsLoading, handleClose) => {
-        // AuthenticationService.login({ email, password }, isRemember)
-        //     .then((response) => {
-        //         if (response.status === 200) {
-        //             SetAuthentication({
-        //                 isAuthen: true,
-        //                 refreshToken: response.data.refreshToken,
-        //                 user: response.data.user
-        //             })
-        //             const storage = isRemember ? localStorage : sessionStorage;
-        //             storage.setItem('refreshToken', response.data.refreshToken);
-        //             storage.setItem('user', JSON.stringify(response.data.user));
-        //             setIsLoading(false)
-        //             handleClose()
-        //             toast.success("Đăng nhập thành công")
-        //         }
-        //     })
-        //     .catch((error) => {
-        //         setIsLoading(false)
-        //         toast.error("Tài khoản hoặc mật khẩu không chính xác!")
-        //         console.error(error);
-        //     });
+    const login = useCallback((email, password, isRemember) => {
+        const data = { email, password };
+        AuthService.Login(data, isRemember)
+            .then((response) => {
+                if (response.status === 200) {
+                    SetAuthentication({
+                        isAuthen: true,
+                        refreshToken: response.data.refreshToken,
+                        user: response.data.user,
+                    });
+                    const storage = isRemember ? localStorage : sessionStorage;
+                    storage.setItem('refreshToken', response.data.refreshToken);
+                    storage.setItem('user', JSON.stringify(response.data.user));
+                    setIsLoading(false);
+                    toast.success('Đăng nhập thành công');
+                }
+            })
+            .catch((error) => {
+                setIsLoading(false);
+                toast.error('Tài khoản hoặc mật khẩu không chính xác!');
+                console.error(error);
+            });
     }, []);
 
     const logout = useCallback(() => {
