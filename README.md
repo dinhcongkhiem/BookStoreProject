@@ -7,4 +7,4 @@ Start the container:
 docker-compose -f docker-compose.yml up -d --build
 
 - Then open DBeaver and connect to localhost:5432 to connect into Database of project (Postgres)
-
+- Link api docs localhost:8080/swagger-ui/index.html
