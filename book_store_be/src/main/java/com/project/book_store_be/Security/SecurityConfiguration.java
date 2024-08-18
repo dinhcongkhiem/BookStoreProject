@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import static com.project.book_store_be.Enum.Role.*;
 
 import java.util.Arrays;
@@ -35,8 +36,9 @@ public class SecurityConfiguration {
     private static final String[] WHITE_LIST_URL = {
             "/api/v1/auth/**",
             "/api/v1/product/**",
-            "/api/v1/category/**"
-
+            "/api/v1/category/**",
+            "/api-docs/**",
+            "/swagger-ui/**"
 //            list url with permitAll;
     };
     private static final String[] USER_LIST_URL = {
@@ -55,7 +57,7 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(req ->req
+                .authorizeHttpRequests(req -> req
                         .requestMatchers(WHITE_LIST_URL).permitAll()
                         .requestMatchers(ADMIN_LIST_URL).hasAnyRole(ADMIN.name())
                         .requestMatchers(USER_LIST_URL).hasAnyRole(USER.name())
