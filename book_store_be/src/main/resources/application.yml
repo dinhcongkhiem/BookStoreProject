@@ -16,10 +16,17 @@ spring:
         database: postgresql
         database-platform: org.hibernate.dialect.PostgreSQLDialect
     security:
-        user:
-            name: admin
-            password: admin
-            roles: USER
+        oauth2:
+            client:
+                registration:
+                    google:
+                        client-id:
+                        client-secret:
+                        scope: profile,email
+                    facebook:
+                        client-id:
+                        client-secret:
+
     mail:
         host: pro55.emailserver.vn
         port: 465
@@ -34,6 +41,11 @@ spring:
                         required: true
                     ssl:
                         enable: true
+
+s3:
+    accessKey:
+    secretKey:
+    bucketName:
 springdoc:
     api-docs:
         path: /api-docs
