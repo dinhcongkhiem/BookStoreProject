@@ -17,9 +17,6 @@ function Header() {
                         <img src={logoBook} alt="BookStore Logo" className={cx('logoImage')} />
                     </Link>
                 </div>
-                <div className={cx('nameBrand')}>
-                    <h4>Book Bazaar</h4>
-                </div>
                 <div className={cx('search')}>
                     <input type="text" placeholder="Tìm kiếm sách..." className={cx('searchInput')} />
                     <FontAwesomeIcon icon={faSearch} className={cx('searchIcon')} />

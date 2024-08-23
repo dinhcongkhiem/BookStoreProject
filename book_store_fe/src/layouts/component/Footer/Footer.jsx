@@ -75,7 +75,7 @@ function Footer() {
                         <div className={cx('customRow')}>
                             <div className={cx('colFull')}>
                                 <div className={cx('footerCopyRight')}>
-                                    &copy; 2024 All rights reserved | This template is made with <i className="fa fa-heart" aria-hidden="true"></i> by <a href="#" target="_blank" rel="nofollow noopener">Chicken</a>
+                                    &copy; 2024 All rights reserved | This template is made with <i className="fa fa-heart" aria-hidden="true"></i> by <a href="#" target="_blank" rel="nofollow noopener">Book Bazaar</a>
                                 </div>
                             </div>
                         </div>
