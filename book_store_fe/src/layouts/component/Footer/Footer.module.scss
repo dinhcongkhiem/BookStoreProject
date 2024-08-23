@@ -1,0 +1,146 @@
+.footerWrapper {
+  background-color: #f9f9f9;
+  padding: 50px 0 0 0;
+  font-family: 'Roboto', sans-serif;
+  color: #555;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.footerArea {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-direction: row;
+  .customContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+    display: flex;
+    flex-wrap: wrap; 
+  }
+
+  .customRow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 50px;
+    width: 100%;
+  }
+
+  .colLarge, .colMedium, .colSmall, .colFull {
+    flex: 1;
+    max-width: 100%;
+    padding: 0 15px;
+  }
+
+  .singleFooterCaption {
+    margin-bottom: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+
+    .footerLogo {
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      img {
+        width: 40px;
+        display: block;
+      }
+    }
+
+    .footerTittle {
+      h4 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 20px;
+        font-weight: 700;
+        text-align: center;
+      }
+
+      p {
+        font-size: 16px;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        text-align: center;
+
+        li {
+          margin-bottom: 10px;
+
+          a {
+            color: #555;
+            text-decoration: none;
+
+            &:hover {
+              color: #f39c12;
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+.footerBottomArea {
+  background-color: #333;
+  padding: 20px 0;
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  .customContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+  }
+
+  .footerBorder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .customRow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+
+      .colFull {
+        text-align: center;
+        color: #fff;
+
+        a {
+          color: #f39c12;
+          text-decoration: none;
+
+          &:hover {
+            color: #fff;
+            text-decoration: underline;
+          }
+        }
+
+        i {
+          color: #f39c12;
+        }
+      }
+    }
+  }
+}
