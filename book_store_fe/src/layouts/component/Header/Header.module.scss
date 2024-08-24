@@ -2,18 +2,20 @@
   display: flex;
   align-items: center;
   justify-content: center; 
-  padding: 10px 20px;
+  padding: 1rem 2rem;
   background-color: #f8f9fa;
   border-bottom: 1px solid #e0e0e0;
-  gap: 20px;
+  gap: 2rem;
 }
 
 .logo {
   display: flex;
   align-items: center;
+  margin-right: 1rem;
   img {
-      height: 40px; 
-      vertical-align: middle;
+    height: 4rem; 
+    vertical-align: middle;
+    transform: scale(1.9); 
   }
 }
 .nameBrand{
@@ -22,29 +24,29 @@
 }
 .search {
   flex-grow: 1;
-  max-width: 500px; 
+  max-width: 50rem; 
   position: relative;
   display: flex;
   align-items: center;
 
   input[type='text'] {
       width: 100%;
-      padding: 10px 40px 10px 15px; /* Tạo đủ không gian cho biểu tượng */
-      font-size: 16px;
-      border: 1px solid #ced4da;
-      border-radius: 20px;
+      padding: 1rem 4rem 1rem 1.5rem;
+      font-size: 1.6rem;
+      border: 0.1rem solid #ced4da;
+      border-radius: 2rem;
       transition: all 0.3s ease;
       
       &:focus {
           outline: none;
           border-color: #007bff;
-          box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+          box-shadow: 0 0 0.5rem rgba(0, 123, 255, 0.5);
       }
   }
 
   .searchIcon {
       position: absolute;
-      right: 10px; 
+      right: 1rem; 
       color: #6c757d;
       cursor: pointer;
       transition: color 0.3s ease;
@@ -56,27 +58,27 @@
 }
 
 .signin {
-  margin-left: 20px;
+  margin-left: 2rem;
 
   button {
-      padding: 10px 20px;
-      font-size: 14px;
+      padding: 1rem 2rem;
+      font-size: 1.4rem;
       background-color: #007bff;
       color: #fff;
       border: none;
-      border-radius: 20px;
+      border-radius: 2rem;
       cursor: pointer;
       transition: background-color 0.3s ease, box-shadow 0.3s ease;
       
       &:hover {
           background-color: #0056b3;
-          box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+          box-shadow: 0 0 1rem rgba(0, 123, 255, 0.5);
       }
   }
 }
 
 .cart {
-  margin-left: 20px;
+  margin-left: 2rem;
   color: #6c757d;
   cursor: pointer;
   transition: color 0.3s ease;

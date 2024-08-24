@@ -1,6 +1,6 @@
 .footerWrapper {
   background-color: #f9f9f9;
-  padding: 50px 0 0 0;
+  padding: 5rem 0 0 0;
   font-family: 'Roboto', sans-serif;
   color: #555;
   display: flex;
@@ -16,9 +16,9 @@
   align-items: flex-start;
   flex-direction: row;
   .customContainer {
-    max-width: 1200px;
+    max-width: 120rem;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0 1.5rem;
     display: flex;
     flex-wrap: wrap; 
   }
@@ -27,18 +27,18 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    margin-bottom: 50px;
+    margin-bottom: 5rem;
     width: 100%;
   }
 
   .colLarge, .colMedium, .colSmall, .colFull {
     flex: 1;
     max-width: 100%;
-    padding: 0 15px;
+    padding: 0 1.5rem;
   }
 
   .singleFooterCaption {
-    margin-bottom: 50px;
+    margin-bottom: 5rem;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -46,29 +46,29 @@
     text-align: center;
 
     .footerLogo {
-      margin-bottom: 25px;
+      margin-bottom: 2.5rem;
       display: flex;
       justify-content: center;
       align-items: center;
 
       img {
-        width: 40px;
+        width: 4rem;
         display: block;
       }
     }
 
     .footerTittle {
       h4 {
-        font-size: 20px;
+        font-size: 2rem;
         color: #333;
-        margin-bottom: 20px;
+        margin-bottom: 2rem;
         font-weight: 700;
         text-align: center;
       }
 
       p {
-        font-size: 16px;
-        margin-bottom: 15px;
+        font-size: 1.6rem;
+        margin-bottom: 1.5rem;
         text-align: center;
       }
 
@@ -78,7 +78,7 @@
         text-align: center;
 
         li {
-          margin-bottom: 10px;
+          margin-bottom: 1rem;
 
           a {
             color: #555;
@@ -98,7 +98,7 @@
 
 .footerBottomArea {
   background-color: #333;
-  padding: 20px 0;
+  padding: 2rem 0;
   margin-top: auto;
   width: 100%;
   display: flex;
@@ -107,9 +107,9 @@
   flex-direction: column;
 
   .customContainer {
-    max-width: 1200px;
+    max-width: 120rem;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0 1.5rem;
   }
 
   .footerBorder {
