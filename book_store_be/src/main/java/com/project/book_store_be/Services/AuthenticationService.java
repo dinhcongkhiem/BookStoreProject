@@ -15,12 +15,15 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -74,17 +77,21 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse login(LoginRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                request.getEmail(),
-                request.getPassword()
-        ));
-        User user = this.userRepository.findByEmail(request.getEmail()).orElseThrow();
-        return AuthenticationResponse
-                .builder()
-                .accessToken(jwtService.generateToken(user))
-                .refreshToken(user.getRefreshToken())
-                .user(userService.getUserInfor(user))
-                .build();
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    request.getEmail(),
+                    request.getPassword()
+            ));
+            User user = this.userRepository.findByEmail(request.getEmail()).orElseThrow();
+            return AuthenticationResponse
+                    .builder()
+                    .accessToken(jwtService.generateToken(user))
+                    .refreshToken(user.getRefreshToken())
+                    .user(userService.getUserInfor(user))
+                    .build();
+        }catch (BadCredentialsException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+        }
     }
     public boolean verifyAccount(String verifyKey) {
         User user = userRepository.findByVerifyKey(verifyKey).orElseThrow();

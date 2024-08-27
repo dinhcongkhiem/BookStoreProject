@@ -1,5 +1,8 @@
 package com.project.book_store_be.Security;
 
+import com.project.book_store_be.Exception.CustomAuthenticationEntryPoint;
+import com.project.book_store_be.Repository.HttpCookieOAuth2AuthorizationRequestRepository;
+import com.project.book_store_be.Services.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +32,9 @@ public class SecurityConfiguration {
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final LogoutHandler logoutHandler;
+    private final HttpCookieOAuth2AuthorizationRequestRepository cookieOAuth2AuthorizationRequestRepository;
+    private final OAuth2SuccessHandler auth2SuccessHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Value("${client.url}")
     private String clientUrl;
@@ -63,12 +69,21 @@ public class SecurityConfiguration {
                         .requestMatchers(USER_LIST_URL).hasAnyRole(USER.name())
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling.authenticationEntryPoint(new CustomAuthenticationEntryPoint()))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout ->
                         logout.logoutUrl("/api/v1/user/logout")
                                 .addLogoutHandler(logoutHandler)
                                 .logoutSuccessHandler(((request, response, authentication) -> SecurityContextHolder.clearContext())))
+                .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint()
+                        .baseUri("/oauth2/authorize")
+                        .authorizationRequestRepository(cookieOAuth2AuthorizationRequestRepository)
+                        .and()
+                        .userInfoEndpoint().userService(customOAuth2UserService)
+                        .and().successHandler(auth2SuccessHandler))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable);
         return http.build();

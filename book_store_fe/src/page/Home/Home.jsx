@@ -1,3 +1,4 @@
+
 import Button from '@mui/material/Button';
 import Carousel from 'react-bootstrap/Carousel';
 import image1 from '../../assets/image/1.png';
@@ -7,6 +8,11 @@ import classNames from 'classnames/bind';
 import style from './Home.module.scss';
 const cx = classNames.bind(style);
 
+
+
+
+import style from './Home.module.scss'
+const cx = classNames.bind(style);
 function Home() {
     return (
         <div className={cx('carouselContainer')}>
