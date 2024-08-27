@@ -15,7 +15,9 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
-    private String publisher; //toi tuong co 1 table cho thg pushlishêrr này
+    @ManyToOne
+    @JoinColumn(name = "id_publisher")
+    private Publisher publisher;
     private Date publication_date;
     private Integer number_of_pages;
     private Float price;

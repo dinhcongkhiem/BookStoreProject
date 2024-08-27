@@ -23,13 +23,21 @@ public class ProductService {
     public Product updateProduct(Long id, Product productDetails) {
         Product pr = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
         pr.setTitle(productDetails.getTitle());
+
         pr.setPublisher(productDetails.getPublisher());
+
         pr.setPublication_date(productDetails.getPublication_date());
+
         pr.setNumber_of_pages(productDetails.getNumber_of_pages());
+
         pr.setPrice(productDetails.getPrice());
+
         pr.setCategory(productDetails.getCategory());
+
         pr.setAuthor(productDetails.getAuthor());
+
         pr.setImage(productDetails.getImage());
+
         return productRepository.save(pr);
     }
 }
