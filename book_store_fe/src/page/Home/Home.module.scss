@@ -1,0 +1,11 @@
+.carouselContainer {
+    max-width: 77%; 
+    margin: 0 auto; 
+    .carouselCaptionCustom {
+        padding: 2rem;
+        border-radius: 1rem;
+        button {
+            margin-top: 1rem;
+        }
+    }
+}
