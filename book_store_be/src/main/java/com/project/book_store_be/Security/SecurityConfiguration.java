@@ -1,5 +1,6 @@
 package com.project.book_store_be.Security;
 
+import com.project.book_store_be.Exception.CustomAuthenticationEntryPoint;
 import com.project.book_store_be.Repository.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.project.book_store_be.Services.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +69,8 @@ public class SecurityConfiguration {
                         .requestMatchers(USER_LIST_URL).hasAnyRole(USER.name())
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling.authenticationEntryPoint(new CustomAuthenticationEntryPoint()))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout ->

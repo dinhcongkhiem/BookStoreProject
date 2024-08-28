@@ -6,6 +6,7 @@ import com.project.book_store_be.Exception.BadRequestException;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.project.book_store_be.Repository.UserRepository;
+import com.project.book_store_be.Response.AuthenticationResponse;
 import com.project.book_store_be.Services.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -36,10 +37,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final UserService userService;
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Value("${client.url}")
     private String client_url;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         String targetUrl = determineTargetUrl(request, response, authentication);
@@ -54,7 +57,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         Optional<String> redirectUri = this.getCookie(request, "redirect_uri")
                 .map(Cookie::getValue);
-        if(redirectUri.isPresent() && !isAuthorizedRedirectUri(redirectUri.get())) {
+        if (redirectUri.isPresent() && !isAuthorizedRedirectUri(redirectUri.get())) {
             throw new BadRequestException("Sorry! We've got an Unauthorized Redirect URI and can't proceed with the authentication");
         }
 
@@ -73,10 +76,10 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         response.addHeader(HttpHeaders.SET_COOKIE, authCookie.toString());
         return UriComponentsBuilder.fromUriString(targetUrl)
-                .queryParam("token", token)
-                .queryParam("refreshToken",user.getRefreshToken())
+                .queryParam("refreshToken", user.getRefreshToken())
                 .build().toUriString();
     }
+
     protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
         super.clearAuthenticationAttributes(request);
         httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
