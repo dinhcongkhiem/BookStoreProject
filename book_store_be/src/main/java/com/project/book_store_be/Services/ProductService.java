@@ -36,7 +36,7 @@ public class ProductService {
 
         pr.setAuthor(productDetails.getAuthor());
 
-        pr.setImage(productDetails.getImage());
+
 
         return productRepository.save(pr);
     }

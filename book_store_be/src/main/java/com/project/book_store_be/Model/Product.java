@@ -27,7 +27,6 @@ public class Product {
     @JoinColumn(name = "id_author")
     @ManyToOne
     private Author author;
-    @JoinColumn(name = "id_image")
-    @ManyToOne
-    private Image image;
+
+
 }
