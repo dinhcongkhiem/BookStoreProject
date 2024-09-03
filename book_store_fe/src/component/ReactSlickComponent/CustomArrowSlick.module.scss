@@ -1,0 +1,30 @@
+.custom-arrow {
+    line-height: 0;
+    position: absolute;
+    top: 50%;
+    display: block;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    transform: translate(0, -50%);
+    cursor: pointer;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 3rem;
+    transition: color 0.4s;
+    &:hover {
+        color: #0dc0df;
+    }
+    &:active {
+        color: unset;
+    }
+}
+
+.right-arrow {
+    right: -35px;
+}
+
+.left-arrow {
+    left: -35px;
+}

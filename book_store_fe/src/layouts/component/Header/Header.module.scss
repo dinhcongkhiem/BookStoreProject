@@ -1,7 +1,7 @@
 .container {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-evenly;
     padding: 1rem 2rem;
     background-color: #f8f9fa;
     border-bottom: 1px solid #e0e0e0;
@@ -9,7 +9,6 @@
 }
 
 .logo {
-    margin-right: 10rem;
     a {
         display: block;
         width: 15rem;
@@ -40,7 +39,7 @@
 
         &:focus {
             outline: none;
-            border-color: #007bff;
+            border-color: var(--primary);
             box-shadow: 0 0 0.5rem rgba(0, 123, 255, 0.5);
         }
     }
@@ -53,7 +52,7 @@
         transition: color 0.3s ease;
 
         &:hover {
-            color: #007bff;
+            color: var(--primary);
         }
     }
 }
@@ -64,27 +63,60 @@
     button {
         padding: 1rem 2rem;
         font-size: 1.4rem;
-        background-color: #007bff;
-        color: #fff;
+        background-color: var(--primary);
+        color: var(--black);
+        font-weight: 700;
         border: none;
         border-radius: 2rem;
         cursor: pointer;
         transition: background-color 0.3s ease, box-shadow 0.3s ease;
 
         &:hover {
-            background-color: #0056b3;
+            background-color: var(--hover-background);
             box-shadow: 0 0 1rem rgba(0, 123, 255, 0.5);
         }
     }
 }
+.action {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
 
-.cart {
-    margin-left: 2rem;
+    .user-menu {
+        border: 1px solid #cecece;
+        border-radius: 1rem;
+        overflow: hidden;
+        li {
+            border-bottom: 1px solid #ececec;
+            cursor: pointer;
+            font-weight: 500;
+            user-select: none;
+            transition: all 0.3s;
+
+            a {
+                display: block;
+                padding: 0.6rem 2.5rem;
+            }
+            &:hover {
+                background-color: #dbecfd;
+                transform: scale(1.05);
+            }
+            &:active {
+                opacity: 0.4;
+            }
+            &:last-child {
+                border: none;
+            }
+        }
+    }
+}
+.cart,
+.user {
     color: #6c757d;
     cursor: pointer;
     transition: color 0.3s ease;
 
     &:hover {
-        color: #007bff;
+        color: var(--hover-background);
     }
 }

@@ -14,12 +14,12 @@ public class AddressService {
 
     public Address createAddress (Address address) {
         Optional<Address> sameAddress = addressRepository.findTheSameAddress(
-                address.getProvinces().getValue(),
-                address.getProvinces().getLabel(),
-                address.getDistricts().getValue(),
-                address.getDistricts().getLabel(),
-                address.getCommunes().getValue(),
-                address.getCommunes().getLabel(),
+                address.getProvince().getValue(),
+                address.getProvince().getLabel(),
+                address.getDistrict().getValue(),
+                address.getDistrict().getLabel(),
+                address.getCommune().getValue(),
+                address.getCommune().getLabel(),
                 address.getAddressDetail());
         if(sameAddress.isEmpty()) {
             addressRepository.save(address);

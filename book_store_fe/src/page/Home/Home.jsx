@@ -1,53 +1,162 @@
-
 import Button from '@mui/material/Button';
 import Carousel from 'react-bootstrap/Carousel';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+import Rating from '@mui/material/Rating';
+import Stack from '@mui/material/Stack';
+
+import style from './Home.module.scss';
 import image1 from '../../assets/image/1.png';
 import image2 from '../../assets/image/2.png';
 import image3 from '../../assets/image/3.png';
 import classNames from 'classnames/bind';
-import style from './Home.module.scss';
-const cx = classNames.bind(style);
-
-
-
-
-import style from './Home.module.scss'
+import NextArrow from '../../component/ReactSlickComponent/NextArrow';
+import PrevArrow from '../../component/ReactSlickComponent/PrevArrow';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
 const cx = classNames.bind(style);
 function Home() {
+    const listImgSlide = [
+        { url: image1, alt: 'First slide' },
+        { url: image2, alt: 'First slide' },
+        { url: image3, alt: 'First slide' },
+    ];
+    const testListHotDeal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const settingsHotDeal = {
+        dots: false,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 5,
+        slidesToScroll: 1,
+        swipe: false,
+        centerPadding: '100px',
+        nextArrow: <NextArrow />,
+        prevArrow: <PrevArrow />,
+    };
     return (
-        <div className={cx('carouselContainer')}>
-            <Carousel interval={3000} fade controls={false}>
-                <Carousel.Item>
-                    <img
-                        className={cx('d-block w-100', 'carouselImage')}
-                        src={image1}
-                        alt="Third slide"
-                    />
-                    <Carousel.Caption className={cx('carouselCaptionCustom')}>
-                        <Button variant="contained" color="primary">Browse Store</Button>
-                    </Carousel.Caption>
-                </Carousel.Item>
-                <Carousel.Item>
-                    <img
-                        className={cx('d-block w-100', 'carouselImage')}
-                        src={image2}
-                        alt="Third slide"
-                    />
-                    <Carousel.Caption className={cx('carouselCaptionCustom')}>
-                        <Button variant="contained" color="secondary">Browse Store</Button>
-                    </Carousel.Caption>
-                </Carousel.Item>
-                <Carousel.Item>
-                    <img
-                        className={cx('d-block w-100', 'carouselImage')}
-                        src={image3}
-                        alt="Third slide"
-                    />
-                    <Carousel.Caption className={cx('carouselCaptionCustom')}>
-                        <Button variant="contained" color="success">Browse Store</Button>
-                    </Carousel.Caption>
-                </Carousel.Item>
-            </Carousel>
+        <div className={cx('wrapper')}>
+            <div className={cx('carouselContainer')}>
+                <Carousel interval={3000} fade controls={false}>
+                    {listImgSlide.map((imgSlide) => {
+                        return (
+                            <Carousel.Item>
+                                <img
+                                    className={cx('d-block w-100', 'carouselImage')}
+                                    src={imgSlide.url}
+                                    alt={imgSlide.alt}
+                                />
+                                <Carousel.Caption className={cx('carouselCaptionCustom')}>
+                                    <Button variant="contained" color="primary">
+                                        Browse Store
+                                    </Button>
+                                </Carousel.Caption>
+                            </Carousel.Item>
+                        );
+                    })}
+                </Carousel>
+            </div>
+            <div className={cx('bestSelling')}>
+                <div className={cx('headerSection')}>
+                    <h3>Sách bán chạy</h3>
+                    <Link to="">
+                        Xem thêm
+                        <span>
+                            <FontAwesomeIcon icon={faChevronRight} />
+                        </span>
+                    </Link>
+                </div>
+                <div className={cx('productContainer')}>
+                    <Slider {...settingsHotDeal}>
+                        {testListHotDeal.map(() => {
+                            return (
+                                <div className={cx('productWrapper')}>
+                                    <div className={cx('thumbnail')}>
+                                        <img
+                                            src="https://salt.tikicdn.com/cache/750x750/ts/product/e0/15/3d/37a4ab0ab9169654f9b8ea56ca72f013.jpg.webp"
+                                            alt="img-product"
+                                        />
+                                    </div>
+
+                                    <div className={cx('product-properties')}>
+                                        <h4>Không Diệt Không Sinh Đừng Sợ Hãi (TB5)</h4>
+                                        <p>THÍCH NHẤT HẠNH</p>
+                                        <div className={cx('ratingList')}>
+                                            <Stack spacing={1}>
+                                                <Rating
+                                                    name="half-rating-read"
+                                                    defaultValue={2.5}
+                                                    precision={0.5}
+                                                    readOnly
+                                                    size="small"
+                                                />
+                                            </Stack>
+                                            <p className={cx('quantitySold')}>
+                                                Đã bán <span>2157</span>
+                                            </p>
+                                        </div>
+                                        <div className={cx('price')}>
+                                            <span>
+                                                99.235
+                                                <sup>₫</sup>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </Slider>
+                </div>
+            </div>
+            <div className={cx('lastPushlishSection')}>
+                <div className={cx('headerSection')}>
+                    <h3>Sách mới nhất</h3>
+                    <Link to="/">
+                        Xem thêm
+                        <FontAwesomeIcon icon={faChevronRight} />
+                    </Link>
+                </div>
+                <div className={cx('productContainer')}>
+                    {testListHotDeal.map(() => {
+                        return (
+                            <div className={cx('productWrapper')}>
+                                <div className={cx('thumbnail')}>
+                                    <img
+                                        src="https://salt.tikicdn.com/cache/750x750/ts/product/e0/15/3d/37a4ab0ab9169654f9b8ea56ca72f013.jpg.webp"
+                                        alt="img-product"
+                                    />
+                                </div>
+
+                                <div className={cx('product-properties')}>
+                                    <h4>Không Diệt Không Sinh Đừng Sợ Hãi (TB5)</h4>
+                                    <p>THÍCH NHẤT HẠNH</p>
+                                    <div className={cx('ratingList')}>
+                                        <Stack spacing={1}>
+                                            <Rating
+                                                name="half-rating-read"
+                                                defaultValue={2.5}
+                                                precision={0.5}
+                                                readOnly
+                                                size="small"
+                                            />
+                                        </Stack>
+                                        <p className={cx('quantitySold')}>
+                                            Đã bán <span>2157</span>
+                                        </p>
+                                    </div>
+                                    <div className={cx('price')}>
+                                        <span>
+                                            99.235
+                                            <sup>₫</sup>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
         </div>
     );
 }

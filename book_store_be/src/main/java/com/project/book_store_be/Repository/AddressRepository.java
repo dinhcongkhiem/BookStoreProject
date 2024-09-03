@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public interface AddressRepository extends JpaRepository<Address, Long> {
     @Query("SELECT a FROM Address a WHERE a.addressDetail LIKE :detail" +
-            " AND a.provinces.value LIKE :provinceValue AND a.provinces.label LIKE :provinceLabel" +
-            " AND a.districts.value LIKE :districtValue AND a.districts.label LIKE :districtLabel" +
-            " AND a.communes.value LIKE :communeValue AND a.communes.label LIKE :communeLabel")
+            " AND a.province.value LIKE :provinceValue AND a.province.label LIKE :provinceLabel" +
+            " AND a.district.value LIKE :districtValue AND a.district.label LIKE :districtLabel" +
+            " AND a.commune.value LIKE :communeValue AND a.commune.label LIKE :communeLabel")
     Optional<Address> findTheSameAddress(
             @Param("provinceValue") String provinceValue,
             @Param("provinceLabel") String provinceLabel,
