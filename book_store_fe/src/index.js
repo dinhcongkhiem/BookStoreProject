@@ -15,16 +15,16 @@ const theme = createTheme({
 });
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    // <React.StrictMode>
-    <AuthenticationProvider>
-        <ThemeProvider theme={theme}>
-            <GlobalStyles>
-                <App />
-                <ToastContainer autoClose={2000} />
-            </GlobalStyles>
-        </ThemeProvider>
-    </AuthenticationProvider>,
-    // </React.StrictMode>,
+    <React.StrictMode>
+        <AuthenticationProvider>
+            <ThemeProvider theme={theme}>
+                <GlobalStyles>
+                    <App />
+                    <ToastContainer autoClose={2000} />
+                </GlobalStyles>
+            </ThemeProvider>
+        </AuthenticationProvider>
+    </React.StrictMode>,
 );
 
 reportWebVitals();
