@@ -25,19 +25,19 @@ public class Address {
             @AttributeOverride(name = "value", column = @Column(name = "province_value")),
             @AttributeOverride(name = "label", column = @Column(name = "province_label"))
     })
-    private Province provinces;
+    private Province province;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "value", column = @Column(name = "district_value")),
             @AttributeOverride(name = "label", column = @Column(name = "district_label"))
     })
-    private District districts;
+    private District district;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "value", column = @Column(name = "commune_value")),
             @AttributeOverride(name = "label", column = @Column(name = "commune_label"))
     })
-    private Commune communes;
+    private Commune commune;
 }

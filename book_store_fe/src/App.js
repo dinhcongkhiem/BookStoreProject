@@ -36,11 +36,11 @@ function App() {
                             key={route.path || index}
                             path={route.path}
                             element={
-                                <userRoutes>
+                                <PrivateRoute>
                                     <Layout>
                                         <Page />
                                     </Layout>
-                                </userRoutes>
+                                </PrivateRoute>
                             }
                         />
                     );
