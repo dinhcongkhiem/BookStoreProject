@@ -1,6 +1,6 @@
 import Button from '@mui/material/Button';
 import Carousel from 'react-bootstrap/Carousel';
-import image1 from '../../assets/image/1.png';
+import image1 from '../../assets/image/BannerHome.png';
 import image2 from '../../assets/image/2.png';
 import image3 from '../../assets/image/3.png';
 import classNames from 'classnames/bind';
