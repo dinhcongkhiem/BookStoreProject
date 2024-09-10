@@ -10,14 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @Builder
-
 public class ImageFileService {
-
-
 
     @Autowired
     private ImageRepository repo;
@@ -54,6 +52,16 @@ public class ImageFileService {
             throw new IllegalArgumentException("ImageProduct with ID " + id + "not found");
         }
     }
+
+    public List<ImageProduct> listImageProductId(Long productId){
+        return repo.findByProductId(productId);
+    }
+
+    public Optional<ImageProduct> getImageProductId(Long productId){
+        return  repo.findImageProductById(productId);
+    }
+
+
 
 
 }
