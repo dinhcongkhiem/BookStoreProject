@@ -35,11 +35,9 @@ function Login() {
         emailFormat: false,
         password: false,
     });
-    const [isLoading, setIsLoading] = useState(false);
     const [isRemember, setIsRemember] = useState(true);
     const LoginBtnRef = useRef();
-    const { login } = useContext(AuthenticationContext);
-
+    const { login, authentication } = useContext(AuthenticationContext);
     const handleClickShowPassword = () => setShowPassword((show) => !show);
 
     const handleMouseDownPassword = (event) => {
@@ -48,12 +46,15 @@ function Login() {
 
     const handleLogin = () => {
         if (validateInputsLogin(listErr, { email, password }, setListErr)) {
-            setIsLoading(true);
-            login(email, password, isRemember);
-            setIsLoading(false);
+            login(email, password, isRemember, navigate);
         }
     };
     useEffect(() => {
+        console.log(authentication.isAuthen);
+
+        if (authentication.isAuthen) {
+            navigate('/');
+        }
         const handleKeyPress = (e) => {
             if (e.key === 'Enter') {
                 LoginBtnRef.current.click();
@@ -63,7 +64,7 @@ function Login() {
         return () => {
             window.removeEventListener('keypress', handleKeyPress);
         };
-    }, []);
+    }, [authentication.isAuthen, navigate]);
 
     return (
         <div className={cx('wrapper')}>
@@ -114,7 +115,13 @@ function Login() {
 
                     <div className="d-flex justify-content-between align-items-center">
                         <FormControlLabel
-                            control={<Checkbox defaultChecked value={isRemember} onChange={(e) => console.log(e)} />}
+                            control={
+                                <Checkbox
+                                    defaultChecked
+                                    value={isRemember}
+                                    onChange={() => setIsRemember(!isRemember)}
+                                />
+                            }
                             label={<Typography sx={{ fontWeight: 600 }}>Ghi nhớ đăng nhập</Typography>}
                         />
                         <Link underline="hover">{'Quên mật khẩu?'}</Link>
@@ -133,11 +140,23 @@ function Login() {
                     </div>
                     <br />
                     <div className={cx('other-option')}>
-                        <Button variant="outlined">
+                        <Button
+                            variant="outlined"
+                            onClick={() =>
+                                (window.location.href =
+                                    'http://localhost:8080/oauth2/authorize/google?redirect_uri=http://localhost:3000/oauth2/redirect')
+                            }
+                        >
                             <img src={googleIcon} /> Đăng nhập với Google
                         </Button>
 
-                        <Button variant="outlined">
+                        <Button
+                            variant="outlined"
+                            onClick={() =>
+                                (window.location.href =
+                                    'http://localhost:8080/oauth2/authorize/facebook?redirect_uri=http://localhost:3000/oauth2/redirect')
+                            }
+                        >
                             <img src={facebookIcon} /> Đăng nhập với Facebook
                         </Button>
                     </div>

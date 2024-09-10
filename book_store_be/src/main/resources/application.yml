@@ -20,12 +20,12 @@ spring:
             client:
                 registration:
                     google:
-                        client-id:
-                        client-secret:
+                        client-id: 
+                        client-secret: 
                         scope: profile,email
                     facebook:
-                        client-id:
-                        client-secret:
+                        client-id: 
+                        client-secret: 
 
     mail:
         host: pro55.emailserver.vn
@@ -43,9 +43,9 @@ spring:
                         enable: true
 
 s3:
-    accessKey:
-    secretKey:
-    bucketName:
+    accessKey: 
+    secretKey: 
+    bucketName: bookbazaar-project
 springdoc:
     api-docs:
         path: /api-docs

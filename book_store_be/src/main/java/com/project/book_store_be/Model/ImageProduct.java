@@ -2,6 +2,7 @@ package com.project.book_store_be.Model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,16 +10,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "publisher")
-public class Publisher {
+@Builder
+@Table(name = "image_product")
+public class ImageProduct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
+    private String fileName;
+    private String fileUrl;
 
-    private String name;
-
-    private String address;
-
-
+    @JoinColumn(name = "id_product")
+    @ManyToOne
+    private Product product;
 
 }

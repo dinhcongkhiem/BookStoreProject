@@ -51,7 +51,6 @@ public class AuthController {
             httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, authCookie.toString());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
         }
     }

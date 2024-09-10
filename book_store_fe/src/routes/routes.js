@@ -1,5 +1,10 @@
-import layouts from '../layouts';
+
+
 import { Home, Profile, Login, Register, About, Contact } from '../page';
+import OAuth2Redirect from '../component/HandlerRedirect/OAuth2Redirect/OAuth2Redirect';
+import ActiveAccountRedirect from '../component/HandlerRedirect/ActiveAccountRedirect/ActiveAccountRedirect';
+import { Home, Profile, Login, Register } from '../page';
+
 
 // Public routes
 const publicRoutes = [
@@ -8,6 +13,9 @@ const publicRoutes = [
     { path: '/register', component: Register, layout: null },
     { path: '/about', component: About },
     { path: '/contact', component: Contact },
+    { path: '/oauth2/redirect', component: OAuth2Redirect, layout: null },
+    { path: '/verify/redirect', component: ActiveAccountRedirect, layout: null },
+
 ];
 
 const userRoutes = [{ path: '/profile/info', component: Profile }];

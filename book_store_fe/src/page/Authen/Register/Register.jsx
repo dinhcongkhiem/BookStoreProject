@@ -18,10 +18,13 @@ import {
 import FormControl from '@mui/material/FormControl';
 
 import style from '../Authen.module.scss';
-import { validateInputsLogin, validateInputsRegister } from '../../../utills/ValidateInputs';
+import { validateInputsRegister } from '../../../utills/ValidateInputs';
 import AddressService from '../../../service/AddressService';
 import googleIcon from '../../../assets/icons/google.png';
 import facebookIcon from '../../../assets/icons/facebook.png';
+import AuthService from '../../../service/AuthService';
+import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
+import { toast } from 'react-toastify';
 
 const cx = classNames.bind(style);
 function Register() {
@@ -37,6 +40,7 @@ function Register() {
     const [addressDetail, setAddressDetail] = useState('');
 
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [provincesOptions, setProvincesOptions] = useState();
     const [districtsOptions, setDistrictsOptions] = useState();
@@ -60,13 +64,19 @@ function Register() {
     const [isLoading, setIsLoading] = useState(false);
     const ResgisterBtnRef = useRef();
 
-    const handleClickShowPassword = () => setShowPassword((show) => !show);
+    const handleClickShowPassword = (index) => {
+        if (index === 0) {
+            setShowPassword((show) => !show);
+        } else if (index === 1) {
+            setShowConfirmPassword((show) => !show);
+        }
+    };
 
     const handleMouseDownPassword = (event) => {
         event.preventDefault();
     };
 
-    const handleLogin = () => {
+    const handleRegister = () => {
         if (
             validateInputsRegister(
                 listErr,
@@ -74,26 +84,61 @@ function Register() {
                 setListErr,
             )
         ) {
-            console.log({
-                fullname,
+            setIsLoading(true);
+            const data = {
+                fullName: fullname,
                 email,
                 phoneNum,
                 password,
                 confirmPassword,
-                province,
-                district,
-                commune,
-                addressDetail,
-            });
+                address: {
+                    province,
+                    district,
+                    commune,
+                    addressDetail,
+                },
+                role: 'USER',
+            };
+
+            AuthService.Register(data)
+                .then((res) => {
+                    if (res.status === 200) {
+                        toast.success('Vui lòng kiểm tra email để kích hoạt tài khoản của bạn!', {
+                            position: 'top-center',
+                        });
+                        setFullname('');
+                        setEmail('');
+                        setPassword('');
+                        setPhoneNum('');
+                        setConfirmPassword('');
+                        setProvince('');
+                        setDistrict('');
+                        setCommune('');
+                        setAddressDetail('');
+                        setShowPassword('');
+                        setShowConfirmPassword('');
+                    }
+                })
+                .catch((err) => {
+                    if (err.response.status === 400) {
+                        toast.warn(err.response.data, { position: 'top-center' });
+                    }
+                })
+                .finally(() => {
+                    setIsLoading(false);
+                });
         }
     };
 
     const handleChangeAddress = (type, e) => {
         if (type === 1) {
             setProvince(e.target.value);
+            setDistrict('');
+            setCommune('');
             handleFetchAddress(type + 1, e.target.value.value);
         } else if (type === 2) {
             setDistrict(e.target.value);
+            setCommune('');
             handleFetchAddress(type + 1, e.target.value.value);
         } else {
             setCommune(e.target.value);
@@ -250,7 +295,7 @@ function Register() {
                                 <InputAdornment position="end">
                                     <IconButton
                                         aria-label="toggle password visibility"
-                                        onClick={handleClickShowPassword}
+                                        onClick={() => handleClickShowPassword(0)}
                                         onMouseDown={handleMouseDownPassword}
                                         edge="end"
                                     >
@@ -275,16 +320,16 @@ function Register() {
                         <InputLabel htmlFor="confirm-password">Xác nhận mật khẩu</InputLabel>
                         <OutlinedInput
                             id="confirm-password"
-                            type={showPassword ? 'text' : 'password'}
+                            type={showConfirmPassword ? 'text' : 'password'}
                             endAdornment={
                                 <InputAdornment position="end">
                                     <IconButton
                                         aria-label="toggle password visibility"
-                                        onClick={handleClickShowPassword}
+                                        onClick={() => handleClickShowPassword(1)}
                                         onMouseDown={handleMouseDownPassword}
                                         edge="end"
                                     >
-                                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                                     </IconButton>
                                 </InputAdornment>
                             }
@@ -315,7 +360,7 @@ function Register() {
                             {' Đăng nhập'}
                         </Link>
                     </p>
-                    <Button variant="contained" onClick={handleLogin} ref={ResgisterBtnRef} size="large">
+                    <Button variant="contained" onClick={handleRegister} ref={ResgisterBtnRef} size="large">
                         Đăng ký
                     </Button>
                 </div>
@@ -330,6 +375,7 @@ function Register() {
                     </Button>
                 </div>
             </div>
+            <ModalLoading isLoading={isLoading} />
         </div>
     );
 }
