@@ -1,5 +1,6 @@
 import Button from '@mui/material/Button';
 import Carousel from 'react-bootstrap/Carousel';
+
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -7,7 +8,7 @@ import Rating from '@mui/material/Rating';
 import Stack from '@mui/material/Stack';
 
 import style from './Home.module.scss';
-import image1 from '../../assets/image/1.png';
+import image1 from '../../assets/image/BannerHome.png';
 import image2 from '../../assets/image/2.png';
 import image3 from '../../assets/image/3.png';
 import classNames from 'classnames/bind';
