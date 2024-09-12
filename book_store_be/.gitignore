@@ -3,6 +3,9 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+!**/src/main/resources/application.yml
+
+D:\Workspace\BookStoreProject\book_store_be\src\main\resources
 *.yml
 ### STS ###
 .apt_generated
