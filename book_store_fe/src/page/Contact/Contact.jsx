@@ -1,63 +1,17 @@
-import React, { useRef, useState, useEffect } from 'react';
-import emailjs from 'emailjs-com';
+import React, { useRef } from 'react';
 import classNames from 'classnames/bind';
 import style from './Contact.module.scss';
 import image1 from '../../assets/image/banner.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHouse, faPhone, faMessage, faArrowUp } from '@fortawesome/free-solid-svg-icons';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { faHouse, faPhone, faMessage } from '@fortawesome/free-solid-svg-icons';
 
 const cx = classNames.bind(style);
 
 function Contact() {
     const form = useRef();
-    const [showButton, setShowButton] = useState(false);
 
     const sendEmail = (e) => {
         e.preventDefault();
-
-        emailjs.sendForm(
-            'service_zoywzs5',
-            'template_4amr11n',
-            form.current,
-            'NF6Zjilc07oxMSyM5'
-        ).then(
-            (result) => {
-                console.log(result.text);
-                toast.success('Gửi thành công!', {
-                    position: 'top-center',
-                });
-            },
-            (error) => {
-                console.log(error.text);
-                toast.error('Gửi thất bại!', {
-                    position: 'top-center',
-                });
-            }
-        );
-    };
-
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.pageYOffset > 300) {
-                setShowButton(true);
-            } else {
-                setShowButton(false);
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
-
-    const scrollToTop = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth',
-        });
     };
 
     return (
@@ -72,6 +26,7 @@ function Contact() {
                     allowFullScreen=""
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
+                    title="map"
                 ></iframe>
             </div>
             <div className={cx('title')}>
@@ -79,12 +34,12 @@ function Contact() {
             </div>
             <div className={cx('content')}>
                 <form ref={form} onSubmit={sendEmail} className={cx('input-contact')}>
-                    <textarea name="message" placeholder='Nhập nội dung phản hồi' required />
+                    <textarea name="message" placeholder="Nhập nội dung phản hồi" required />
                     <div className={cx('name-email-row')}>
-                        <input type="text" name="name" placeholder='Nhập tên của bạn' required />
-                        <input type="email" name="email" placeholder='Nhập địa chỉ email' required />
+                        <input type="text" name="name" placeholder="Nhập tên của bạn" required />
+                        <input type="email" name="email" placeholder="Nhập địa chỉ email" required />
                     </div>
-                    <input type="text" name="subject" placeholder='Nhập tiêu đề phản hồi' required />
+                    <input type="text" name="subject" placeholder="Nhập tiêu đề phản hồi" required />
                     <button type="submit" className={cx('submit-button')}>
                         Gửi
                     </button>
@@ -111,14 +66,6 @@ function Contact() {
                     </div>
                 </div>
             </div>
-            
-            {showButton && (
-                <button className={cx('back-to-top')} onClick={scrollToTop}>
-                    <FontAwesomeIcon icon={faArrowUp} />
-                </button>
-            )}
-
-            <ToastContainer />
         </div>
     );
 }
