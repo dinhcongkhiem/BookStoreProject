@@ -1,5 +1,7 @@
 package com.project.book_store_be.Security;
 
+import com.project.book_store_be.Model.User;
+import com.project.book_store_be.Services.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -9,8 +11,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,7 +23,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final UserService userService;
 
     @Override
     protected void doFilterInternal(
@@ -32,39 +32,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         final String authCookie;
-        final String userEmail;
+        final String userId;
 
         Cookie[] cookies = request.getCookies();
-        if(cookies == null) {
-            filterChain.doFilter(request,response);
+        if (cookies == null) {
+            filterChain.doFilter(request, response);
             return;
         }
 
-        Optional<String>  cookieValue = Arrays.stream(cookies)
+        Optional<String> cookieValue = Arrays.stream(cookies)
                 .filter(cookie -> "accessToken".equals(cookie.getName()))
                 .map(Cookie::getValue)
                 .findFirst();
         authCookie = cookieValue.orElse(null);
         try {
-            userEmail = jwtService.extractUsername(authCookie);
-        }catch (Exception e) {
+            userId = jwtService.extractUserID(authCookie);
+        } catch (Exception e) {
             e.printStackTrace();
-            filterChain.doFilter(request,response);
+            filterChain.doFilter(request, response);
             return;
         }
 
-        if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-            if(jwtService.isTokenValid(authCookie,userDetails)){
+        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            User user = this.userService.findById(Long.valueOf(userId));
+            if (jwtService.isTokenValid(authCookie, user)) {
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        user,
                         null,
-                        userDetails.getAuthorities()
+                        user.getAuthorities()
                 );
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
         }
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -22,11 +23,13 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AddressService addressService;
 
+    public User findById(Long id) {
+        return userRepository.findById(id).orElseThrow(NoSuchElementException::new);
+    }
     public User getCurrentStudent() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             return (User) authentication.getPrincipal();
-
         }
         return null;
     }

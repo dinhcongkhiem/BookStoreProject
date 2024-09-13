@@ -11,15 +11,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Builder
-@Table(name = "image_product")
 public class ImageProduct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String fileName;
-    private String fileUrl;
-
-    @JoinColumn(name = "id_product")
+    private String nameImage;
+    private String urlImage;
     @ManyToOne
     private Product product;
 

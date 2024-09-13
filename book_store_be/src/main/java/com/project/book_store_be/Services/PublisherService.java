@@ -17,7 +17,7 @@ public class PublisherService {
         return repo.findAll();
     }
 
-    public Optional<Publisher> getPublisherById(Integer id){
+    public Optional<Publisher> getPublisherById(Long id){
         return repo.findById(id);
     }
 
@@ -25,14 +25,14 @@ public class PublisherService {
         return repo.save(publisher);
     }
 
-    public Publisher updatePublisher(Integer id, Publisher publisherDetails){
+    public Publisher updatePublisher(Long id, Publisher publisherDetails){
         Publisher publisher = repo.findById(id).orElseThrow(() ->new RuntimeException("Publisher not found"));
         publisher.setName(publisherDetails.getName());
         publisher.setAddress(publisher.getAddress());
         return repo.save(publisher);
     }
 
-    public  void deletePublisher(Integer id){
+    public  void deletePublisher(Long id){
         Publisher publisher = repo.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
         repo.deleteById(id);
     }
