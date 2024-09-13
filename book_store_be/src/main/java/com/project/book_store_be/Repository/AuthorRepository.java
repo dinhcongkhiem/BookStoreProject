@@ -8,6 +8,6 @@ import javax.swing.text.html.Option;
 import java.util.Optional;
 
 @Repository
-public interface AuthorRepository extends JpaRepository<Author,Integer> {
+public interface AuthorRepository extends JpaRepository<Author,Long> {
     Optional<Author> findByPseudonym(String pseudonym);
 }

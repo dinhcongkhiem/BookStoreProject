@@ -1,10 +1,9 @@
 package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Model.ImageProduct;
-import com.project.book_store_be.Services.ImageFileService;
+import com.project.book_store_be.Services.ImageProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,14 +15,14 @@ import java.util.Optional;
 @RequestMapping("/api/v1/files")
 public class ImageController {
     @Autowired
-    private ImageFileService service;
+    private ImageProductService service;
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file,
                                              @RequestParam("fileName") String fileName,
                                              @RequestParam("productId") Long productId) {
         try {
-            String fileUrl = service.uploadFile(file, fileName, productId);
+            String fileUrl = service.uploadFile(file, productId);
             return ResponseEntity.ok(fileUrl);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Invalid input: " + e.getMessage());

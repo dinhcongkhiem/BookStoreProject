@@ -21,7 +21,7 @@ public class AuthorService {
         return repo.findAll();
     }
 
-    public Optional<Author> getAuthorById(Integer id){
+    public Optional<Author> getAuthorById(Long id){
         return repo.findById(id);
     }
 
@@ -34,7 +34,7 @@ public class AuthorService {
         return repo.save(author);
     }
 
-    public Author updateAuthor(Integer id, Author authorDetails) {
+    public Author updateAuthor(Long id, Author authorDetails) {
         Author author = repo.findById(id).orElseThrow(() ->  new AuthorNotFoundException("Author not found"));
 
         Optional<Author> existingAuthorWithPseudonym = repo.findByPseudonym(authorDetails.getPseudonym());
@@ -51,7 +51,7 @@ public class AuthorService {
 
 
 
-    public void  deleteAuthor(Integer id){
+    public void  deleteAuthor(Long id){
         Author author = repo.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
         repo.deleteById(id);
     }

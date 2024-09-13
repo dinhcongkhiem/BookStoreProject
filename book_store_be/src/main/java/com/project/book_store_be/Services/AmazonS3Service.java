@@ -61,9 +61,7 @@ public class AmazonS3Service {
        s3Client.putObject(putObjectRequest, RequestBody.fromFile(convertedFile));
 
         convertedFile.delete();
-
         return "https://" + bucketName + ".s3." + Region.AP_SOUTHEAST_1.id() + ".amazonaws.com/" + key;
-
     }
 
 }
