@@ -40,14 +40,7 @@ public class ImageProductService {
             throw new RuntimeException(e);
         }
     }
-
-    @Async
-    public CompletableFuture<String> uploadFileAsync(MultipartFile file, Long productId) throws IOException {
-        String fileUrl = uploadFile(file, productId);
-        return CompletableFuture.completedFuture(fileUrl);
-    }
-
-    public String uploadFile(MultipartFile file, Long productId) throws IOException {
+    public String InsertProductImage(MultipartFile file, Long productId) throws IOException {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException("Invalid product ID:" + productId));
         if (file.isEmpty()) {
@@ -63,7 +56,6 @@ public class ImageProductService {
         repo.save(imageProduct);
         return fileUrl;
     }
-
     public void deleteImageProduct(Long id) {
         if (repo.existsById(id)) {
             repo.deleteById(id);
@@ -71,14 +63,21 @@ public class ImageProductService {
             throw new IllegalArgumentException("ImageProduct with ID " + id + "not found");
         }
     }
-
-    public List<ImageProduct> listImageProductId(Long productId) {
+    public List<ImageProduct> getImagesProductId(Long productId) {
         return repo.findByProductId(productId);
     }
 
-    public Optional<ImageProduct> getImageProductId(Long productId) {
-        return repo.findImageProductById(productId);
+    public ImageProduct getThumbnailProduct(Long productId) {
+        return repo.findThumbnailByProductId(productId)
+                .orElseThrow(() -> new NoSuchElementException("No image found with product_id: " + productId));
     }
+
+    @Async
+    public CompletableFuture<String> uploadFileAsync(MultipartFile file, Long productId) throws IOException {
+        String fileUrl = InsertProductImage(file, productId);
+        return CompletableFuture.completedFuture(fileUrl);
+    }
+
 
 
 }

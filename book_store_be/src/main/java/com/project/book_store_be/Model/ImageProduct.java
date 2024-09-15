@@ -17,6 +17,7 @@ public class ImageProduct {
     private Long id;
     private String nameImage;
     private String urlImage;
+    private Boolean isThumbnail;
     @ManyToOne
     private Product product;
 

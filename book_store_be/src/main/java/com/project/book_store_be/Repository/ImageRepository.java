@@ -8,5 +8,8 @@ import java.util.Optional;
 
 public interface ImageRepository extends JpaRepository<ImageProduct,Long> {
     List<ImageProduct> findByProductId(Long productId);
-    Optional<ImageProduct> findImageProductById(Long productId);
+    Optional<ImageProduct> findByProductIdAndIsThumbnail(Long productId, Boolean isThumbnail);
+    default Optional<ImageProduct> findThumbnailByProductId(Long productId) {
+        return findByProductIdAndIsThumbnail(productId, true);
+    }
 }
