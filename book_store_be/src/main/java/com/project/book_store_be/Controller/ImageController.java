@@ -17,19 +17,19 @@ public class ImageController {
     @Autowired
     private ImageProductService service;
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file,
-                                             @RequestParam("fileName") String fileName,
-                                             @RequestParam("productId") Long productId) {
-        try {
-            String fileUrl = service.uploadFile(file, productId);
-            return ResponseEntity.ok(fileUrl);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Invalid input: " + e.getMessage());
-        } catch (IOException e) {
-            return ResponseEntity.status(500).body("File upload failed: " + e.getMessage());
-        }
-    }
+//    @PostMapping("/upload")
+//    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file,
+//                                             @RequestParam("fileName") String fileName,
+//                                             @RequestParam("productId") Long productId) {
+//        try {
+//            String fileUrl = service.uploadFile(file, productId);
+//            return ResponseEntity.ok(fileUrl);
+//        } catch (IllegalArgumentException e) {
+//            return ResponseEntity.badRequest().body("Invalid input: " + e.getMessage());
+//        } catch (IOException e) {
+//            return ResponseEntity.status(500).body("File upload failed: " + e.getMessage());
+//        }
+//    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteImageProduct(@PathVariable Long id) {
@@ -42,14 +42,14 @@ public class ImageController {
         }
     }
 
-    @GetMapping("/product/{productId}")
-    public List<ImageProduct> listProductId(@PathVariable Long productId) {
-        return service.listImageProductId(productId);
-    }
-
-    @GetMapping("/imageproduct/{productId}")
-    public Optional<ImageProduct> getImageProduct(@PathVariable Long productId) {
-        return service.getImageProductId(productId);
-    }
+//    @GetMapping("/product/{productId}")
+//    public List<ImageProduct> listProductId(@PathVariable Long productId) {
+//        return service.listImageProductId(productId);
+//    }
+//
+//    @GetMapping("/imageproduct/{productId}")
+//    public Optional<ImageProduct> getImageProduct(@PathVariable Long productId) {
+//        return service.getImageProductId(productId);
+//    }
 }
 
