@@ -20,12 +20,12 @@ spring:
             client:
                 registration:
                     google:
-                        client-id: 
-                        client-secret: 
+                        client-id: 463878333575-e4ehb2h7l1m1ngm569k36roeluu049m6.apps.googleusercontent.com
+                        client-secret: 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
                         scope: profile,email
                     facebook:
-                        client-id: 
-                        client-secret: 
+                        client-id: 1000666255400262
+                        client-secret: 4ada11a6a787f361fdab2e9464b0e79a
 
     mail:
         host: pro55.emailserver.vn
@@ -43,8 +43,8 @@ spring:
                         enable: true
 
 s3:
-    accessKey: 
-    secretKey: 
+    accessKey: AKIARYEUCDWNVCIE3ZAN
+    secretKey: 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
     bucketName: bookbazaar-project
 springdoc:
     api-docs:
