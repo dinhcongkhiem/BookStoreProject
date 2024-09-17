@@ -1,0 +1,77 @@
+.user-container {
+    display: flex;
+    padding: 4rem;
+    background-color: #f9f9f9;
+    gap: 2rem; 
+    border-radius: 1rem;
+    box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.1);
+}
+
+.sidebar {
+    width: 25rem;
+    background-color: #ffffff;
+    padding: 2rem;
+    border-right: 0.1rem solid #e0e0e0;
+    border-radius: 1rem;
+    box-shadow: 0 0.4rem 0.8rem rgba(0, 0, 0, 0.05);
+
+    ul {
+        list-style: none;
+        padding: 0;
+
+        li {
+            padding: 1.5rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s;
+            font-weight: bold;
+            border-radius: 0.8rem;
+            color: #333;
+
+            &:hover {
+                background-color: var(--hover-background-lighter);
+                transform: translateX(0.5rem);
+            }
+
+            &.active {
+                background-color: var(--primary);
+                color: white;
+                box-shadow: 0 0.3rem 0.6rem rgba(0, 123, 255, 0.2);
+            }
+        }
+    }
+}
+
+.content {
+    flex-grow: 1;
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 0.4rem 8px rgba(0, 0, 0, 0.05);
+
+    .section {
+        h2 {
+            color: #007bff;
+            font-size: 2.4rem;
+            margin-bottom: 2rem;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+
+            .save-button {
+                margin-top: 1.5rem;
+            }
+        }
+    }
+}
+
+.address-row {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+
+    div {
+        flex: 1;
+    }
+}
