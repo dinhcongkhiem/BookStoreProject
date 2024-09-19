@@ -31,9 +31,11 @@ function Header() {
                     <FontAwesomeIcon icon={faSearch} className={cx('searchIcon')} />
                 </div>
                 <div className={cx('action')}>
-                    <div className={cx('cart')}>
-                        <FontAwesomeIcon icon={faShoppingCart} size="lg" />
-                    </div>
+                    <Link to='/cart'>
+                        <div className={cx('cart')}>
+                            <FontAwesomeIcon icon={faShoppingCart} size="lg" />
+                        </div>
+                    </Link>
                     {authentication.isAuthen ? (
                         <Tippy
                             interactive

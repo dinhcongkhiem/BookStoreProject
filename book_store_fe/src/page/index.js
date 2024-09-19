@@ -6,4 +6,6 @@ import About from './About/About';
 import Contact from './Contact/Contact';
 import Product from './Product/Product';
 import User from './User/User';
-export { Home, Profile, Login, Register, About, Contact, User, Product };
+import Cart from './Cart/Cart';
+export { Home, Profile, Login, Register, About, Contact, User,Cart, Product };
+
