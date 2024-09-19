@@ -42,7 +42,7 @@ function Header() {
                                 <>
                                     <ul className={cx('user-menu')} {...attrs}>
                                         <li>
-                                            <Link to="/profile/info">Thông tin cá nhân</Link>
+                                            <Link to="/user">Thông tin cá nhân</Link>
                                         </li>
                                         <li>
                                             <Link to="/" onClick={() => logout()}>

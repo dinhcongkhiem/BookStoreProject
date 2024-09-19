@@ -5,4 +5,5 @@ import Register from './Authen/Register/Register';
 import About from './About/About';
 import Contact from './Contact/Contact';
 import Product from './Product/Product';
-export { Home, Profile, Login, Register, About, Contact, Product };
+import User from './User/User';
+export { Home, Profile, Login, Register, About, Contact, User, Product };
