@@ -4,8 +4,6 @@ import Carousel from 'react-bootstrap/Carousel';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import Rating from '@mui/material/Rating';
-import Stack from '@mui/material/Stack';
 
 import style from './Home.module.scss';
 import image1 from '../../assets/image/BannerHome.png';
@@ -17,6 +15,9 @@ import PrevArrow from '../../component/ReactSlickComponent/PrevArrow';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
+import ProductsComponent from '../../component/ProductsComponent/ProductsComponent';
+import { Stack } from 'react-bootstrap';
+import { Rating } from '@mui/material';
 const cx = classNames.bind(style);
 function Home() {
     const listImgSlide = [
@@ -71,41 +72,7 @@ function Home() {
                 <div className={cx('productContainer')}>
                     <Slider {...settingsHotDeal}>
                         {testListHotDeal.map(() => {
-                            return (
-                                <div className={cx('productWrapper')}>
-                                    <div className={cx('thumbnail')}>
-                                        <img
-                                            src="https://salt.tikicdn.com/cache/750x750/ts/product/e0/15/3d/37a4ab0ab9169654f9b8ea56ca72f013.jpg.webp"
-                                            alt="img-product"
-                                        />
-                                    </div>
-
-                                    <div className={cx('product-properties')}>
-                                        <h4>Không Diệt Không Sinh Đừng Sợ Hãi (TB5)</h4>
-                                        <p>THÍCH NHẤT HẠNH</p>
-                                        <div className={cx('ratingList')}>
-                                            <Stack spacing={1}>
-                                                <Rating
-                                                    name="half-rating-read"
-                                                    defaultValue={2.5}
-                                                    precision={0.5}
-                                                    readOnly
-                                                    size="small"
-                                                />
-                                            </Stack>
-                                            <p className={cx('quantitySold')}>
-                                                Đã bán <span>2157</span>
-                                            </p>
-                                        </div>
-                                        <div className={cx('price')}>
-                                            <span>
-                                                99.235
-                                                <sup>₫</sup>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
+                            return <ProductsComponent className={cx('productBestSelling')} />;
                         })}
                     </Slider>
                 </div>
@@ -120,41 +87,7 @@ function Home() {
                 </div>
                 <div className={cx('productContainer')}>
                     {testListHotDeal.map(() => {
-                        return (
-                            <div className={cx('productWrapper')}>
-                                <div className={cx('thumbnail')}>
-                                    <img
-                                        src="https://salt.tikicdn.com/cache/750x750/ts/product/e0/15/3d/37a4ab0ab9169654f9b8ea56ca72f013.jpg.webp"
-                                        alt="img-product"
-                                    />
-                                </div>
-
-                                <div className={cx('product-properties')}>
-                                    <h4>Không Diệt Không Sinh Đừng Sợ Hãi (TB5)</h4>
-                                    <p>THÍCH NHẤT HẠNH</p>
-                                    <div className={cx('ratingList')}>
-                                        <Stack spacing={1}>
-                                            <Rating
-                                                name="half-rating-read"
-                                                defaultValue={2.5}
-                                                precision={0.5}
-                                                readOnly
-                                                size="small"
-                                            />
-                                        </Stack>
-                                        <p className={cx('quantitySold')}>
-                                            Đã bán <span>2157</span>
-                                        </p>
-                                    </div>
-                                    <div className={cx('price')}>
-                                        <span>
-                                            99.235
-                                            <sup>₫</sup>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        );
+                        return <ProductsComponent />;
                     })}
                 </div>
             </div>

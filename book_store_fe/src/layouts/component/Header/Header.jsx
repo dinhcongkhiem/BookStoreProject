@@ -77,17 +77,17 @@ function Header() {
                             <Nav.Link as={Link} to="/">
                                 Home
                             </Nav.Link>
-                            <Nav.Link as={Link} to="/categories">
-                                Categories
-                            </Nav.Link>
-                            <Nav.Link as={Link} to="/about">
-                                About
+                            <Nav.Link as={Link} to="/product">
+                                Products
                             </Nav.Link>
                             <Nav.Link as={Link} to="/pages">
                                 Pages
                             </Nav.Link>
                             <Nav.Link as={Link} to="/blog">
                                 Blog
+                            </Nav.Link>
+                            <Nav.Link as={Link} to="/about">
+                                About
                             </Nav.Link>
                             <Nav.Link as={Link} to="/contact">
                                 Contact
