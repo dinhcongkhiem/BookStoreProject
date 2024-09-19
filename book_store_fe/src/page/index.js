@@ -7,5 +7,5 @@ import Contact from './Contact/Contact';
 import Product from './Product/Product';
 import User from './User/User';
 import Cart from './Cart/Cart';
-export { Home, Profile, Login, Register, About, Contact, User,Cart, Product };
+export { Home, Profile, Login, Register, About, Contact, User, Product,Cart };
 
