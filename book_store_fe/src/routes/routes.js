@@ -1,4 +1,4 @@
-import { Home, Profile, Login, Register, About, Contact, Product, User } from '../page';
+import { Home, Profile, Login, Register, About, Contact, Product, User,Cart } from '../page';
 import OAuth2Redirect from '../component/HandlerRedirect/OAuth2Redirect/OAuth2Redirect';
 import ActiveAccountRedirect from '../component/HandlerRedirect/ActiveAccountRedirect/ActiveAccountRedirect';
 
@@ -11,6 +11,7 @@ const publicRoutes = [
     { path: '/contact', component: Contact },
     { path: '/product', component: Product },
     { path: '/user', component: User },
+    { path: '/cart', component: Cart },
     { path: '/oauth2/redirect', component: OAuth2Redirect, layout: null },
     { path: '/verify/redirect', component: ActiveAccountRedirect, layout: null },
 ];
