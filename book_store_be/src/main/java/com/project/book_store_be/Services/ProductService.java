@@ -30,8 +30,9 @@ public class ProductService {
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize);
         return productRepository.findAll(pageRequest).map(this::convertToProductResponse);
     }
-    public ProductResponse findProductById(Long id) {
-        return this.convertToProductResponse(productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("No product found with id: " + id)));
+    public ProductDetailResponse findProductById(Long id) {
+        return this.convertToProductDetailResponse(productRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("No product found with id: " + id)));
     }
 
     public void addProduct(ProductRequest request, List<MultipartFile> images) {
@@ -90,14 +91,20 @@ public class ProductService {
                 .id(product.getId())
                 .name(product.getName())
                 .original_price(product.getOriginal_price())
+                .publication_date(product.getPublication_date())
+                .number_of_pages(product.getNumber_of_pages())
+                .description(product.getDescription())
+                .quantity(product.getQuantity())
                 .author(product.getAuthor())
+                .category(product.getCategory())
+                .publisher(product.getPublisher())
 //                .discount(CHUA LAM)  PENDING PENDING
 //                .discount_rate()   PENDING PENDING
 //                .price()  PENDING PENDING
 //                .quantity_sold()   PENDING
 //                .rating_average() PENDING
 //                .review_count()    PENDING PENDING
-
+                .images(imageProductService.getImagesProductId(product.getId()))
                 .build();
     }
 

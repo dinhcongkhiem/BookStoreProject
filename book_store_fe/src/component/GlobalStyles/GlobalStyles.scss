@@ -62,3 +62,9 @@ html *::-webkit-scrollbar-track {
     border-radius: 0;
     background-color: rgba(0, 0, 0, 0);
 }
+.MuiButtonBase-root.MuiListItemButton-root.MuiListItemButton-gutters {
+    border-radius: 0.5rem;
+}
+.MuiButtonBase-root.MuiListItemButton-root.MuiListItemButton-gutters.Mui-selected {
+    background-color: var(--hover-background-lighter);
+}

@@ -8,6 +8,7 @@ import com.project.book_store_be.Repository.HttpCookieOAuth2AuthorizationRequest
 import com.project.book_store_be.Repository.UserRepository;
 import com.project.book_store_be.Response.AuthenticationResponse;
 import com.project.book_store_be.Services.UserService;
+import com.project.book_store_be.util.CookieUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,7 +38,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
-    private final UserService userService;
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Value("${client.url}")
@@ -55,7 +55,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        Optional<String> redirectUri = this.getCookie(request, "redirect_uri")
+        Optional<String> redirectUri = CookieUtils.getCookie(request, "redirect_uri")
                 .map(Cookie::getValue);
         if (redirectUri.isPresent() && !isAuthorizedRedirectUri(redirectUri.get())) {
             throw new BadRequestException("Sorry! We've got an Unauthorized Redirect URI and can't proceed with the authentication");
@@ -96,7 +96,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         return Optional.empty();
     }
 
-    private boolean isAuthorizedRedirectUri(String uri) {
+    boolean isAuthorizedRedirectUri(String uri) {
         String RedirectUri = client_url + "/oauth2/redirect";
         String RedirectUri_http = client_url + ":80/oauth2/redirect";
         String RedirectUri_https = client_url + ":443/oauth2/redirect";
@@ -104,19 +104,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         return authorizedRedirectUris.contains(uri);
     }
 
-    public static Optional<Cookie> getCookie(HttpServletRequest request, String name) {
-        Cookie[] cookies = request.getCookies();
-
-        if (cookies != null && cookies.length > 0) {
-            for (Cookie cookie : cookies) {
-                if (cookie.getName().equals(name)) {
-                    return Optional.of(cookie);
-                }
-            }
-        }
-
-        return Optional.empty();
-    }
 
 
 }

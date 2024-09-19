@@ -34,6 +34,7 @@ public class SecurityConfiguration {
     private final LogoutHandler logoutHandler;
     private final HttpCookieOAuth2AuthorizationRequestRepository cookieOAuth2AuthorizationRequestRepository;
     private final OAuth2SuccessHandler auth2SuccessHandler;
+    private final OAuth2FailureHandler auth2FailureHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
 
     @Value("${client.url}")
@@ -83,7 +84,9 @@ public class SecurityConfiguration {
                         .authorizationRequestRepository(cookieOAuth2AuthorizationRequestRepository)
                         .and()
                         .userInfoEndpoint().userService(customOAuth2UserService)
-                        .and().successHandler(auth2SuccessHandler))
+                        .and()
+                        .successHandler(auth2SuccessHandler)
+                        .failureHandler(auth2FailureHandler))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable);
         return http.build();
