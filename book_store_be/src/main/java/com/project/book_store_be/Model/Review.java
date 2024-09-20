@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -26,5 +27,5 @@ public class Review {
     private int star;
     private int likeCount;
     @Column(name = "update_time")
-    private LocalDateTime updateTime;
+    private Date updateTime;
 }
