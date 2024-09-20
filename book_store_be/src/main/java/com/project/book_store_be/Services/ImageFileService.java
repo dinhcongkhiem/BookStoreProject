@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -57,11 +58,9 @@ public class ImageFileService {
         return repo.findByProductId(productId);
     }
 
-    public Optional<ImageProduct> getImageProductId(Long productId){
-        return  repo.findImageProductById(productId);
+    public ImageProduct getImageProductId(Long productId) {
+        return repo.findImageProductById(productId)
+                .orElseThrow(() -> new NoSuchElementException("ImageProduct not found for id: " + productId));
     }
-
-
-
 
 }

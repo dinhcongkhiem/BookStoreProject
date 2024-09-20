@@ -43,14 +43,5 @@ public class ImageController {
         }
     }
 
-    @GetMapping("/product/{productId}")
-    public List<ImageProduct> listProductId(@PathVariable Long productId) {
-        return service.listImageProductId(productId);
-    }
-
-    @GetMapping("/imageproduct/{productId}")
-    public Optional<ImageProduct> getImageProduct(@PathVariable Long productId) {
-        return service.getImageProductId(productId);
-    }
 }
 
