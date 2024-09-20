@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import DefaultLayout from './layouts';
-import { adminRoutes, userRoutes, publicRoutes } from './routes/routes';
+import { adminRoutes, userRoutes, publicRoutes } from './routes';
 import { AdminRoute, PrivateRoute } from './component/PrivateRoute/PrivateRoute';
 import { Fragment } from 'react';
+import AdminLayout from './layouts/AdminLayout/AdminLayout';
 function App() {
     return (
         <Router>
@@ -48,7 +49,7 @@ function App() {
 
                 {adminRoutes.map((route, index) => {
                     const Page = route.component;
-                    let Layout = DefaultLayout;
+                    let Layout = AdminLayout;
                     if (route.layout) {
                         Layout = route.layout;
                     }

@@ -1,4 +1,4 @@
-import { Home, Profile, Login, Register, About, Contact, Product, User,Cart } from '../page';
+import { Home, Profile, Login, Register, About, Contact, Product, User, Dashboard } from '../page';
 import OAuth2Redirect from '../component/HandlerRedirect/OAuth2Redirect/OAuth2Redirect';
 import ActiveAccountRedirect from '../component/HandlerRedirect/ActiveAccountRedirect/ActiveAccountRedirect';
 
@@ -18,6 +18,6 @@ const publicRoutes = [
 
 const userRoutes = [{ path: '/profile/info', component: Profile }];
 
-const adminRoutes = [];
+const adminRoutes = [{ path: '/admin/dashboard', component: Dashboard }];
 
 export { publicRoutes, userRoutes, adminRoutes };
