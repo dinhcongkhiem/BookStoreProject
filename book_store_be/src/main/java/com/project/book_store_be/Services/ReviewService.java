@@ -5,7 +5,7 @@ import com.project.book_store_be.Model.Review;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.ProductRepository;
 import com.project.book_store_be.Repository.ReviewRepository;
-import com.project.book_store_be.Repository.UserRepository;
+import com.project.book_store_be.Request.ReviewRequest;
 import com.project.book_store_be.Response.ReviewRes.ReviewDetailResponse;
 import com.project.book_store_be.Response.ReviewRes.ReviewResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,58 +23,44 @@ import java.util.stream.Collectors;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
-    private  final UserRepository userRepository;
+    private final UserService userService;
 
-    public ReviewDetailResponse addReview(Long productId, Review review) {
-        Optional<Product> productOptional = productRepository.findById(productId);
-        if (productOptional.isEmpty()) {
-            System.out.println("Product not found with ID: " + productId);
-            return null;
-        }
-        Product product = productOptional.get();
+    public ReviewDetailResponse addReview(Long productId, ReviewRequest reviewRequest, int page, int size) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NoSuchElementException("No product found with id: " + productId));
+        User currentUser = userService.getCurrentStudent();
+        Review review = new Review();
         review.setProduct(product);
-        Optional<User> userOptional = userRepository.findById(review.getUser().getId());
-        if (userOptional.isEmpty()) {
-            System.out.println("User not found with ID: " + review.getUser().getId());
-            return null;
-        }
-        User user = userOptional.get();
-        review.setUser(user);
+        review.setUser(currentUser);
+        review.setComment(reviewRequest.getComment());
+        review.setStar(reviewRequest.getStar());
+        review.setLikeCount(reviewRequest.getLikeCount());
         review.setUpdateTime(new Date());
         reviewRepository.save(review);
-        return getReviewDetails(productId, 0, 10);
+        return getReviewDetails(productId, page, size);
     }
 
-    public ReviewDetailResponse updateReview(Long reviewId, Review updatedReview) {
-        Optional<Review> reviewOptional = reviewRepository.findById(reviewId);
-        if (reviewOptional.isEmpty()) {
-            System.out.println("Review not found with ID: " + reviewId);
-            return null;
-        }
-        Review review = reviewOptional.get();
-        review.setComment(updatedReview.getComment());
-        review.setStar(updatedReview.getStar());
-        review.setLikeCount(updatedReview.getLikeCount());
-        review.setUpdateTime(new Date());
+
+    public ReviewDetailResponse updateReview(Long reviewId, ReviewRequest reviewRequest, int page, int size) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NoSuchElementException("No review found with id: " + reviewId));
+        review.setComment(reviewRequest.getComment());
+        review.setStar(reviewRequest.getStar());
+        review.setLikeCount(reviewRequest.getLikeCount());
         reviewRepository.save(review);
-        return getReviewDetails(review.getProduct().getId(), 0, 10);
+        return getReviewDetails(review.getProduct().getId(), page, size);
     }
 
-    public ReviewDetailResponse deleteReview(Long reviewId) {
-        Optional<Review> reviewOptional = reviewRepository.findById(reviewId);
-        if (reviewOptional.isEmpty()) {
-            System.out.println("Review not found with ID: " + reviewId);
-            return null;
-        }
-        Review review = reviewOptional.get();
+    public ReviewDetailResponse deleteReview(Long reviewId, int page, int size) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NoSuchElementException("No review found with id: " + reviewId));
         Long productId = review.getProduct().getId();
         reviewRepository.deleteById(reviewId);
-        return getReviewDetails(productId,0 , 10);
+        return getReviewDetails(productId, page, size);
     }
 
     public ReviewDetailResponse getReviewDetails(Long productId, int page, int size) {
-        int pageSize = Math.max(size, 1); // Đảm bảo pageSize không nhỏ hơn 1
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("updateTime").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("updateTime").descending());
 
         Page<Review> reviewPage = reviewRepository.findByProductId(productId, pageable);
 
