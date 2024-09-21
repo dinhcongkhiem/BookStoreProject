@@ -46,10 +46,12 @@ public class SecurityConfiguration {
             "/api/v1/category/**",
             "/api-docs/**",
             "/swagger-ui/**"
+
 //            list url with permitAll;
     };
     private static final String[] USER_LIST_URL = {
-            "/api/v1/user/**"
+            "/api/v1/user/**",
+            "/api/v1/review/**",
 //            list url with user role
     };
     private static final String[] ADMIN_LIST_URL = {
