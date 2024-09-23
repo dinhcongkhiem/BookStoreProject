@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/discount")
@@ -53,18 +54,32 @@ public class DisCountController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateDiscount(@PathVariable Long id, @RequestBody DisCount discount) {
+    public ResponseEntity<?> updateDiscount(@PathVariable Long id, @RequestBody DisCountRequest disCountRequest) {
         try {
-            DisCount updatedDiscount = service.updateDiscount(id, discount);
-            if (updatedDiscount != null) {
-                return new ResponseEntity<>(updatedDiscount, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Optional<DisCount> optionalDiscount = service.findById(id);
+
+            if (!optionalDiscount.isPresent()) {
+                return new ResponseEntity<>("Discount not found", HttpStatus.NOT_FOUND);
             }
+
+            DisCount existingDiscount = optionalDiscount.get();
+
+            List<Product> products = productService.findAllByIds(disCountRequest.getProductIds());
+            existingDiscount.setDiscountRate(disCountRequest.getDiscountRate());
+            existingDiscount.setStartDate(disCountRequest.getStartDate());
+            existingDiscount.setEndDate(disCountRequest.getEndDate());
+            existingDiscount.setProducts(products);
+            DisCount updatedDiscount = service.updateDiscount(existingDiscount);
+            return new ResponseEntity<>(updatedDiscount, HttpStatus.OK);
+
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>("An error occurred while updating the discount", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteDisCount(@PathVariable Long id){

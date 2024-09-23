@@ -52,22 +52,16 @@ public class DisCountService {
         return repo.save(disCount);
     }
 
+    public Optional<DisCount> findById(Long id) {
+        return repo.findById(id);
+    }
 
 
 
 
-    public DisCount updateDiscount(Long id, DisCount discount) {
-        Optional<DisCount> existingDiscount = repo.findById(id);
-        if (existingDiscount.isPresent()) {
-            DisCount updatedDiscount = existingDiscount.get();
-            updatedDiscount.setStartDate(discount.getStartDate());
-            updatedDiscount.setEndDate(discount.getEndDate());
-            validateDiscountRate(discount.getDiscountRate());
-            updatedDiscount.setDiscountRate(discount.getDiscountRate());
 
-            return repo.save(updatedDiscount);
-        }
-        return null;
+    public DisCount updateDiscount(DisCount discount) {
+        return repo.save(discount);
     }
 
     public  void delete(Long id){
