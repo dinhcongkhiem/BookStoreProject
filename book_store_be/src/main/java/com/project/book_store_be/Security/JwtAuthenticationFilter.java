@@ -39,12 +39,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-
         Optional<String> cookieValue = Arrays.stream(cookies)
                 .filter(cookie -> "accessToken".equals(cookie.getName()))
                 .map(Cookie::getValue)
                 .findFirst();
         authCookie = cookieValue.orElse(null);
+        if (authCookie == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         try {
             userId = jwtService.extractUserID(authCookie);
         } catch (Exception e) {

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import classNames from 'classnames/bind';
 import { List, ListItemButton } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import style from './AdminLayout.module.scss';
 import logoBook from '../../assets/image/Logo-BookBazaar-nobg.png';
 import Tippy from '@tippyjs/react';
@@ -9,9 +9,11 @@ import { useContext } from 'react';
 import { AuthenticationContext } from '../../context/AuthenticationProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
+import { adminRoutes } from '../../routes/routes';
 
 const cx = classNames.bind(style);
 function AdminLayout({ children }) {
+    const navigate = useNavigate();
     const { authentication, logout } = useContext(AuthenticationContext);
 
     return (
@@ -49,19 +51,17 @@ function AdminLayout({ children }) {
             <div className={cx('container')} style={{ minHeight: '70rem' }}>
                 <div className={cx('nav-bar')}>
                     <List sx={{ paddingBottom: '0' }}>
-                        <ListItemButton sx={{ padding: '0.6rem 1.5rem' }} color={'secondary'} selected>
-                            <p>Dashboard</p>
-                        </ListItemButton>
-
-                        <ListItemButton sx={{ padding: '0.6rem 1.5rem' }} color={'secondary'}>
-                            <p>Tất cả</p>
-                        </ListItemButton>
-                        <ListItemButton sx={{ padding: '0.6rem 1.5rem' }} color={'secondary'}>
-                            <p>Tất cả</p>
-                        </ListItemButton>
-                        <ListItemButton sx={{ padding: '0.6rem 1.5rem' }} color={'secondary'}>
-                            <p>Tất cả</p>
-                        </ListItemButton>
+                        {adminRoutes.map((routes) => {
+                            return (
+                                <ListItemButton
+                                    sx={{ padding: '0.6rem 1.5rem' }}
+                                    color={'secondary'}
+                                    onClick={() => navigate(routes.path)}
+                                >
+                                    <p>{routes.label}</p>
+                                </ListItemButton>
+                            );
+                        })}
                     </List>
                 </div>
                 <div className={cx('content')}>{children}</div>

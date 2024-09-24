@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
-<body>
+<body style="width: 70%; margin: 0 auto">
 <h1>Hello <span th:text="${user.fullName}"></span></h1>
 <p>Welcome to SHOPNAME</p>
 <p>Please click this link to active your account, thanks !</p>
 <a th:href="${clientUrl} + '/verify/redirect?activeKey=' + ${user.verifyKey}">Click here to activate</a>
-
+<b>Xin cảm ơn</b>
+<h2 style="text-align: right">Book Bazaar</h2>
 </body>
 </html>

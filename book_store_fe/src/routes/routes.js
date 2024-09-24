@@ -18,6 +18,6 @@ const publicRoutes = [
 
 const userRoutes = [{ path: '/profile/info', component: Profile }];
 
-const adminRoutes = [{ path: '/admin/dashboard', component: Dashboard }];
+const adminRoutes = [{ path: '/admin/dashboard', component: Dashboard, label: 'Dashboard' }];
 
 export { publicRoutes, userRoutes, adminRoutes };
