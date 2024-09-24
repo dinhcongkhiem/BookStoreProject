@@ -2,16 +2,21 @@ package com.project.book_store_be.Model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
 @Data
+
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder(toBuilder = true)
 @Entity
 @Table(name = "discount")
+
 public class DisCount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,4 +35,6 @@ public class DisCount {
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )
     private List<Product> products;
+
+
 }

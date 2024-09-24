@@ -1,8 +1,8 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Request.DisCountRequest;
 import com.project.book_store_be.Model.DisCount;
 import com.project.book_store_be.Model.Product;
-import com.project.book_store_be.Model.Publisher;
 import com.project.book_store_be.Repository.DisCountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -12,12 +12,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
 public class DisCountService {
     @Autowired
     private DisCountRepository repo;
+
+    @Autowired
+    private ProductService productService;
 
 
     public List<DisCount> getAllDiscounts() {
@@ -46,9 +50,16 @@ public class DisCountService {
 
 
 
-    public DisCount createDiscount(DisCount disCount){
-        validateDiscountRate(disCount.getDiscountRate());
-        validateDiscountDates(disCount.getStartDate(), disCount.getEndDate());
+    public DisCount createDiscount(DisCountRequest disCountRequest) {
+        validateDiscountRate(disCountRequest.getDiscountRate());
+        validateDiscountDates(disCountRequest.getStartDate(), disCountRequest.getEndDate());
+        List<Product> products = productService.findAllByIds(disCountRequest.getProductIds());
+        DisCount disCount = DisCount.builder()
+                .discountRate(disCountRequest.getDiscountRate())
+                .startDate(disCountRequest.getStartDate())
+                .endDate(disCountRequest.getEndDate())
+                .products(products)
+                .build();
         return repo.save(disCount);
     }
 
@@ -60,12 +71,25 @@ public class DisCountService {
 
 
 
-    public DisCount updateDiscount(DisCount discount) {
-        return repo.save(discount);
+    public DisCount updateDiscount(Long id, DisCountRequest disCountRequest) {
+        Optional<DisCount> optionalDiscount = repo.findById(id);
+        if (!optionalDiscount.isPresent()) {
+            throw new RuntimeException("Discount not found");
+        }
+        DisCount existingDiscount = optionalDiscount.get();
+        List<Product> products = productService.findAllByIds(disCountRequest.getProductIds());
+        DisCount updatedDiscount = existingDiscount.toBuilder()
+                .discountRate(disCountRequest.getDiscountRate())
+                .startDate(disCountRequest.getStartDate())
+                .endDate(disCountRequest.getEndDate())
+                .products(products)
+                .build();
+        return repo.save(updatedDiscount);
     }
 
-    public  void delete(Long id){
-        DisCount disCount = repo.findById(id).orElseThrow(() -> new RuntimeException("DisCount not found"));
+
+    public void delete(Long id) {
+        DisCount disCount = repo.findById(id).orElseThrow(() -> new NoSuchElementException("DisCount not found"));
         repo.deleteById(id);
     }
 
