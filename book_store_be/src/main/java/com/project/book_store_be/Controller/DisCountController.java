@@ -24,7 +24,7 @@ public class DisCountController {
     private ProductService productService;
 
 
-    @GetMapping("/discountpage")
+    @GetMapping
     public Page<DisCount> getDiscounts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
