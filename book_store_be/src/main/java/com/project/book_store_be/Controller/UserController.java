@@ -1,5 +1,6 @@
 package com.project.book_store_be.Controller;
 
+import com.project.book_store_be.Exception.UserAlreadyExistsException;
 import com.project.book_store_be.Request.ChangePasswordRequest;
 import com.project.book_store_be.Request.UpdateUserRequest;
 import com.project.book_store_be.Response.UserResponse;
@@ -20,10 +21,15 @@ public class UserController {
     public ResponseEntity<UserResponse> getUser() {
         return ResponseEntity.ok(userService.getUserInfor(userService.getCurrentStudent()));
     }
-    @PatchMapping()
+    @PutMapping()
     public ResponseEntity<String> updateUser(@RequestBody UpdateUserRequest updateUserRequest){
-        userService.updateUser(updateUserRequest);
-        return ResponseEntity.ok("Cập nhập thông tin người dùng thành công");
+        try {
+            userService.updateUser(updateUserRequest);
+            return ResponseEntity.ok("Cập nhập thông tin người dùng thành công");
+        }catch (UserAlreadyExistsException ex) {
+            return ResponseEntity.badRequest()
+                    .body("Người dùng với email " + updateUserRequest.getEmail() + " đã tồn tại.");
+        }
     }
     @PatchMapping("/change-password")
     public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {

@@ -115,9 +115,8 @@ function Dashboard() {
                         <Table aria-labelledby="tableTitle">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell align="center" padding="normal">
-                                        Dessert (100g serving)
-                                    </TableCell>
+                                    <TableCell align="center">ID</TableCell>
+                                    <TableCell align="center">Tên khách hàng</TableCell>
                                     <TableCell align="right" padding="none">
                                         Calories
                                     </TableCell>

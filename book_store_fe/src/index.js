@@ -28,7 +28,7 @@ root.render(
             <ThemeProvider theme={theme}>
                 <GlobalStyles>
                     <App />
-                    <ToastContainer autoClose={2000} />
+                    <ToastContainer autoClose={2000} position="top-center" />
                 </GlobalStyles>
             </ThemeProvider>
         </AuthenticationProvider>

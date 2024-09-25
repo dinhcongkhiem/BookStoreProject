@@ -11,16 +11,29 @@ function AuthenticationProvider({ children }) {
         isAuthen: false,
         refreshToken: '',
         user: '',
+        isRemember: false,
     });
     const [loading, setLoading] = useState(true);
     useEffect(() => {
-        const RefreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
-        const User = localStorage.getItem('user') || sessionStorage.getItem('user');
+        let User = null;
+        let RefreshToken = {};
+        let isRemember = false;
+        if (localStorage.getItem('user') !== null && localStorage.getItem('refreshToken') !== null) {
+            User = localStorage.getItem('user');
+            RefreshToken = localStorage.getItem('refreshToken');
+            isRemember = true;
+        } else {
+            User = sessionStorage.getItem('user');
+            RefreshToken = sessionStorage.getItem('refreshToken');
+            isRemember = false;
+        }
+
         if (RefreshToken && User) {
             SetAuthentication({
                 isAuthen: true,
                 refreshToken: RefreshToken,
                 user: JSON.parse(User),
+                isRemember: isRemember,
             });
         }
         setLoading(false);
@@ -36,13 +49,14 @@ function AuthenticationProvider({ children }) {
                         isAuthen: true,
                         refreshToken: response.data.refreshToken,
                         user: response.data.user,
+                        isRemember: isRemember,
                     });
-
                     const storage = isRemember ? localStorage : sessionStorage;
                     storage.setItem('refreshToken', response.data.refreshToken);
                     storage.setItem('user', JSON.stringify(response.data.user));
                     setIsLoading(false);
                     navigate('/');
+
                     toast.success('Đăng nhập thành công', { position: 'top-center' });
                 }
             })

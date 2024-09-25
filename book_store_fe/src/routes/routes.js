@@ -10,13 +10,16 @@ const publicRoutes = [
     { path: '/about', component: About },
     { path: '/contact', component: Contact },
     { path: '/product', component: Product },
-    { path: '/user', component: User },
+    ,
     { path: '/cart', component: Cart },
     { path: '/oauth2/redirect', component: OAuth2Redirect, layout: null },
     { path: '/verify/redirect', component: ActiveAccountRedirect, layout: null },
 ];
 
-const userRoutes = [{ path: '/profile/info', component: Profile }];
+const userRoutes = [
+    { path: '/profile/info', component: Profile },
+    { path: '/user', component: User },
+];
 
 const adminRoutes = [{ path: '/admin/dashboard', component: Dashboard, label: 'Dashboard' }];
 
