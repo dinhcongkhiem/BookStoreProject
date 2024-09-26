@@ -4,18 +4,13 @@ package com.project.book_store_be.Services;
 import com.project.book_store_be.Enum.Role;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.UserRepository;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.AllArgsConstructor;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring6.SpringTemplateEngine;
+
 
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
@@ -34,25 +29,22 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User user = super.loadUser(userRequest);
         Map<String, Object> attributes = user.getAttributes();
         String email = (String) attributes.get("email");
-        String phoneNum = (String) attributes.get("phone");
 
-        if (!userRepository.findByPhoneNum(phoneNum).isPresent()) {
-            if (!userRepository.findByEmail(email).isPresent()) {
-                String defaultPassword = generateRandomPassword();
-                User newUser = User.builder()
-                        .fullName((String) attributes.get("name"))
-                        .email(email)
-                        .refreshToken(this.generateRefreshToken(email))
-                        .role(Role.USER)
-                        .isEnabled(true)
-                        .password(defaultPassword)
-                        .build();
+        if (!userRepository.findByEmail(email).isPresent()) {
+            String defaultPassword = generateRandomPassword();
+            User newUser = User.builder()
+                    .fullName((String) attributes.get("name"))
+                    .email(email)
+                    .refreshToken(this.generateRefreshToken(email))
+                    .role(Role.USER)
+                    .isEnabled(true)
+                    .password(defaultPassword)
+                    .build();
 
-                userRepository.save(newUser);
-                Map<String, Object> emailVariables = new HashMap<>();
-                emailVariables.put("newPassword", defaultPassword);
-                sendMailService.sendEmail(newUser, "Thông báo mật khẩu", "notificationPasswordTemplate.html", emailVariables);
-            }
+            userRepository.save(newUser);
+            Map<String, Object> emailVariables = new HashMap<>();
+            emailVariables.put("newPassword", defaultPassword);
+            sendMailService.sendEmail(newUser, "Thông báo mật khẩu", "notificationPasswordTemplate.html", emailVariables);
         }
         return user;
     }
@@ -69,12 +61,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return password.toString();
     }
 
-    public void LoginOuth2(User user){
-        boolean sdt = userRepository.findByEmail(user.getEmail()).isPresent();
-        if(!sdt) {
-            userRepository.save(user);
-        }
-    }
     public String generateRefreshToken(String email) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
         String current = sdf.format(new Date(System.currentTimeMillis()));
