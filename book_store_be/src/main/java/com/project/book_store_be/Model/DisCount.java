@@ -1,5 +1,6 @@
 package com.project.book_store_be.Model;
 
+import com.project.book_store_be.Enum.DiscountStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 
@@ -16,7 +17,6 @@ import java.util.List;
 @Builder(toBuilder = true)
 @Entity
 @Table(name = "discount")
-
 public class DisCount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +27,7 @@ public class DisCount {
     private Date endDate;
 
     private Integer discountRate;
-
+    private DiscountStatus status;
     @OneToMany
     @JoinTable(
             name = "discount_detail",

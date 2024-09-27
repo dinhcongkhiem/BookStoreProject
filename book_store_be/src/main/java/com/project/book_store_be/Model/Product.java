@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -20,6 +21,7 @@ public class Product {
     private String name;
     private Date publication_date;
     private Integer number_of_pages;
+    private BigDecimal cost;
     private BigDecimal original_price;
     private Integer quantity;
     private ProductStatus status;
@@ -27,10 +29,10 @@ public class Product {
     private String description;
     @ManyToOne
     private Publisher publisher;
-    @ManyToOne
-    private Category category;
-    @ManyToOne
-    private Author author;
+    @ManyToMany
+    private List<Category> categories;
+    @ManyToMany
+    private List<Author> authors;
 
 
 }

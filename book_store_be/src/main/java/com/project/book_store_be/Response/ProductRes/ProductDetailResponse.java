@@ -5,6 +5,7 @@ import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Model.Category;
 import com.project.book_store_be.Model.ImageProduct;
 import com.project.book_store_be.Model.Publisher;
+import jakarta.persistence.ManyToMany;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -21,8 +22,7 @@ public class ProductDetailResponse extends ProductBaseResponse {
     private Integer quantity;
     private String description;
     private List<ImageProduct> images;
-    private Category category;
-    private Author author;
+    private List<Category> categories;
     private Publisher publisher;
 
 }

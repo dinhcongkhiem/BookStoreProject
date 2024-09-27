@@ -3,6 +3,7 @@ package com.project.book_store_be.Services;
 import com.project.book_store_be.Exception.AuthorNotFoundException;
 import com.project.book_store_be.Exception.DuplicatePseudonymException;
 import com.project.book_store_be.Model.Author;
+import com.project.book_store_be.Model.Category;
 import com.project.book_store_be.Repository.AuthorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
@@ -23,6 +24,10 @@ public class AuthorService {
 
     public Optional<Author> getAuthorById(Long id){
         return repo.findById(id);
+    }
+
+    public List<Author> getAuthors(List<Long> authorsId) {
+        return repo.findAllById(authorsId);
     }
 
     public Author saveAuthor(Author author){

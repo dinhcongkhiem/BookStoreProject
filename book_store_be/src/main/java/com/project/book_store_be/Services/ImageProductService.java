@@ -68,8 +68,7 @@ public class ImageProductService {
     }
 
     public ImageProduct getThumbnailProduct(Long productId) {
-        return repo.findThumbnailByProductId(productId)
-                .orElseThrow(() -> new NoSuchElementException("No image found with product_id: " + productId));
+        return repo.findThumbnailByProductId(productId).orElse(null);
     }
 
     @Async
