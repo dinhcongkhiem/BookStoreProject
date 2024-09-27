@@ -30,7 +30,14 @@ public class ReviewService {
             return 0.0;
         }
         double totalStars = reviews.stream().mapToInt(Review::getStar).sum();
-        return totalStars / reviews.size();
+        double average =  totalStars / reviews.size();
+        if (average < 0.5) {
+            return 0.0;
+        } else if (average < 0.5 || average % 1 < 0.5) {
+            return Math.floor(average) + 0.5;
+        } else {
+            return Math.ceil(average);
+        }
     }
 
     public int getReviewCount(Long productId) {
