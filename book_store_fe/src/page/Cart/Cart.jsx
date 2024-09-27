@@ -273,8 +273,6 @@ function Cart() {
 
                 </DialogActions>
             </Dialog>
-
-
         </div>
     );
 }
