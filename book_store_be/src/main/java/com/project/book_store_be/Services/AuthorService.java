@@ -45,7 +45,6 @@ public class AuthorService {
         author.setName(authorDetails.getName());
         author.setNationality(authorDetails.getNationality());
         author.setPseudonym(authorDetails.getPseudonym());
-        author.setPublishedBooks(authorDetails.getPublishedBooks());
         return repo.save(author);
     }
 

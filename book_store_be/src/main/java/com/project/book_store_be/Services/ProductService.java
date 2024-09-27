@@ -6,13 +6,21 @@ import com.project.book_store_be.Request.ProductRequest;
 import com.project.book_store_be.Response.ProductRes.ProductBaseResponse;
 import com.project.book_store_be.Response.ProductRes.ProductDetailResponse;
 import com.project.book_store_be.Response.ProductRes.ProductResponse;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -112,6 +120,13 @@ public class ProductService {
     public List<Product> findAllByIds(List<Long> productIds) {
         return productRepository.findAllById(productIds);
     }
+
+
+    public List<Product> searchProducts(String productName, String categoryName, String authorName, String publisherName) {
+        return productRepository.searchProducts(productName, categoryName, authorName, publisherName);
+    }
+
+
 
 
 

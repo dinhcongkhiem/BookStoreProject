@@ -22,5 +22,5 @@ public class Author {
 
     private String pseudonym;
 
-    private Integer publishedBooks;
+
 }
