@@ -46,6 +46,7 @@ public class ProductController {
             return ResponseEntity.status(200).body("Thành công");
 
         } catch (Exception e) {
+            System.out.println(e);
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
@@ -65,5 +66,14 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(@RequestParam Long id, @RequestBody ProductRequest request) {
         Product updatedProduct = productService.updateProduct(id, request);
         return ResponseEntity.ok(updatedProduct);
+    }
+
+    @GetMapping("/search")
+    public List<Product> searchProducts(
+            @RequestParam(required = false) String productName,
+            @RequestParam(required = false) String categoryName,
+            @RequestParam(required = false) String authorName,
+            @RequestParam(required = false) String publisherName) {
+        return productService.searchProducts(productName, categoryName, authorName, publisherName);
     }
 }
