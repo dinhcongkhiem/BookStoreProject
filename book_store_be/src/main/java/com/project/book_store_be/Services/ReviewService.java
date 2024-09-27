@@ -24,6 +24,18 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
     private final UserService userService;
+    public double calculateReviewAverage(Long productId) {
+        List<Review> reviews = reviewRepository.findByProductId(productId);
+        if (reviews.isEmpty()) {
+            return 0.0;
+        }
+        double totalStars = reviews.stream().mapToInt(Review::getStar).sum();
+        return totalStars / reviews.size();
+    }
+
+    public int getReviewCount(Long productId) {
+        return reviewRepository.countByProductId(productId);
+    }
 
     public ReviewDetailResponse addReview(Long productId, ReviewRequest reviewRequest, int page, int size) {
         Product product = productRepository.findById(productId)
