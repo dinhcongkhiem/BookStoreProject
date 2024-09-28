@@ -36,6 +36,7 @@ public class ProductService {
     private final AuthorService authorService;
     private final ImageProductService imageProductService;
     private final DisCountRepository disCountRepository;
+    private final ReviewService reviewService;
 
     public Page<ProductResponse> getAllProducts(int pageNumber, int pageSize) {
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize);
@@ -128,6 +129,9 @@ public class ProductService {
                 .number_of_pages(product.getNumber_of_pages())
                 .description(product.getDescription())
                 .quantity(product.getQuantity())
+                .coverType(product.getCoverType())
+                .size(product.getSize())
+                .translator(product.getTranslator())
                 .authors(product.getAuthors())
                 .categories(product.getCategories())
                 .publisher(product.getPublisher())
@@ -135,8 +139,8 @@ public class ProductService {
                 .discount_rate(discountRate)
                 .price(product.getOriginal_price().subtract(discountValue))
 //                .quantity_sold()   PENDING
-//                .rating_average() PENDING
-//                .review_count()    PENDING PENDING
+                .rating_average(reviewService.calculateReviewAverage(product.getId()))
+                .review_count(reviewService.getReviewCount(product.getId()))
                 .images(imageProductService.getImagesProductId(product.getId()))
                 .build();
     }

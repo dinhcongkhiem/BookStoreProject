@@ -24,19 +24,19 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
     private final UserService userService;
-    public double calculateReviewAverage(Long productId) {
+    public Float calculateReviewAverage(Long productId) {
         List<Review> reviews = reviewRepository.findByProductId(productId);
         if (reviews.isEmpty()) {
-            return 0.0;
+            return 0.0F;
         }
         double totalStars = reviews.stream().mapToInt(Review::getStar).sum();
         double average =  totalStars / reviews.size();
         if (average < 0.5) {
-            return 0.0;
-        } else if (average < 0.5 || average % 1 < 0.5) {
-            return Math.floor(average) + 0.5;
+            return 0.0F;
+        } else if (average % 1 < 0.5) {
+            return (float) (Math.floor(average) + 0.5F);
         } else {
-            return Math.ceil(average);
+            return (float) Math.ceil(average);
         }
     }
 

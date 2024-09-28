@@ -1,8 +1,10 @@
 package com.project.book_store_be.Response.ProductRes;
 
+import com.project.book_store_be.Enum.CoverType;
 import com.project.book_store_be.Model.Category;
 import com.project.book_store_be.Model.ImageProduct;
 import com.project.book_store_be.Model.Publisher;
+import com.project.book_store_be.Model.Translator;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -18,6 +20,9 @@ public class ProductDetailResponse extends ProductBaseResponse {
     private Integer review_count;
     private Integer quantity;
     private String description;
+    private String size;
+    private Translator translator;
+    private CoverType coverType;
     private List<ImageProduct> images;
     private List<Category> categories;
     private Publisher publisher;

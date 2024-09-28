@@ -1,5 +1,6 @@
 package com.project.book_store_be.Model;
 
+import com.project.book_store_be.Enum.CoverType;
 import com.project.book_store_be.Enum.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,12 +22,16 @@ public class Product {
     private String name;
     private Date publication_date;
     private Integer number_of_pages;
-    private BigDecimal cost;
-    private BigDecimal original_price;
     private Integer quantity;
     private ProductStatus status;
+    private String size;
+    @ManyToOne
+    private Translator translator;
+    private CoverType coverType;
     @Column(columnDefinition = "TEXT")
     private String description;
+    private BigDecimal cost;
+    private BigDecimal original_price;
     @ManyToOne
     private Publisher publisher;
     @ManyToMany
