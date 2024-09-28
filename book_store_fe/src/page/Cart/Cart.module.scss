@@ -108,6 +108,10 @@
         .delete-button {
             flex: 1;
             text-align: center;
+
+            &:hover {
+                background-color: transparent;
+            }
         }
     }
 
@@ -119,25 +123,53 @@
     }
 }
 
+.quantity-container {
+    display: flex;
+    width: 9rem;
+    height: 3rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.quantity-btn {
+    flex: 1;
+    align-items: center;
+    background-color: #fff;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #f0f0f0;
+    }
+
+}
+
+.stock-remaining {
+    font-size: 0.9rem;
+    color: gray;
+    margin-top: 0.5rem;
+}
 
 .quantity-input {
-    width: 3rem;
-    font-size: 1.6rem;
+    flex: 1;
     text-align: center;
-    border: 1px solid #ccc;
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-    margin: 0 1rem;
-    -moz-appearance: textfield;
-    -webkit-appearance: none;
-    appearance: none;
-
-    &::-webkit-outer-spin-button,
-    &::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
+    border: none;
+    background-color: #fff;
+    font-size: 16px;
+    width: 100%;
+    outline: none;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
 }
+
+.quantity-input::-webkit-inner-spin-button,
+.quantity-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 
 .cart-summary {
     flex: 1;
@@ -186,15 +218,14 @@
 }
 
 .discount-section {
-    background-color: #fff;
     border-radius: 0.8rem;
-    box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
 
     h3 {
         font-size: 1.4rem;
         color: #333;
         margin-bottom: 1rem;
+        padding-top:1rem ;
     }
 
     .discount-content {
@@ -219,11 +250,21 @@
     }
 }
 
+.delete-icon-btn {
+    color: #6c757d;
+    transition: color 0.3s ease;
+
+    &:hover {
+        color: #ff4d4d;
+    }
+}
+
 .search-container {
     display: flex;
     align-items: center;
     gap: 1rem;
     margin: 1rem 0;
+    position: relative;
 
     .close-icon {
         position: absolute;
@@ -233,28 +274,28 @@
         z-index: 1;
     }
 
-    .custom-textfield {
-        padding-right: 30px;
-    }
-
     .search-button {
-        background-color: #007bff; 
+        background-color: #007bff;
         color: white;
         border: none;
 
         &:hover {
-            background-color: #0056b3; 
+            background-color: #0056b3;
         }
+
         &:disabled {
             background-color: transparent;
-            color: #ccc; 
+            color: #ccc;
             border: 1px solid #ccc;
         }
     }
 
     .custom-textfield {
-        height: 0.5rem;
+        height: 3.6rem;
+        box-sizing: border-box;
+        width: 20rem;
     }
+
 }
 
 
