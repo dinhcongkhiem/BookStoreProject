@@ -16,30 +16,7 @@ public class CartService {
 
     @Autowired
     private CartRepository repo;
-    public List<Cart> findAll(){
-        return repo.findAll();
-    }
 
-    public Cart createCart(Cart cart){
-        return repo.save(cart);
-    }
-
-    public void delete(Long id) {
-        Cart cart = repo.findById(id).orElseThrow(() -> new NoSuchElementException("Cart not found"));
-        repo.deleteById(id);
-    }
-
-    public Cart updateCart(Long id, Cart updateCart){
-        return repo.findById(id).map(cart -> {
-            cart.setQuantity(updateCart.getQuantity());
-            cart.setTotalPrice(updateCart.getTotalPrice());
-            cart.setCreated_date(updateCart.getCreated_date());
-            cart.setUpdate_date(new Date());
-            cart.setCreated_date(new Date());
-            cart.setUser(updateCart.getUser());
-            return  repo.save(cart);
-        }).orElseThrow(() -> new RuntimeException("Cart not found with id" + id));
-    }
 
 
 }

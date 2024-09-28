@@ -18,35 +18,5 @@ public class CartController {
     @Autowired
     private CartService service;
 
-    @GetMapping
-    public List<Cart> getListCart(){
-        return service.findAll();
-    }
 
-    @PostMapping
-    public Cart createCart(@RequestBody Cart cart){
-        return service.createCart(cart);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Cart> updateCart(@PathVariable Long id, @RequestBody Cart cart){
-        try {
-            Cart updateCart = service.updateCart(id, cart);
-            return ResponseEntity.ok(updateCart);
-        }catch (RuntimeException e){
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCart(@PathVariable Long id) {
-        try {
-            service.delete(id);
-            return new ResponseEntity<>("Cart deleted successfully", HttpStatus.OK);
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>("Cart not found", HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>("An error occurred while deleting the cart", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 }
