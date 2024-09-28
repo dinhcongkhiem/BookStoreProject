@@ -1,11 +1,8 @@
 package com.project.book_store_be.Response.ProductRes;
 
-import com.project.book_store_be.Enum.ProductStatus;
-import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Model.Category;
 import com.project.book_store_be.Model.ImageProduct;
 import com.project.book_store_be.Model.Publisher;
-import jakarta.persistence.ManyToMany;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
