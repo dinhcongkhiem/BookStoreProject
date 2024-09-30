@@ -19,7 +19,7 @@ public class UserController {
 
     @GetMapping()
     public ResponseEntity<UserResponse> getUser() {
-        return ResponseEntity.ok(userService.getUserInfor(userService.getCurrentStudent()));
+        return ResponseEntity.ok(userService.getUserInfor(userService.getCurrentUser()));
     }
     @PutMapping()
     public ResponseEntity<String> updateUser(@RequestBody UpdateUserRequest updateUserRequest){

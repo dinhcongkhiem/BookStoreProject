@@ -8,22 +8,15 @@ import com.project.book_store_be.Repository.ProductRepository;
 import com.project.book_store_be.Request.ProductRequest;
 import com.project.book_store_be.Response.ProductRes.ProductDetailResponse;
 import com.project.book_store_be.Response.ProductRes.ProductResponse;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -59,7 +52,7 @@ public class ProductService {
                 .status(request.getStatus())
                 .categories(categoryService.getCategories(request.getCategoriesId()))
                 .authors(authorService.getAuthors(request.getAuthorsId()))
-                .publication_date(new Date())
+                .year_of_publication(request.getYear_of_publication())
                 .build();
         productRepository.save(product);
         imageProductService.uploadMultipleImageProduct(images, product);
@@ -125,18 +118,20 @@ public class ProductService {
                 .id(product.getId())
                 .name(product.getName())
                 .original_price(product.getOriginal_price())
-                .publication_date(product.getPublication_date())
+                .year_of_publication(product.getYear_of_publication())
                 .number_of_pages(product.getNumber_of_pages())
                 .description(product.getDescription())
                 .quantity(product.getQuantity())
                 .coverType(product.getCoverType())
                 .size(product.getSize())
-                .translator(product.getTranslator())
+                .translatorName(product.getTranslatorName())
+                .manufacturer(product.getManufacturer())
                 .authors(product.getAuthors())
                 .categories(product.getCategories())
                 .publisher(product.getPublisher())
                 .discount(discountValue)
                 .discount_rate(discountRate)
+                .status(product.getStatus())
                 .price(product.getOriginal_price().subtract(discountValue))
 //                .quantity_sold()   PENDING
                 .rating_average(reviewService.calculateReviewAverage(product.getId()))

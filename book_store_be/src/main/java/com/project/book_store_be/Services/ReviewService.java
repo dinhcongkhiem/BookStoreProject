@@ -47,7 +47,7 @@ public class ReviewService {
     public ReviewDetailResponse addReview(Long productId, ReviewRequest reviewRequest, int page, int size) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException("No product found with id: " + productId));
-        User currentUser = userService.getCurrentStudent();
+        User currentUser = userService.getCurrentUser();
         Review review = new Review();
         review.setProduct(product);
         review.setUser(currentUser);

@@ -30,7 +30,7 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(NoSuchElementException::new);
     }
 
-    public User getCurrentStudent() {
+    public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             return (User) authentication.getPrincipal();
@@ -49,7 +49,7 @@ public class UserService {
     }
 
     public void changePassword(ChangePasswordRequest request) {
-        User user = getCurrentStudent();
+        User user = getCurrentUser();
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new IllegalStateException("Wrong password");
         }
@@ -61,7 +61,7 @@ public class UserService {
     }
 
     public void updateUser(UpdateUserRequest request) {
-        User user = getCurrentStudent();
+        User user = getCurrentUser();
         if (user == null) {
             throw new IllegalStateException("Bạn chưa đăng nhập");
         }

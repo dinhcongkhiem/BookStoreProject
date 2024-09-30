@@ -16,11 +16,5 @@ public class Author {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String name ;
-
-    private String nationality;
-
-    private String pseudonym;
-
-
+    private String name;
 }
