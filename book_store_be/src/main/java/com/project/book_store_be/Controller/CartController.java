@@ -1,6 +1,7 @@
 package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Model.Cart;
+import com.project.book_store_be.Model.CartDetail;
 import com.project.book_store_be.Services.CartService;
 import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,21 +19,29 @@ public class CartController {
     @Autowired
     private CartService service;
 
+
     @GetMapping
-    public List<Cart> getListCart(){
-        return service.findAll();
+    public ResponseEntity<List<CartDetail>> getAllCartDetails() {
+        List<CartDetail> cartDetails = service.getAllCartDetails();
+        return ResponseEntity.ok(cartDetails);
+    }
+
+
+    @PostMapping("/create")
+    public Cart createCart(@RequestBody Cart cart){
+        return  service.createCart(cart);
     }
 
     @PostMapping
-    public Cart createCart(@RequestBody Cart cart){
-        return service.createCart(cart);
+    public CartDetail createCartDetail(@RequestBody CartDetail cartDetail){
+        return service.createCartDetail(cartDetail);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cart> updateCart(@PathVariable Long id, @RequestBody Cart cart){
+    public ResponseEntity<CartDetail> updateCartDetail(@PathVariable Long id, @RequestBody CartDetail cartDetail){
         try {
-            Cart updateCart = service.updateCart(id, cart);
-            return ResponseEntity.ok(updateCart);
+            CartDetail updateCartDetail = service.updateCartDetail(id, cartDetail);
+            return ResponseEntity.ok(updateCartDetail);
         }catch (RuntimeException e){
             return ResponseEntity.notFound().build();
         }

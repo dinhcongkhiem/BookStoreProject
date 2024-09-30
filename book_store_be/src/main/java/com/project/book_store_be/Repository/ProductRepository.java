@@ -15,8 +15,8 @@ import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product,Long> , CrudRepository<Product,Long>, JpaSpecificationExecutor<Product> {
     @Query("SELECT p FROM Product p " +
-            "JOIN p.category c " +
-            "JOIN p.author a " +
+            "JOIN p.categories c " +
+            "JOIN p.authors a " +
             "JOIN p.publisher pub " +
             "WHERE (:productName IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :productName, '%'))) " +
             "AND (:categoryName IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :categoryName, '%'))) " +
