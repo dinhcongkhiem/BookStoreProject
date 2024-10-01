@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import classNames from 'classnames/bind';
 import Slider from 'react-slick';
 import { useQuery } from '@tanstack/react-query';
@@ -16,7 +16,10 @@ import PrevArrow from '../../component/ReactSlickComponent/PrevArrow';
 import style from './ProductDetail.module.scss';
 import ProductService from '../../service/ProductService';
 import DetailInfoProductComponent from '../../component/DetailInfoProductComponent/DetailInfoProductComponent';
+import ConfirmModal from '../../component/Modal/ConfirmModal/ConfirmModal';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
+import UpdateAddressModal from '../../component/Modal/UpdateAddressModal/UpdateAddressModal';
+import { Gallery, Item } from 'react-photoswipe-gallery';
 
 const cx = classNames.bind(style);
 function ProductDetail() {
@@ -44,9 +47,18 @@ function ProductDetail() {
         nextArrow: <NextArrow classNames={cx('next-arrow')} />,
         prevArrow: <PrevArrow classNames={cx('prev-arrow')} />,
     };
+    const [open, setOpen] = useState(false);
 
-    if (error) return <h1 style={{ textAlign: 'center', margin: '10rem 0' }}>VUI LÒNG THỬ LẠI</h1>;
-    if (isLoading) return <ModalLoading isLoading={true} />;
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+    const handleConfirm = () => {
+        // Xử lý hành động xác nhận ở đây
+        console.log('Action Confirmed!');
+        setOpen(false);
+    };
+    const openGalleryRef = useRef(null);
+    // if (error) return <h1 style={{ textAlign: 'center', margin: '10rem 0' }}>VUI LÒNG THỬ LẠI</h1>;
+    // if (isLoading) return <ModalLoading isLoading={true} />;
     return (
         <>
             <div className="row my-5">
@@ -55,26 +67,54 @@ function ProductDetail() {
                         <div className={cx('wrapper-img')}>
                             <div className={cx('current-img')}>
                                 <img
-                                    src="https://cdn0.fahasa.com/media/catalog/product/8/9/8935278607311.jpg"
+                                    src={product?.images[activeIndex]?.urlImage}
                                     alt="Img1"
+                                    onClick={() => openGalleryRef.current && openGalleryRef.current()}
                                 />
                             </div>
                             <div className={cx('list-img')}>
                                 <Slider {...settingsHotDeal}>
-                                    {testListHotDeal.map((index) => {
+                                    {product?.images?.map((image, index) => {
+                                        console.log(image);
+
                                         return (
                                             <div
                                                 className={cx('img-item', { active: index === activeIndex })}
                                                 onClick={() => setActiveIndex(index)}
                                             >
-                                                <img
-                                                    src="https://cdn0.fahasa.com/media/catalog/product/8/9/8935278607311.jpg"
-                                                    alt=""
-                                                />
+                                                <img src={image?.urlImage} alt={image?.nameImage} />
                                             </div>
                                         );
                                     })}
                                 </Slider>
+                            </div>
+                            <div className={cx('ImageGallery')}>
+                                <Gallery>
+                                    {product?.images?.map((img, index) => (
+                                        <Item
+                                            key={index}
+                                            original={img.urlImage}
+                                            thumbnail={img.urlImage}
+                                            width="1600"
+                                            height="1600"
+                                        >
+                                            {({ ref, open }) => {
+                                                if (index === activeIndex) {
+                                                    openGalleryRef.current = open;
+                                                }
+                                                return (
+                                                    <img
+                                                        className={cx('img-item-gallery')}
+                                                        ref={ref}
+                                                        onClick={open}
+                                                        src={img.urlImage}
+                                                        alt={img.nameImage}
+                                                    />
+                                                );
+                                            }}
+                                        </Item>
+                                    ))}
+                                </Gallery>
                             </div>
                         </div>
 
@@ -104,9 +144,12 @@ function ProductDetail() {
                         <div className="row mb-2">
                             <div className="col-6">
                                 <span>Tác giả:</span>
-                                {product?.authors.map((author) => {
-                                    return <Link to={`/product/authors=${author.name}`}>{author.name}</Link>;
-                                })}
+                                {product?.authors.map((author, index) => (
+                                    <span key={index}>
+                                        <Link to={`/product/authors=${author.name}`}>{author.name}</Link>
+                                        {index < product?.authors.length - 1 && ', '}
+                                    </span>
+                                ))}
                             </div>
                         </div>
                         <div className="d-flex">
@@ -144,7 +187,9 @@ function ProductDetail() {
                             <p>
                                 Giao hàng tới: <span>Số ACBCD, Phường Cầu Diễn, Quận Một Mình, Hà Nội</span>
                             </p>
-                            <Button sx={{ textTransform: 'none', marginLeft: '1rem' }}>Thay đổi</Button>
+                            <Button sx={{ textTransform: 'none', marginLeft: '1rem' }} onClick={handleOpen}>
+                                Thay đổi
+                            </Button>
                         </div>
                         <div className="d-flex align-items-center mt-5">
                             <label htmlFor="qty" style={{ fontWeight: '600' }}>
@@ -371,6 +416,13 @@ function ProductDetail() {
                     </div>
                 </div>
             </div>
+            <UpdateAddressModal
+                open={open}
+                onClose={handleClose}
+                onConfirm={handleConfirm}
+                title="Xác nhận xóa"
+                message="Bạn có chắc chắn muốn xóa mục này không?"
+            />
         </>
     );
 }

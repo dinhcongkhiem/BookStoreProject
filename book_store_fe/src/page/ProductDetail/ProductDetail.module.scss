@@ -1,7 +1,12 @@
-img {
-    width: 100%;
-    height: 100%;
-    object-fit: fill;
+.ImageGallery {
+    display: none;
+}
+.wrapper-img {
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 }
 .title {
     font-size: 1.8rem;
@@ -23,8 +28,8 @@ img {
         align-items: center;
     }
     .current-img {
-        max-width: 35rem;
-        max-height: 35rem;
+        width: 35rem;
+        height: 35rem;
     }
 
     .list-img {
@@ -52,6 +57,7 @@ img {
             }
         }
         .img-item {
+            height: 8.1rem;
             overflow: hidden;
             transition: all 0.3s ease;
             border-radius: 0.7rem;

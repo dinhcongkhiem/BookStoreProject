@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ImageRepository extends JpaRepository<ImageProduct,Long> {
-    List<ImageProduct> findByProductId(Long productId);
+    List<ImageProduct> findByProductIdOrderByIsThumbnailDesc(Long productId);
     Optional<ImageProduct> findByProductIdAndIsThumbnail(Long productId, Boolean isThumbnail);
     default Optional<ImageProduct> findThumbnailByProductId(Long productId) {
         return findByProductIdAndIsThumbnail(productId, true);

@@ -65,7 +65,7 @@ public class ImageProductService {
         }
     }
     public List<ImageProductResponse> getImagesProductId(Long productId) {
-        return repo.findByProductId(productId).stream().map(this::convertToResponse).toList();
+        return repo.findByProductIdOrderByIsThumbnailDesc(productId).stream().map(this::convertToResponse).toList();
     }
 
     public ImageProduct getThumbnailProduct(Long productId) {
