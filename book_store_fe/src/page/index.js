@@ -14,6 +14,13 @@ import AddProduct from './Admin/Product/AddProduct';
 import EditProduct from './Admin/Product/EditProduct';
 import DetailProduct from './Admin/Product/DetailProduct';
 
+import Voucher from './Admin/Voucher/Voucher';
+import AddVoucher from './Admin/Voucher/AddVoucher';
+import EditVoucher from './Admin/Voucher/EditVoucher';
+import Discount from './Admin/Discount/Discount';
+import AddDiscount from './Admin/Discount/AddDiscount';
+import EditDiscount from './Admin/Discount/EditDiscount';
+
 export {
     Home,
     Profile,
@@ -28,6 +35,7 @@ export {
     ProductManagent,
     AddProduct,
     EditProduct,
-    DetailProduct,
+    DetailProduct, Voucher, AddVoucher,
+    EditVoucher, Discount, AddDiscount, EditDiscount
 };
 export * from './Admin';
