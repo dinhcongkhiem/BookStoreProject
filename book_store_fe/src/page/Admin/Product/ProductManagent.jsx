@@ -2,12 +2,39 @@ import React, { useState, useEffect } from 'react';
 import classNames from 'classnames/bind';
 import style from './ProductManagent.module.scss';
 import {
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    Button, IconButton, Typography, Box, Avatar, TablePagination, TableSortLabel,
-    TextField, InputAdornment, Dialog, DialogTitle, DialogContent, DialogActions,
-    Grid, Chip, 
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    Button,
+    IconButton,
+    Typography,
+    Box,
+    Avatar,
+    TablePagination,
+    TableSortLabel,
+    TextField,
+    InputAdornment,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Grid,
+    Chip,
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Visibility as VisibilityIcon, Search as SearchIcon, Close as CloseIcon, ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon } from '@mui/icons-material';
+import {
+    Add as AddIcon,
+    Edit as EditIcon,
+    Delete as DeleteIcon,
+    Visibility as VisibilityIcon,
+    Search as SearchIcon,
+    Close as CloseIcon,
+    ExpandMore as ExpandMoreIcon,
+    ExpandLess as ExpandLessIcon,
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { Gallery, Item } from 'react-photoswipe-gallery';
 import 'photoswipe/dist/photoswipe.css';
@@ -15,11 +42,82 @@ import 'photoswipe/dist/photoswipe.css';
 const cx = classNames.bind(style);
 
 const initialBooks = [
-    { id: 1, name: "Đại gia Gatsby", importPrice: 8990000, sellingPrice: 10990000, quantity: 20, status: "Còn hàng", category: "Tiểu thuyết", creationDate: "2023-01-15T00:00:00.000Z", images: ["https://cdn0.fahasa.com/media/catalog/product/9/7/9786043721522_1.jpg", "https://ironhackvietnam.edu.vn/wp-content/uploads/2021/03/nhung-cuon-sach-hay-ve-lap-trinh-tieng-viet.jpg"], description: "Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ." },
-    { id: 2, name: "1984", importPrice: 6990000, sellingPrice: 8990000, quantity: 0, status: "Hết hàng", category: "Khoa học viễn tưởng", creationDate: "2023-02-20T00:00:00.000Z", images: ["https://cdn0.fahasa.com/media/catalog/product/9/7/9786043721522_1.jpg", "https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/1.png"], description: "Tiểu thuyết phản địa đàng của George Orwell về một xã hội độc tài." },
-    { id: 3, name: "Giết con chim nhại", importPrice: 10990000, sellingPrice: 12990000, quantity: 15, status: "Còn hàng", category: "Tiểu thuyết", creationDate: "2023-03-10T00:00:00.000Z", images: ["https://cdn0.fahasa.com/media/catalog/product/9/7/9786043721522_1.jpg", "https://ntthnue.edu.vn/uploads/Images/2016/11/088.jpg"], description: "Tác phẩm kinh điển của Harper Lee về công lý và phân biệt chủng tộc." },
-    { id: 4, name: "Kiêu hãnh và định kiến", importPrice: 7990000, sellingPrice: 9990000, quantity: 0, status: "Hết hàng", category: "Lãng mạn", creationDate: "2023-04-05T00:00:00.000Z", images: ["https://cdn0.fahasa.com/media/catalog/product/9/7/9786043721522_1.jpg", "https://ntthnue.edu.vn/uploads/Images/2016/11/088.jpg"], description: "Tiểu thuyết lãng mạn nổi tiếng của Jane Austen." },
-    { id: 5, name: "Moby Dick", importPrice: 13990000, sellingPrice: 15990000, quantity: 5, status: "Còn hàng", category: "Phiêu lưu", creationDate: "2023-05-12T00:00:00.000Z", images: ["https://cdn0.fahasa.com/media/catalog/product/9/7/9786043721522_1.jpg", "https://ntthnue.edu.vn/uploads/Images/2016/11/088.jpg"], description: "Tác phẩm kinh điển của Herman Melville về cuộc săn đuổi một con cá voi trắng khổng lồ." },
+    {
+        id: 1,
+        name: 'Đại gia Gatsby',
+        importPrice: 8990000,
+        sellingPrice: 10990000,
+        quantity: 20,
+        status: 'Còn hàng',
+        category: 'Tiểu thuyết',
+        creationDate: '2023-01-15T00:00:00.000Z',
+        images: [
+            'https://cdn0.fahasa.com/media/catalog/product/9/7/9786043721522_1.jpg',
+            'https://ironhackvietnam.edu.vn/wp-content/uploads/2021/03/nhung-cuon-sach-hay-ve-lap-trinh-tieng-viet.jpg',
+        ],
+        description:
+            'Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ. Scott Fitzgerald về Giấc mơ Mỹ. Một tác phẩm kinh điển của F. Scott Fitzgerald về Giấc mơ Mỹ.',
+    },
+    {
+        id: 2,
+        name: '1984',
+        importPrice: 6990000,
+        sellingPrice: 8990000,
+        quantity: 0,
+        status: 'Hết hàng',
+        category: 'Khoa học viễn tưởng',
+        creationDate: '2023-02-20T00:00:00.000Z',
+        images: [
+            'https://cdn0.fahasa.com/media/catalog/product/9/7/9786043721522_1.jpg',
+            'https://thietkelogo.edu.vn/uploads/images/thiet-ke-do-hoa-khac/banner-sach/1.png',
+        ],
+        description: 'Tiểu thuyết phản địa đàng của George Orwell về một xã hội độc tài.',
+    },
+    {
+        id: 3,
+        name: 'Giết con chim nhại',
+        importPrice: 10990000,
+        sellingPrice: 12990000,
+        quantity: 15,
+        status: 'Còn hàng',
+        category: 'Tiểu thuyết',
+        creationDate: '2023-03-10T00:00:00.000Z',
+        images: [
+            'https://cdn0.fahasa.com/media/catalog/product/9/7/9786043721522_1.jpg',
+            'https://ntthnue.edu.vn/uploads/Images/2016/11/088.jpg',
+        ],
+        description: 'Tác phẩm kinh điển của Harper Lee về công lý và phân biệt chủng tộc.',
+    },
+    {
+        id: 4,
+        name: 'Kiêu hãnh và định kiến',
+        importPrice: 7990000,
+        sellingPrice: 9990000,
+        quantity: 0,
+        status: 'Hết hàng',
+        category: 'Lãng mạn',
+        creationDate: '2023-04-05T00:00:00.000Z',
+        images: [
+            'https://cdn0.fahasa.com/media/catalog/product/9/7/9786043721522_1.jpg',
+            'https://ntthnue.edu.vn/uploads/Images/2016/11/088.jpg',
+        ],
+        description: 'Tiểu thuyết lãng mạn nổi tiếng của Jane Austen.',
+    },
+    {
+        id: 5,
+        name: 'Moby Dick',
+        importPrice: 13990000,
+        sellingPrice: 15990000,
+        quantity: 5,
+        status: 'Còn hàng',
+        category: 'Phiêu lưu',
+        creationDate: '2023-05-12T00:00:00.000Z',
+        images: [
+            'https://cdn0.fahasa.com/media/catalog/product/9/7/9786043721522_1.jpg',
+            'https://ntthnue.edu.vn/uploads/Images/2016/11/088.jpg',
+        ],
+        description: 'Tác phẩm kinh điển của Herman Melville về cuộc săn đuổi một con cá voi trắng khổng lồ.',
+    },
 ];
 
 const Product = () => {
@@ -41,11 +139,11 @@ const Product = () => {
     const [order, setOrder] = useState('asc');
 
     const handleEdit = (product) => {
-        navigate('/admin/editproduct', { state: { product } });
+        navigate('/admin/product/edit', { state: { product } });
     };
 
     const handleDelete = (id) => {
-        setProducts(products.filter(p => p.id !== id));
+        setProducts(products.filter((p) => p.id !== id));
     };
 
     const handleView = (product) => {
@@ -84,10 +182,11 @@ const Product = () => {
     };
 
     useEffect(() => {
-        let filtered = products.filter(product =>
-            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.category.toLowerCase().includes(searchTerm.toLowerCase())
+        let filtered = products.filter(
+            (product) =>
+                product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.category.toLowerCase().includes(searchTerm.toLowerCase()),
         );
 
         filtered.sort((a, b) => {
@@ -133,7 +232,7 @@ const Product = () => {
                     variant="outlined"
                     color="primary"
                     startIcon={<AddIcon />}
-                    onClick={() => navigate('/admin/addproduct')}
+                    onClick={() => navigate('/admin/product/add')}
                 >
                     Thêm sách
                 </Button>
@@ -215,53 +314,65 @@ const Product = () => {
                                     <b>Ngày tạo</b>
                                 </TableSortLabel>
                             </TableCell>
-                            <TableCell><b>Thao tác</b></TableCell>
+                            <TableCell>
+                                <b>Thao tác</b>
+                            </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredProducts
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((product) => (
-                                <TableRow key={product.id}>
-                                    <TableCell>{product.id}</TableCell>
-                                    <TableCell>
-                                        <Box display="flex" alignItems="center">
-                                            <Avatar
-                                                alt={product.name}
-                                                src={product.images[0]}
-                                                sx={{ width: 50, height: 80, mr: 2, borderRadius: 0 }}
-                                            />
-                                            {product.name}
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell>{product.importPrice.toLocaleString()}₫</TableCell>
-                                    <TableCell>{product.sellingPrice.toLocaleString()}₫</TableCell>
-                                    <TableCell>{product.quantity}</TableCell>
-                                    <TableCell>
-                                        <span
-                                            className={cx('status', {
-                                                'in-stock': product.status === 'Còn hàng',
-                                                'out-of-stock': product.status === 'Hết hàng',
-                                            })}
-                                        >
-                                            {product.status}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>{product.category}</TableCell>
-                                    <TableCell>{new Date(product.creationDate).toLocaleDateString()}</TableCell>
-                                    <TableCell>
-                                        <IconButton onClick={() => handleView(product)} aria-label="view" sx={{ color: 'blue' }}>
-                                            <VisibilityIcon />
-                                        </IconButton>
-                                        <IconButton onClick={() => handleEdit(product)} aria-label="edit" sx={{ color: 'green' }}>
-                                            <EditIcon />
-                                        </IconButton>
-                                        <IconButton onClick={() => handleDelete(product.id)} aria-label="delete" sx={{ color: 'red' }}>
-                                            <DeleteIcon />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                        {filteredProducts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((product) => (
+                            <TableRow key={product.id}>
+                                <TableCell>{product.id}</TableCell>
+                                <TableCell>
+                                    <Box display="flex" alignItems="center">
+                                        <Avatar
+                                            alt={product.name}
+                                            src={product.images[0]}
+                                            sx={{ width: 50, height: 80, mr: 2, borderRadius: 0 }}
+                                        />
+                                        {product.name}
+                                    </Box>
+                                </TableCell>
+                                <TableCell>{product.importPrice.toLocaleString()}₫</TableCell>
+                                <TableCell>{product.sellingPrice.toLocaleString()}₫</TableCell>
+                                <TableCell>{product.quantity}</TableCell>
+                                <TableCell>
+                                    <span
+                                        className={cx('status', {
+                                            'in-stock': product.status === 'Còn hàng',
+                                            'out-of-stock': product.status === 'Hết hàng',
+                                        })}
+                                    >
+                                        {product.status}
+                                    </span>
+                                </TableCell>
+                                <TableCell>{product.category}</TableCell>
+                                <TableCell>{new Date(product.creationDate).toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                    <IconButton
+                                        onClick={() => handleView(product)}
+                                        aria-label="view"
+                                        sx={{ color: 'blue' }}
+                                    >
+                                        <VisibilityIcon />
+                                    </IconButton>
+                                    <IconButton
+                                        onClick={() => handleEdit(product)}
+                                        aria-label="edit"
+                                        sx={{ color: 'green' }}
+                                    >
+                                        <EditIcon />
+                                    </IconButton>
+                                    <IconButton
+                                        onClick={() => handleDelete(product.id)}
+                                        aria-label="delete"
+                                        sx={{ color: 'red' }}
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </TableCell>
+                            </TableRow>
+                        ))}
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -285,7 +396,7 @@ const Product = () => {
                 PaperProps={{
                     style: {
                         maxHeight: '100%',
-                        overflowY: 'visible'
+                        overflowY: 'visible',
                     },
                 }}
             >
@@ -302,35 +413,65 @@ const Product = () => {
                         <DialogContent dividers style={{ overflowY: 'visible' }}>
                             <Grid container spacing={3}>
                                 <Grid item xs={12} md={6}>
-                                    <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 2, alignItems: 'center' }}>
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>ID:</Typography>
+                                    <Box
+                                        sx={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'auto 1fr',
+                                            gap: 2,
+                                            alignItems: 'center',
+                                        }}
+                                    >
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            ID:
+                                        </Typography>
                                         <Typography variant="body1">{selectedProduct.id}</Typography>
 
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Giá nhập:</Typography>
-                                        <Typography variant="body1">{selectedProduct.importPrice.toLocaleString()}₫</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Giá nhập:
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {selectedProduct.importPrice.toLocaleString()}₫
+                                        </Typography>
 
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Giá bán:</Typography>
-                                        <Typography variant="body1">{selectedProduct.sellingPrice.toLocaleString()}₫</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Giá bán:
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {selectedProduct.sellingPrice.toLocaleString()}₫
+                                        </Typography>
 
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Số lượng:</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Số lượng:
+                                        </Typography>
                                         <Typography variant="body1">{selectedProduct.quantity}</Typography>
 
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Danh mục:</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Danh mục:
+                                        </Typography>
                                         <Typography variant="body1">{selectedProduct.category}</Typography>
 
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Trạng thái:</Typography>
-                                        <Chip sx={{ width: '10rem' }}
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Trạng thái:
+                                        </Typography>
+                                        <Chip
+                                            sx={{ width: '10rem' }}
                                             label={selectedProduct.status}
                                             color={selectedProduct.status === 'Còn hàng' ? 'success' : 'error'}
                                             size="small"
                                         />
 
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Ngày tạo:</Typography>
-                                        <Typography variant="body1">{new Date(selectedProduct.creationDate).toLocaleDateString()}</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Ngày tạo:
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {new Date(selectedProduct.creationDate).toLocaleDateString()}
+                                        </Typography>
                                     </Box>
                                 </Grid>
                                 <Grid item xs={12} md={6}>
-                                    <Typography variant="h6" gutterBottom>Hình ảnh sản phẩm</Typography>
+                                    <Typography variant="h6" gutterBottom>
+                                        Hình ảnh sản phẩm
+                                    </Typography>
                                     <Gallery>
                                         <Box display="flex" flexWrap="wrap" gap={2}>
                                             {selectedProduct.images.map((image, index) => (
@@ -347,7 +488,12 @@ const Product = () => {
                                                             onClick={open}
                                                             src={image}
                                                             alt={`Hình ảnh sản phẩm ${index + 1}`}
-                                                            style={{ width: '10rem', height: '15rem', objectFit: 'cover', cursor: 'pointer' }}
+                                                            style={{
+                                                                width: '10rem',
+                                                                height: '15rem',
+                                                                objectFit: 'cover',
+                                                                cursor: 'pointer',
+                                                            }}
                                                         />
                                                     )}
                                                 </Item>
@@ -356,8 +502,10 @@ const Product = () => {
                                     </Gallery>
                                 </Grid>
                                 <Grid item xs={12}>
-                                    <Typography variant="h6" gutterBottom><b>Mô tả sản phẩm</b></Typography>
-                                    <div className={cx('description-container', { 'expanded': expandDescription })}>
+                                    <Typography variant="h6" gutterBottom>
+                                        <b>Mô tả sản phẩm</b>
+                                    </Typography>
+                                    <div className={cx('description-container', { expanded: expandDescription })}>
                                         <Typography variant="body1" className={cx('description-text')}>
                                             {selectedProduct.description}
                                         </Typography>
@@ -368,7 +516,7 @@ const Product = () => {
                                             endIcon={expandDescription ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                                             className={cx('expand-button')}
                                         >
-                                            {expandDescription ? 'xem ' : ''}
+                                            {expandDescription ? '' : ''}
                                         </Button>
                                     )}
                                 </Grid>

@@ -1,0 +1,91 @@
+.discount-management {
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.title {
+    padding-bottom: 2rem;
+    color: #333;
+}
+
+.statistics {
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #f6f8fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .stat-title {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .stat-value {
+    color: #343a40;
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+}
+
+.discount-table {
+  margin-top: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  text-align: center;
+  transition: background-color 0.3s ease;
+  width: 15rem;
+  display: inline-block;
+
+  &.active {
+    background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
+    color: white;
+  }
+
+  &.inactive {
+    background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+    color: white;
+  }
+}
+
+.search-input {
+  .MuiOutlinedInput-root {
+    border-radius: 20px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    &.Mui-focused {
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+    }
+  }
+}
+
+.add-button {
+  border-radius: 20px;
+  text-transform: none;
+  font-weight: bold;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}

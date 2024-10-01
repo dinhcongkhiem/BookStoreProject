@@ -1,6 +1,28 @@
-import { Home, Profile, Login, Register, About, Contact, Product, User, Dashboard, Cart, ProductManagent, AddProduct, EditProduct, DetailProduct } from '../page';
+import {
+    Home,
+    Profile,
+    Login,
+    Register,
+    About,
+    Contact,
+    Product,
+    User,
+    Dashboard,
+    Cart,
+    ProductManagent,
+    AddProduct,
+    EditProduct,
+    DetailProduct,
+    Voucher,
+    AddVoucher,
+    EditVoucher,
+    Discount,
+    AddDiscount,
+    EditDiscount,
+} from '../page';
 import OAuth2Redirect from '../component/HandlerRedirect/OAuth2Redirect/OAuth2Redirect';
 import ActiveAccountRedirect from '../component/HandlerRedirect/ActiveAccountRedirect/ActiveAccountRedirect';
+import { Add } from '@mui/icons-material';
 
 // Public routes
 const publicRoutes = [
@@ -18,12 +40,20 @@ const publicRoutes = [
 
 const userRoutes = [{ path: '/profile/info', component: Profile }];
 
-const adminRoutes = [{ path: '/admin/dashboard', component: Dashboard, label: 'Thống kê' },
-{ path: '/admin/productmanagent', component: ProductManagent, label: 'Sản phẩm' },
-{ path: '/admin/addproduct', component: AddProduct, },
-{ path: '/admin/editproduct', component: EditProduct, },
-{ path: '/admin/detailproduct', component: DetailProduct, },
+const adminRoutes = [
+    { path: '/admin/dashboard', component: Dashboard, label: 'Thống kê' },
+    { path: '/admin/product', component: ProductManagent, label: 'Sản phẩm' },
+    { path: '/admin/product/add', component: AddProduct },
+    { path: '/admin/product/edit', component: EditProduct },
+    { path: '/admin/detailproduct', component: DetailProduct },
+    { path: '/admin/voucher', component: Voucher, label: 'Mã giảm giá' },
+    { path: '/admin/voucher/add', component: AddVoucher },
+    { path: '/admin/voucher/edit', component: EditVoucher },
+    { path: '/admin/discount', component: Discount, label: 'Khuyến mãi' },
+    { path: '/admin/discount/add', component: AddDiscount },
+    { path: '/admin/discount/edit', component: EditDiscount },
 ];
 
+const adminMainRoutes = adminRoutes.filter((route) => route.label);
 
-export { publicRoutes, userRoutes, adminRoutes };
+export { publicRoutes, userRoutes, adminRoutes, adminMainRoutes };
