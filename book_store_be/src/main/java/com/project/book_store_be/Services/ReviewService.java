@@ -24,11 +24,30 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
     private final UserService userService;
+    public Float calculateReviewAverage(Long productId) {
+        List<Review> reviews = reviewRepository.findByProductId(productId);
+        if (reviews.isEmpty()) {
+            return 0.0F;
+        }
+        double totalStars = reviews.stream().mapToInt(Review::getStar).sum();
+        double average =  totalStars / reviews.size();
+        if (average < 0.5) {
+            return 0.0F;
+        } else if (average % 1 < 0.5) {
+            return (float) (Math.floor(average) + 0.5F);
+        } else {
+            return (float) Math.ceil(average);
+        }
+    }
+
+    public int getReviewCount(Long productId) {
+        return reviewRepository.countByProductId(productId);
+    }
 
     public ReviewDetailResponse addReview(Long productId, ReviewRequest reviewRequest, int page, int size) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException("No product found with id: " + productId));
-        User currentUser = userService.getCurrentStudent();
+        User currentUser = userService.getCurrentUser();
         Review review = new Review();
         review.setProduct(product);
         review.setUser(currentUser);

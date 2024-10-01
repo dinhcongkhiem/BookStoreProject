@@ -4,6 +4,7 @@ import com.project.book_store_be.Model.ImageProduct;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Repository.ImageRepository;
 import com.project.book_store_be.Repository.ProductRepository;
+import com.project.book_store_be.Response.ImageProductResponse;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,19 +64,26 @@ public class ImageProductService {
             throw new IllegalArgumentException("ImageProduct with ID " + id + "not found");
         }
     }
-    public List<ImageProduct> getImagesProductId(Long productId) {
-        return repo.findByProductId(productId);
+    public List<ImageProductResponse> getImagesProductId(Long productId) {
+        return repo.findByProductId(productId).stream().map(this::convertToResponse).toList();
     }
 
     public ImageProduct getThumbnailProduct(Long productId) {
-        return repo.findThumbnailByProductId(productId)
-                .orElseThrow(() -> new NoSuchElementException("No image found with product_id: " + productId));
+        return repo.findThumbnailByProductId(productId).orElse(null);
     }
 
     @Async
     public CompletableFuture<String> uploadFileAsync(MultipartFile file, Long productId) throws IOException {
         String fileUrl = InsertProductImage(file, productId);
         return CompletableFuture.completedFuture(fileUrl);
+    }
+    private ImageProductResponse convertToResponse(ImageProduct imageProduct) {
+        return ImageProductResponse.builder()
+                .id(imageProduct.getId())
+                .urlImage(imageProduct.getUrlImage())
+                .nameImage(imageProduct.getNameImage())
+                .isThumbnail(imageProduct.getIsThumbnail())
+                .build();
     }
 
 

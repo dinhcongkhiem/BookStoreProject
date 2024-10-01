@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Exception.UserAlreadyExistsException;
 import com.project.book_store_be.Model.Address;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.AddressRepository;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -22,11 +24,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AddressService addressService;
+    private final SendMailService sendMailService;
 
     public User findById(Long id) {
         return userRepository.findById(id).orElseThrow(NoSuchElementException::new);
     }
-    public User getCurrentStudent() {
+
+    public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             return (User) authentication.getPrincipal();
@@ -34,7 +38,7 @@ public class UserService {
         return null;
     }
 
-    public UserResponse getUserInfor(User user){
+    public UserResponse getUserInfor(User user) {
         return UserResponse.builder()
                 .fullName(user.getFullName())
                 .email(user.getEmail())
@@ -43,8 +47,9 @@ public class UserService {
                 .role(user.getRole())
                 .build();
     }
-    public void changePassword(ChangePasswordRequest request){
-        User user = getCurrentStudent();
+
+    public void changePassword(ChangePasswordRequest request) {
+        User user = getCurrentUser();
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new IllegalStateException("Wrong password");
         }
@@ -55,16 +60,34 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void updateUser(UpdateUserRequest request){
-        User user =  getCurrentStudent();
-        if(user == null){
+    public void updateUser(UpdateUserRequest request) {
+        User user = getCurrentUser();
+        if (user == null) {
             throw new IllegalStateException("Bạn chưa đăng nhập");
         }
-        user.setFullName(request.getFullName());
-        user.setPhoneNum(request.getPhoneNum());
+        if (!Objects.equals(request.getEmail(), user.getEmail())) {
+            Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+            if (userOptional.isPresent()) {
+                throw new UserAlreadyExistsException("User with email " + request.getEmail() + " already exists");
+            }
+
+            sendMailService.sendEmail(user, "Thay đổi email (Book bazaar).",
+                    "changeEmailTemplate", null);
+            user.setEmail(request.getEmail());
+        }
+
+        if (!Objects.equals(request.getFullName(), user.getFullName())) {
+            user.setFullName(request.getFullName());
+        }
+
+        if (!Objects.equals(request.getPhoneNum(), user.getPhoneNum())) {
+            user.setPhoneNum(request.getPhoneNum());
+        }
+
         user.setAddress(addressService.createAddress(request.getAddress()));
 
         userRepository.save(user);
     }
+
 
 }

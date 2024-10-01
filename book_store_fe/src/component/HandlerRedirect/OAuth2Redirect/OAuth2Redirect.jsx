@@ -18,10 +18,17 @@ function OAuth2Redirect() {
             UserService.getUserInfo()
                 .then((res) => {
                     localStorage.setItem('user', JSON.stringify(res.data));
+                    SetAuthentication({
+                        isAuthen: true,
+                        refreshToken: refreshToken,
+                        user: res.data,
+                        isRemember: true,
+                    });
                 })
                 .catch((err) => {
                     console.log(err);
                 });
+
             toast.success('Đăng nhập thành công', { position: 'top-center' });
             navigate('/', { state: { from: location, replace: true } });
         } else {

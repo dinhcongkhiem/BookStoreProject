@@ -2,9 +2,7 @@ package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Request.DisCountRequest;
 import com.project.book_store_be.Model.DisCount;
-import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Services.DisCountService;
-import com.project.book_store_be.Services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -19,11 +17,6 @@ import java.util.NoSuchElementException;
 public class DisCountController {
     @Autowired
     private DisCountService service;
-
-    @Autowired
-    private ProductService productService;
-
-
     @GetMapping
     public Page<DisCount> getDiscounts(
             @RequestParam(defaultValue = "0") int page,
@@ -41,8 +34,6 @@ public class DisCountController {
         }
     }
 
-
-
     @PutMapping("/{id}")
     public ResponseEntity<?> updateDiscount(@PathVariable Long id, @RequestBody DisCountRequest disCountRequest) {
         try {
@@ -55,9 +46,6 @@ public class DisCountController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-
-
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDiscount(@PathVariable Long id) {

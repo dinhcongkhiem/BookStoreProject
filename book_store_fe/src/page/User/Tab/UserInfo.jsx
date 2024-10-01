@@ -15,6 +15,7 @@ import {
 import style from '../User.module.scss';
 import { AuthenticationContext } from '../../../context/AuthenticationProvider';
 import UserService from '../../../service/UserService';
+import { toast } from 'react-toastify';
 const cx = classNames.bind(style);
 
 function UserInfo({ setIsLoading }) {
@@ -49,26 +50,42 @@ function UserInfo({ setIsLoading }) {
 
     const handleUpdateInfo = (e) => {
         e.preventDefault();
-        console.log(provinces);
-        console.log(selectedProvince);
-        console.log(selectedProvince?.code);
-
+        setIsLoading(true);
         const data = {
-            province: {
-                label: selectedProvince.name,
-                value: selectedProvince.code,
+            fullName: username,
+            email: email,
+            phoneNum: phoneNum,
+            address: {
+                province: {
+                    label: selectedProvince.name,
+                    value: selectedProvince.code,
+                },
+                district: {
+                    label: selectedDistrict.name,
+                    value: selectedDistrict.code,
+                },
+                commune: {
+                    label: selectedCommune.name,
+                    value: selectedCommune.code,
+                },
+                addressDetail: addressDetail,
             },
-            district: {
-                label: selectedDistrict.name,
-                value: selectedDistrict.code,
-            },
-            commune: {
-                label: selectedCommune.name,
-                value: selectedCommune.code,
-            },
-            addressDetail: addressDetail,
         };
-        console.log(data);
+
+        UserService.updateUser(data)
+            .then((response) => {
+                if (response.status === 200) {
+                    toast.success('Cập nhật thông tin cá nhân thành công!');
+                    authentication.isRemember
+                        ? localStorage.setItem('user', JSON.stringify(data))
+                        : sessionStorage.setItem('user', JSON.stringify(data));
+                }
+            })
+            .catch((error) => {
+                toast.error('Có lỗi xảy ra vui lòng thử lại');
+                console.log(error);
+            })
+            .finally(() => setIsLoading(false));
     };
 
     const handleChangeAddress = (type, value) => {
@@ -88,11 +105,13 @@ function UserInfo({ setIsLoading }) {
     const updateData = (user) => {
         setUsername(user?.fullName);
         setEmail(user?.email);
-        setAddressDetail(user?.address?.addressDetail);
         setPhoneNum(user?.phoneNum);
-        handleChangeAddress(1, user?.address?.province.value);
-        handleChangeAddress(2, user?.address?.district.value);
-        handleChangeAddress(3, user?.address?.commune.value);
+        if (user.address !== null) {
+            setAddressDetail(user?.address?.addressDetail);
+            handleChangeAddress(1, user?.address?.province.value);
+            handleChangeAddress(2, user?.address?.district.value);
+            handleChangeAddress(3, user?.address?.commune.value);
+        }
     };
     const fetchUserData = () => {
         let user =
@@ -165,6 +184,12 @@ function UserInfo({ setIsLoading }) {
                                 disableClearable
                                 className="m-0"
                                 options={provinces.map((prov) => ({ label: prov.name, code: prov.code }))}
+                                value={
+                                    selectedProvince
+                                        ? { label: selectedProvince.name, code: selectedProvince.code }
+                                        : null
+                                }
+                                isOptionEqualToValue={(option, value) => option.code === value.code}
                                 sx={{ my: 1, minWidth: 120 }}
                                 renderInput={(params) => <TextField {...params} label="Tỉnh/Thành Phố" />}
                                 size="small"
@@ -183,8 +208,16 @@ function UserInfo({ setIsLoading }) {
                                 disablePortal
                                 disableClearable
                                 className="m-0"
-                                options={districts?.map((prov) => ({ label: prov.name, code: prov.code }))}
+                                options={
+                                    districts ? districts.map((prov) => ({ label: prov.name, code: prov.code })) : []
+                                }
+                                value={
+                                    selectedDistrict
+                                        ? { label: selectedDistrict.name, code: selectedDistrict.code }
+                                        : null
+                                }
                                 sx={{ my: 1, minWidth: 120 }}
+                                isOptionEqualToValue={(option, value) => option.code === value.code}
                                 renderInput={(params) => <TextField {...params} label="Quận/Huyện" />}
                                 size="small"
                                 onChange={(e, value) => handleChangeAddress(2, value.code)}
@@ -202,9 +235,15 @@ function UserInfo({ setIsLoading }) {
                                 disablePortal
                                 disableClearable
                                 className="m-0"
-                                options={communes?.map((prov) => ({ label: prov.name, code: prov.code }))}
+                                options={
+                                    communes ? communes.map((prov) => ({ label: prov.name, code: prov.code })) : []
+                                }
+                                value={
+                                    selectedCommune ? { label: selectedCommune.name, code: selectedCommune.code } : null
+                                }
                                 sx={{ my: 1, minWidth: 120 }}
                                 renderInput={(params) => <TextField {...params} label="Xã/Phường" />}
+                                isOptionEqualToValue={(option, value) => option.code === value.code}
                                 size="small"
                                 onChange={(e, value) => handleChangeAddress(3, value.code)}
                             />

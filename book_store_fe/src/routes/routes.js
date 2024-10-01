@@ -19,6 +19,7 @@ import {
     Discount,
     AddDiscount,
     EditDiscount,
+    ProductDetail,
 } from '../page';
 import OAuth2Redirect from '../component/HandlerRedirect/OAuth2Redirect/OAuth2Redirect';
 import ActiveAccountRedirect from '../component/HandlerRedirect/ActiveAccountRedirect/ActiveAccountRedirect';
@@ -32,13 +33,17 @@ const publicRoutes = [
     { path: '/about', component: About },
     { path: '/contact', component: Contact },
     { path: '/product', component: Product },
-    { path: '/user', component: User },
+    { path: '/product/detail', component: ProductDetail },
     { path: '/cart', component: Cart },
     { path: '/oauth2/redirect', component: OAuth2Redirect, layout: null },
     { path: '/verify/redirect', component: ActiveAccountRedirect, layout: null },
 ];
 
-const userRoutes = [{ path: '/profile/info', component: Profile }];
+
+const userRoutes = [
+    { path: '/profile/info', component: Profile },
+    { path: '/user', component: User },
+];
 
 const adminRoutes = [
     { path: '/admin/dashboard', component: Dashboard, label: 'Thống kê' },

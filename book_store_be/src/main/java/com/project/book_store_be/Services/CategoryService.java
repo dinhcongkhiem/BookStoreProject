@@ -22,6 +22,9 @@ public class CategoryService {
         return categoryRepository.findById(id).orElse(null);
     }
 
+    public List<Category> getCategories(List<Long> categoriesId) {
+        return categoryRepository.findAllById(categoriesId);
+    }
     public Category createCategory(Category category) {
         if (categoryRepository.findByName(category.getName()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category name already exists");

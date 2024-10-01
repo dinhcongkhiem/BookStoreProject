@@ -1,9 +1,11 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Enum.DiscountStatus;
 import com.project.book_store_be.Request.DisCountRequest;
 import com.project.book_store_be.Model.DisCount;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Repository.DisCountRepository;
+import com.project.book_store_be.Response.DiscountResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,31 +26,22 @@ public class DisCountService {
     private ProductService productService;
 
 
-    public List<DisCount> getAllDiscounts() {
-        return repo.findAll();
-    }
-
     public Page<DisCount> getDiscounts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return repo.findAll(pageable);
     }
 
-
-
-    private void validateDiscountRate(double discountRate){
-        if (discountRate < 0 || discountRate > 30){
+    private void validateDiscountRate(double discountRate) {
+        if (discountRate < 0 || discountRate > 30) {
             throw new IllegalArgumentException("Discount rate must be between 0% and 30% ");
         }
     }
 
-
-    private void validateDiscountDates(Date startDate, Date endDate){
+    private void validateDiscountDates(Date startDate, Date endDate) {
         if (startDate.after(endDate)) {
             throw new IllegalArgumentException("Start date cannot be after end date");
         }
     }
-
-
 
     public DisCount createDiscount(DisCountRequest disCountRequest) {
         validateDiscountRate(disCountRequest.getDiscountRate());
@@ -58,6 +51,7 @@ public class DisCountService {
                 .discountRate(disCountRequest.getDiscountRate())
                 .startDate(disCountRequest.getStartDate())
                 .endDate(disCountRequest.getEndDate())
+                .status(disCountRequest.getEndDate().before(new Date()) ? DiscountStatus.ACTIVE : DiscountStatus.INACTIVE)
                 .products(products)
                 .build();
         return repo.save(disCount);
@@ -67,10 +61,6 @@ public class DisCountService {
         return repo.findById(id);
     }
 
-
-
-
-
     public DisCount updateDiscount(Long id, DisCountRequest disCountRequest) {
         Optional<DisCount> optionalDiscount = repo.findById(id);
         if (!optionalDiscount.isPresent()) {
@@ -78,20 +68,23 @@ public class DisCountService {
         }
         DisCount existingDiscount = optionalDiscount.get();
         List<Product> products = productService.findAllByIds(disCountRequest.getProductIds());
+
+        DiscountStatus discountStatus = (disCountRequest.getStartDate().before(new Date()) && disCountRequest.getStartDate()
+                .after(new Date())) ? DiscountStatus.ACTIVE : DiscountStatus.INACTIVE;
+
         DisCount updatedDiscount = existingDiscount.toBuilder()
                 .discountRate(disCountRequest.getDiscountRate())
                 .startDate(disCountRequest.getStartDate())
                 .endDate(disCountRequest.getEndDate())
+                .status(discountStatus)
                 .products(products)
                 .build();
         return repo.save(updatedDiscount);
     }
 
-
     public void delete(Long id) {
         DisCount disCount = repo.findById(id).orElseThrow(() -> new NoSuchElementException("DisCount not found"));
         repo.deleteById(id);
     }
-
 
 }

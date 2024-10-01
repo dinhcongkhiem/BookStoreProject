@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateUserRequest {
+    private String email;
     private String fullName;
     private String phoneNum;
     private Address address;

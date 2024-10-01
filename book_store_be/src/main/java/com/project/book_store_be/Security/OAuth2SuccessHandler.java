@@ -62,7 +62,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         }
 
         String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
-        User user = this.getCurrentStudent().orElseThrow();
+        User user = this.getCurrentUser().orElseThrow();
         String token = jwtService.generateToken(user);
 
         ResponseCookie authCookie = ResponseCookie.from("accessToken", token)
@@ -85,7 +85,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
     }
 
-    public Optional<User> getCurrentStudent() {
+    public Optional<User> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             if (authentication.getPrincipal() instanceof OAuth2User) {

@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Tiêu đề</title>
 </head>
 <body style="width: 70%; margin: 0 auto">
-<h1>Hello <span th:text="${user.fullName}"></span></h1>
-<p>Welcome to SHOPNAME</p>
-<p>Please click this link to active your account, thanks !</p>
-<a th:href="${clientUrl} + '/verify/redirect?activeKey=' + ${user.verifyKey}">Click here to activate</a>
+<h1>Xin chào <span th:text="${user.fullName}"></span></h1>
+<p>Chào mừng đến với Book Bazaar</p>
+<p>Vui lòng nhấn vào liên kết này để kích hoạt tài khoản của bạn, cảm ơn!</p>
+<a th:href="${clientUrl} + '/verify/redirect?activeKey=' + ${user.verifyKey}">Nhấn vào đây để kích hoạt</a>
 <b>Xin cảm ơn</b>
 <h2 style="text-align: right">Book Bazaar</h2>
 </body>

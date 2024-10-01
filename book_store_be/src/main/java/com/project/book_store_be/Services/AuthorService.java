@@ -3,6 +3,7 @@ package com.project.book_store_be.Services;
 import com.project.book_store_be.Exception.AuthorNotFoundException;
 import com.project.book_store_be.Exception.DuplicatePseudonymException;
 import com.project.book_store_be.Model.Author;
+import com.project.book_store_be.Model.Category;
 import com.project.book_store_be.Repository.AuthorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
@@ -25,28 +26,31 @@ public class AuthorService {
         return repo.findById(id);
     }
 
+    public List<Author> getAuthors(List<Long> authorsId) {
+        return repo.findAllById(authorsId);
+    }
+
     public Author saveAuthor(Author author){
 
-        Optional<Author> existingAuthorByPseudonym = repo.findByPseudonym(author.getPseudonym());
-        if( existingAuthorByPseudonym.isPresent()){
-            throw new IllegalArgumentException("Author with the same name and pseudonym already exists");
-        }
+//        Optional<Author> existingAuthorByPseudonym = repo.findByPseudonym(author.getPseudonym());
+//        if( existingAuthorByPseudonym.isPresent()){
+//            throw new IllegalArgumentException("Author with the same name and pseudonym already exists");
+//        }
         return repo.save(author);
     }
 
     public Author updateAuthor(Long id, Author authorDetails) {
-        Author author = repo.findById(id).orElseThrow(() ->  new AuthorNotFoundException("Author not found"));
-
-        Optional<Author> existingAuthorWithPseudonym = repo.findByPseudonym(authorDetails.getPseudonym());
-        if (existingAuthorWithPseudonym.isPresent() && !existingAuthorWithPseudonym.get().getId().equals(id)) {
-            throw new DuplicatePseudonymException("Pseudonym already in use");
-        }
-
-        author.setName(authorDetails.getName());
-        author.setNationality(authorDetails.getNationality());
-        author.setPseudonym(authorDetails.getPseudonym());
-        author.setPublishedBooks(authorDetails.getPublishedBooks());
-        return repo.save(author);
+//        Author author = repo.findById(id).orElseThrow(() ->  new AuthorNotFoundException("Author not found"));
+//
+//        Optional<Author> existingAuthorWithPseudonym = repo.findByPseudonym(authorDetails.getPseudonym());
+//        if (existingAuthorWithPseudonym.isPresent() && !existingAuthorWithPseudonym.get().getId().equals(id)) {
+//            throw new DuplicatePseudonymException("Pseudonym already in use");
+//        }
+//
+//        author.setName(authorDetails.getName());
+//        author.setNationality(authorDetails.getNationality());
+//        author.setPseudonym(authorDetails.getPseudonym());
+        return repo.save(authorDetails);
     }
 
 
