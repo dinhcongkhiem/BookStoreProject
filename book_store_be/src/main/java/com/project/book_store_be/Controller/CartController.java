@@ -1,61 +1,98 @@
 package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Model.Cart;
-import com.project.book_store_be.Model.CartDetail;
+import com.project.book_store_be.Request.CartRequest;
+import com.project.book_store_be.Response.CartResponse;
 import com.project.book_store_be.Services.CartService;
-import org.hibernate.sql.Update;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/cart")
 public class CartController {
-
-    @Autowired
-    private CartService service;
-
-
-    @GetMapping
-    public ResponseEntity<List<CartDetail>> getAllCartDetails() {
-        List<CartDetail> cartDetails = service.getAllCartDetails();
-        return ResponseEntity.ok(cartDetails);
-    }
-
-
-    @PostMapping("/create")
-    public Cart createCart(@RequestBody Cart cart){
-        return  service.createCart(cart);
-    }
-
+    private final CartService cartService;
     @PostMapping
-    public CartDetail createCartDetail(@RequestBody CartDetail cartDetail){
-        return service.createCartDetail(cartDetail);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<CartDetail> updateCartDetail(@PathVariable Long id, @RequestBody CartDetail cartDetail){
+    public ResponseEntity<Cart> createCart(@RequestBody Cart cart) {
         try {
-            CartDetail updateCartDetail = service.updateCartDetail(id, cartDetail);
-            return ResponseEntity.ok(updateCartDetail);
-        }catch (RuntimeException e){
-            return ResponseEntity.notFound().build();
+            Cart createdCart = cartService.createCart(cart);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdCart);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCart(@PathVariable Long id) {
+    @PostMapping("/{cartId}")
+    public ResponseEntity<String> addProductToCart(
+            @PathVariable Long cartId,
+            @Valid @RequestBody CartRequest cartRequest) {
         try {
-            service.delete(id);
-            return new ResponseEntity<>("Cart deleted successfully", HttpStatus.OK);
+            cartService.addProductToCart(cartId, cartRequest);
+            return ResponseEntity.status(HttpStatus.OK).body("Product added to cart successfully.");
         } catch (NoSuchElementException e) {
-            return new ResponseEntity<>("Cart not found", HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid input: " + e.getMessage());
         } catch (Exception e) {
-            return new ResponseEntity<>("An error occurred while deleting the cart", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{cartId}")
+    public ResponseEntity<CartResponse> getCartDetails(@PathVariable Long cartId) {
+        try {
+            CartResponse cartResponse = cartService.getCartDetails(cartId);
+            return ResponseEntity.ok(cartResponse);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PutMapping("/detail/{cartDetailId}")
+    public ResponseEntity<String> updateCartDetail(
+            @PathVariable Long cartDetailId,
+            @RequestParam Integer quantity) {
+        try {
+            cartService.updateCartDetail(cartDetailId, quantity);
+            return ResponseEntity.status(HttpStatus.OK).body("Cart detail updated successfully.");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart detail not found: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid input: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/detail/{cartDetailId}")
+    public ResponseEntity<String> removeProductFromCart(@PathVariable Long cartDetailId) {
+        try {
+            cartService.removeProductFromCart(cartDetailId);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Product removed from cart successfully.");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart detail not found: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/detail/{cartId}")
+    public ResponseEntity<?> getCartDetailsPage(@PathVariable Long cartId, Pageable pageable) {
+        try {
+            return ResponseEntity.ok(cartService.getCartDetailsPage(cartId, pageable));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
         }
     }
 }
+

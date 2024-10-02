@@ -17,15 +17,8 @@ public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private Integer quantity;
-
+    private Integer totalQuantity;
     private BigDecimal totalPrice;
-
-    private Date created_date;
-
-    private Date update_date;
-
     @OneToOne
     private User user;
 
