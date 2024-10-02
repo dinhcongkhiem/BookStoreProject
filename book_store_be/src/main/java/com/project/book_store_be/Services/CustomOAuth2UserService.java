@@ -5,6 +5,7 @@ import com.project.book_store_be.Enum.Role;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -24,6 +25,8 @@ import java.util.UUID;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
     private final SendMailService sendMailService;
+    private final PasswordEncoder passwordEncoder;
+
 
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User user = super.loadUser(userRequest);
@@ -38,7 +41,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .refreshToken(this.generateRefreshToken(email))
                     .role(Role.USER)
                     .isEnabled(true)
-                    .password(defaultPassword)
+                    .password(passwordEncoder.encode(defaultPassword))
                     .build();
 
             userRepository.save(newUser);
