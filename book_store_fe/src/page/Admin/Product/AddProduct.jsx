@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useState, useLayoutEffect, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     TextField,
@@ -20,21 +20,10 @@ import classNames from 'classnames/bind';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import ImageResize from 'quill-image-resize-module-react';
+import { toast } from 'react-toastify';
 const cx = classNames.bind(style);
+window.Quill = Quill;
 
-const CurrencySymbol = () => (
-    <Typography
-        component="span"
-        sx={{
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            textDecoration: 'underline',
-            marginLeft: '4px',
-        }}
-    >
-        đ
-    </Typography>
-);
 Quill.register('modules/imageResize', ImageResize);
 
 function AddProduct() {
@@ -49,9 +38,9 @@ function AddProduct() {
         description: '',
     });
     const [selectedImages, setSelectedImages] = useState([]);
-    const [previewContent, setPreviewContent] = useState('');
+    const [ImagesInDescription, setImageInDescription] = useState([]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [description, setDescription] = useState('');
+    const quillRef = useRef(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -59,61 +48,52 @@ function AddProduct() {
             ...prevState,
             [name]: value,
         }));
-
-        if (name === 'description') {
-            const decodedText = value.replace(/\\u[\dA-F]{4}/gi, (match) => {
-                return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
-            });
-            setPreviewContent(decodedText);
-        }
     };
 
+    const handleChangeDescription = (e) => {
+        setFormData((prev) => ({
+            ...prev,
+            description: e,
+        }));
+    };
     const handleImageChange = (e) => {
-        const files = Array.from(e.target.files);
-        if (selectedImages.length + files.length > 4) {
+        let files = Array.from(e.target.files);
+        if (selectedImages.length + files.length > 10) {
             setOpenSnackbar(true);
             return;
         }
-        setSelectedImages((prevImages) => [...prevImages, ...files].slice(0, 4));
+        files = files.filter((file) => {
+            const isDuplicate = selectedImages.some((img) => img.name === file.name);
+
+            if (isDuplicate) {
+                toast.warn('Vui lòng chọn các ảnh sản phẩm khác nhau!', { position: 'bottom-right' });
+            }
+
+            return !isDuplicate;
+        });
+
+        files.forEach((file) => {
+            file.preview = URL.createObjectURL(file);
+        });
+
+        setSelectedImages((prevImages) => [...prevImages, ...files].slice(0, 10));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log('Submitting:', { ...formData, images: selectedImages });
-        navigate('/admin/product');
+        // navigate('/admin/product');
     };
 
     const handleRemoveImage = (index) => {
-        setSelectedImages((prevImages) => prevImages.filter((_, i) => i !== index));
+        setSelectedImages((prevImages) => {
+            const imageToRemove = prevImages[index];
+            if (imageToRemove && imageToRemove.preview) {
+                URL.revokeObjectURL(imageToRemove.preview);
+            }
+            return prevImages.filter((_, i) => i !== index);
+        });
     };
-
-    const debounce = (func, wait) => {
-        let timeout;
-        return (...args) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func(...args), wait);
-        };
-    };
-
-    useLayoutEffect(() => {
-        const resizeObserver = new ResizeObserver(
-            debounce((entries) => {
-                for (let entry of entries) {
-                    if (entry.contentBoxSize) {
-                        console.log('Content resized');
-                    }
-                }
-            }, 300),
-        );
-
-        const elements = document.querySelectorAll('.image-container');
-        elements.forEach((el) => resizeObserver.observe(el));
-
-        return () => {
-            resizeObserver.disconnect();
-        };
-    }, [selectedImages]);
-
     const modules = {
         toolbar: [
             [{ header: '1' }, { header: '2' }],
@@ -124,13 +104,15 @@ function AddProduct() {
             ['clean'],
         ],
         clipboard: {
-            // toggle to add extra line breaks when pasting HTML:
             matchVisual: false,
         },
         imageResize: {
             parchment: Quill.import('parchment'),
             modules: ['Resize', 'DisplaySize', 'Toolbar'],
         },
+        // handers: {
+        //     imgage
+        // }
     };
 
     const formats = [
@@ -147,15 +129,41 @@ function AddProduct() {
         'image',
         'color',
     ];
+    // useEffect(() => {
+    //     quillRef.current
+    //         .getEditor()
+    //         .getModule('toolbar')
+    //         .addHandler('image', () => {
+    //             const input = document.createElement('input');
+    //             input.setAttribute('type', 'file');
+    //             input.setAttribute('accept', 'image/*');
+    //             input.click();
+    //             input.onchange = async () => {
+    //                 if (!input.files || !input?.files?.length || !input?.files?.[0]) return;
+    //                 const editor = quillRef?.current?.getEditor();
+    //                 const file = input.files[0];
+    //                 setImageInDescription((prev) => [...prev, file]);
+    //                 const range = editor.getSelection(true);
+    //                 const urlImg = URL.createObjectURL(file);
+    //                 editor.insertEmbed(
+    //                     range.index,
+    //                     'image',
+    //                     'bs'
+    //                 );
+    //             };
+    //         });
+    // }, [quillRef]);
+
     return (
         <Box component="form" onSubmit={handleSubmit} className={cx('form')}>
-            <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                    <Paper elevation={3} className={cx('paper')}>
+            <Grid container spacing={3} sx={{ height: '48.5rem;' }}>
+                <Grid item xs={12} md={6} sx={{ height: '100%' }}>
+                    <Paper elevation={3} className={cx('paper')} sx={{ overflow: 'hidden !important' }}>
                         <Typography variant="h5" component="h2" className={cx('section-title')}>
                             Thông tin sản phẩm
                         </Typography>
                         <TextField
+                            size="small"
                             fullWidth
                             label="Tên sách"
                             name="name"
@@ -166,34 +174,37 @@ function AddProduct() {
                             variant="outlined"
                         />
                         <TextField
+                            size="small"
                             fullWidth
                             label="Giá nhập"
                             name="importPrice"
                             type="number"
+                            inputProps={{
+                                min: 0,
+                            }}
                             value={formData.importPrice}
                             onChange={handleChange}
                             required
                             margin="normal"
                             variant="outlined"
-                            InputProps={{
-                                endAdornment: <CurrencySymbol />,
-                            }}
                         />
                         <TextField
+                            size="small"
                             fullWidth
                             label="Giá bán"
                             name="sellingPrice"
+                            inputProps={{
+                                min: 0,
+                            }}
                             type="number"
                             value={formData.sellingPrice}
                             onChange={handleChange}
                             required
                             margin="normal"
                             variant="outlined"
-                            InputProps={{
-                                endAdornment: <CurrencySymbol />,
-                            }}
                         />
                         <TextField
+                            size="small"
                             fullWidth
                             label="Số lượng"
                             name="quantity"
@@ -204,7 +215,7 @@ function AddProduct() {
                             margin="normal"
                             variant="outlined"
                         />
-                        <FormControl fullWidth margin="normal" variant="outlined">
+                        <FormControl fullWidth size="small" margin="normal" variant="outlined">
                             <InputLabel id="status-label">Trạng thái</InputLabel>
                             <Select
                                 labelId="status-label"
@@ -217,7 +228,7 @@ function AddProduct() {
                                 <MenuItem value="Hết hàng">Hết hàng</MenuItem>
                             </Select>
                         </FormControl>
-                        <FormControl fullWidth margin="normal" variant="outlined">
+                        <FormControl fullWidth size="small" margin="normal" variant="outlined">
                             <InputLabel id="category-label">Danh mục</InputLabel>
                             <Select
                                 labelId="category-label"
@@ -235,10 +246,12 @@ function AddProduct() {
                         </FormControl>
                     </Paper>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={6} sx={{ height: '100%' }}>
                     <Paper elevation={3} className={cx('paper')}>
                         <Typography variant="h5" component="h2" className={cx('section-title')}>
-                            Hình ảnh sản phẩm (Tối đa 4 ảnh)
+                            Hình ảnh sản phẩm (Tối đa 10 ảnh)
+                            <br />
+                            <span style={{ fontSize: '1.3rem' }}>Có thể click để chọn 1 ảnh làm thumbnail.</span>
                         </Typography>
                         <Box className={cx('image-preview')}>
                             <input
@@ -248,40 +261,49 @@ function AddProduct() {
                                 multiple
                                 type="file"
                                 onChange={handleImageChange}
-                                disabled={selectedImages.length >= 4}
+                                disabled={selectedImages.length >= 10}
                             />
                             <label htmlFor="contained-button-file" className={cx('upload-label')}>
-                                <Box className={cx('upload-box', { disabled: selectedImages.length >= 4 })}>
+                                <Box className={cx('upload-box', { disabled: selectedImages.length >= 10 })}>
                                     <CloudUploadIcon className={cx('upload-icon')} />
-                                    <Typography variant="body1">
-                                        {selectedImages.length >= 4 ? 'Đã đạt giới hạn ảnh' : 'Click để chọn ảnh'}
+                                    <Typography variant="body1" sx={{ fontSize: '1.3rem', opacity: '.8' }}>
+                                        {selectedImages.length >= 10 ? 'Đã đạt giới hạn ảnh' : 'Click để chọn ảnh'}
                                     </Typography>
                                 </Box>
                             </label>
-                            {selectedImages.map((image, index) => (
-                                <Box key={index} className={cx('image-container')}>
-                                    <img
-                                        src={URL.createObjectURL(image)}
-                                        alt={`Preview ${index + 1}`}
-                                        className={cx('preview-image')}
-                                    />
-                                    <Box className={cx('remove-button')} onClick={() => handleRemoveImage(index)}>
-                                        <CloseIcon />
+                            {selectedImages.map((image, index) => {
+                                console.log(selectedImages);
+
+                                return (
+                                    <Box
+                                        key={index}
+                                        className={cx('image-container')}
+                                        onClick={() => console.log(selectedImages)}
+                                    >
+                                        <img
+                                            src={image.preview}
+                                            alt={`Preview ${index + 1}`}
+                                            className={cx('preview-image')}
+                                        />
+                                        <Box className={cx('remove-button')} onClick={() => handleRemoveImage(index)}>
+                                            <CloseIcon />
+                                        </Box>
                                     </Box>
-                                </Box>
-                            ))}
+                                );
+                            })}
                         </Box>
                     </Paper>
                 </Grid>
             </Grid>
             <div className={cx('description-container')}>
-                <Typography variant="h5" component="h2" className={cx('description-title')}>
+                <Typography variant="h6" component="h4" className={cx('description-title')}>
                     Mô tả
                 </Typography>
                 <ReactQuill
+                    ref={quillRef}
                     theme="snow"
-                    value={description}
-                    onChange={setDescription}
+                    value={formData.description}
+                    onChange={handleChangeDescription}
                     modules={modules}
                     formats={formats}
                 />

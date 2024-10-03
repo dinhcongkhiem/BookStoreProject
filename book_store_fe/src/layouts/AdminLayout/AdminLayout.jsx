@@ -52,6 +52,9 @@ function AdminLayout({ children }) {
                 <div className={cx('nav-bar')}>
                     <List sx={{ paddingBottom: '0' }}>
                         {adminRoutes.map((routes) => {
+                            if (!routes.label) {
+                                return;
+                            }
                             return (
                                 <ListItemButton
                                     sx={{ padding: '0.6rem 1.5rem' }}
