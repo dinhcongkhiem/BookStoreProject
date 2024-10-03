@@ -1,13 +1,18 @@
 package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.DiscountStatus;
+import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Model.DisCount;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Repository.DisCountRepository;
 import com.project.book_store_be.Repository.ProductRepository;
+import com.project.book_store_be.Request.ProductFilterRequest;
 import com.project.book_store_be.Request.ProductRequest;
 import com.project.book_store_be.Response.ProductRes.ProductDetailResponse;
 import com.project.book_store_be.Response.ProductRes.ProductResponse;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -30,6 +36,9 @@ public class ProductService {
     private final ImageProductService imageProductService;
     private final DisCountRepository disCountRepository;
     private final ReviewService reviewService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public Page<ProductResponse> getAllProducts(int pageNumber, int pageSize) {
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize);
@@ -145,8 +154,50 @@ public class ProductService {
         return productRepository.findAllById(productIds);
     }
 
-    public List<Product> searchProducts(String productName, String categoryName, String authorName, String publisherName) {
-        return productRepository.searchProducts(productName, categoryName, authorName, publisherName);
+    public List<Product> searchProducts(String productName, String categoryName, String authorName, String publisherName,Pageable pageable) {
+        return productRepository.searchProducts(productName, categoryName, authorName, publisherName,pageable);
+    }
+
+    public List<Product> filterProducts(ProductFilterRequest filterRequest) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Product> query = cb.createQuery(Product.class);
+        Root<Product> product = query.from(Product.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        // Filter by categories (many-to-many)
+        if (filterRequest.getCategoriesId() != null && !filterRequest.getCategoriesId().isEmpty()) {
+            Join<Object, Object> categories = product.join("categories");
+            predicates.add(categories.get("id").in(filterRequest.getCategoriesId()));
+        }
+
+        // Filter by price range
+        if (filterRequest.getMinPrice() != null) {
+            predicates.add(cb.greaterThanOrEqualTo(product.get("cost"), filterRequest.getMinPrice()));
+        }
+        if (filterRequest.getMaxPrice() != null) {
+            predicates.add(cb.lessThanOrEqualTo(product.get("cost"), filterRequest.getMaxPrice()));
+        }
+
+        // Filter by publisher
+        if (filterRequest.getPublisherId() != null) {
+            predicates.add(cb.equal(product.get("publisher").get("id"), filterRequest.getPublisherId()));
+        }
+
+        query.where(predicates.toArray(new Predicate[0]));
+        return entityManager.createQuery(query).getResultList();
+    }
+
+    public List<Product> getFilteredProducts(ProductFilterRequest filterRequest) {
+        return filterProducts(filterRequest);
+    }
+
+    public List<Product> getAvailableProducts() {
+        return productRepository.findByStatus(ProductStatus.AVAILABLE);
+    }
+
+    public List<Product> getLatestProducts() {
+        return productRepository.findAllByOrderByYearOfPublicationDesc(PageRequest.of(0, 10));
     }
 
 }

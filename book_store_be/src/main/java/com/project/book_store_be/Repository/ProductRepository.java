@@ -1,7 +1,9 @@
 package com.project.book_store_be.Repository;
 
+import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Model.Product;
 import org.hibernate.type.descriptor.converter.spi.JpaAttributeConverter;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -25,7 +27,13 @@ public interface ProductRepository extends JpaRepository<Product,Long> , CrudRep
     List<Product> searchProducts(@Param("productName") String productName,
                                  @Param("categoryName") String categoryName,
                                  @Param("authorName") String authorName,
-                                 @Param("publisherName") String publisherName);
+                                 @Param("publisherName") String publisherName,
+                                 Pageable pageable);
+
+    List<Product> findByStatus(ProductStatus status);
+
+    List<Product> findAllByOrderByYearOfPublicationDesc(Pageable pageable);
+
 }
 
 
