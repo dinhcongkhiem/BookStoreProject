@@ -1,61 +1,90 @@
 package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Model.Cart;
-import com.project.book_store_be.Model.CartDetail;
+import com.project.book_store_be.Request.CartRequest;
+import com.project.book_store_be.Response.CartResponse;
 import com.project.book_store_be.Services.CartService;
-import org.hibernate.sql.Update;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/cart")
 public class CartController {
+    private final CartService cartService;
 
-    @Autowired
-    private CartService service;
-
-
-    @GetMapping
-    public ResponseEntity<List<CartDetail>> getAllCartDetails() {
-        List<CartDetail> cartDetails = service.getAllCartDetails();
-        return ResponseEntity.ok(cartDetails);
-    }
-
-
-    @PostMapping("/create")
-    public Cart createCart(@RequestBody Cart cart){
-        return  service.createCart(cart);
-    }
-
-    @PostMapping
-    public CartDetail createCartDetail(@RequestBody CartDetail cartDetail){
-        return service.createCartDetail(cartDetail);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<CartDetail> updateCartDetail(@PathVariable Long id, @RequestBody CartDetail cartDetail){
+    @GetMapping()
+    public ResponseEntity<?> getCartByUserId(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            CartDetail updateCartDetail = service.updateCartDetail(id, cartDetail);
-            return ResponseEntity.ok(updateCartDetail);
-        }catch (RuntimeException e){
-            return ResponseEntity.notFound().build();
+            CartResponse cartResponse = cartService.getCartByUserId( page, size);
+            return ResponseEntity.ok(cartResponse);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Không tìm thấy giỏ hàng của người dùng", "status", HttpStatus.NOT_FOUND.value()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Đã xảy ra lỗi không xác định", "status", HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCart(@PathVariable Long id) {
+    @PostMapping()
+    public ResponseEntity<?> addToCart( @RequestBody CartRequest cartRequest) {
         try {
-            service.delete(id);
-            return new ResponseEntity<>("Cart deleted successfully", HttpStatus.OK);
+            cartService.addToCart( cartRequest);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (NoSuchElementException e) {
-            return new ResponseEntity<>("Cart not found", HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Không tìm thấy sản phẩm để thêm vào giỏ hàng", "status", HttpStatus.NOT_FOUND.value()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1 và nhỏ hơn hoặc bằng số lượng có sẵn.", "status", HttpStatus.BAD_REQUEST.value()));
         } catch (Exception e) {
-            return new ResponseEntity<>("An error occurred while deleting the cart", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Đã xảy ra lỗi không xác định", "status", HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    @PutMapping("/{cartDetailId}")
+    public ResponseEntity<?> updateCartItem(
+            @PathVariable Long cartDetailId,
+            @RequestBody @Valid CartRequest cartRequest) {
+        try {
+            cartService.updateCartItem( cartDetailId, cartRequest);
+            return ResponseEntity.ok().build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Không tìm thấy sản phẩm trong giỏ hàng để cập nhật", "status", HttpStatus.NOT_FOUND.value()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1 và nhỏ hơn hoặc bằng số lượng có sẵn.", "status", HttpStatus.BAD_REQUEST.value()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Đã xảy ra lỗi không xác định", "status", HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    @DeleteMapping("/{cartDetailId}")
+    public ResponseEntity<?> removeCartItem( @PathVariable Long cartDetailId) {
+        try {
+            cartService.removeCartItem( cartDetailId);
+            return ResponseEntity.ok().build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Không tìm thấy sản phẩm trong giỏ hàng để xóa", "status", HttpStatus.NOT_FOUND.value()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Đã xảy ra lỗi không xác định", "status", HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 }
+
