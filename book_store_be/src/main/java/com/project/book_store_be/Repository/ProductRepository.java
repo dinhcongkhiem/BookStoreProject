@@ -32,7 +32,8 @@ public interface ProductRepository extends JpaRepository<Product,Long> , CrudRep
 
     List<Product> findByStatus(ProductStatus status);
 
-    List<Product> findAllByOrderByYearOfPublicationDesc(Pageable pageable);
+    List<Product> findAllByOrderByIdDesc(Pageable pageable);
+
 
 }
 

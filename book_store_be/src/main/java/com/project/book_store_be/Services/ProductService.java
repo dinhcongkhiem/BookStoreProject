@@ -197,7 +197,8 @@ public class ProductService {
     }
 
     public List<Product> getLatestProducts() {
-        return productRepository.findAllByOrderByYearOfPublicationDesc(PageRequest.of(0, 10));
+        return productRepository.findAllByOrderByIdDesc(PageRequest.of(0, 10));
     }
+
 
 }

@@ -85,13 +85,10 @@ public class ProductController {
         return productService.getFilteredProducts(filterRequest);
     }
 
-    @GetMapping("/products/available")
-    public List<Product> getAvailableProducts() {
-        return productService.getAvailableProducts();
-    }
-
     @GetMapping("/products/latest")
     public List<Product> getLatestProducts() {
         return productService.getLatestProducts();
     }
+
+
 }
