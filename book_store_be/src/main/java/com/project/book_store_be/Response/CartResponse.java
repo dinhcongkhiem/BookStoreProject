@@ -10,7 +10,8 @@ import java.util.List;
 @Data
 @Builder
 public class CartResponse {
-    private Long id;
-    private List<ProductCartResponse> products;
-    private BigDecimal totalPrice;
+    private List<ProductCartResponse> cart;
+    private Integer totalPages;
+    private Integer currentPage;
+    private Long totalItems;
 }

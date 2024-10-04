@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -18,80 +19,71 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v1/cart")
 public class CartController {
     private final CartService cartService;
-    @PostMapping
-    public ResponseEntity<Cart> createCart(@RequestBody Cart cart) {
-        try {
-            Cart createdCart = cartService.createCart(cart);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdCart);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
 
-    @PostMapping("/{cartId}")
-    public ResponseEntity<String> addProductToCart(
-            @PathVariable Long cartId,
-            @Valid @RequestBody CartRequest cartRequest) {
+    @GetMapping()
+    public ResponseEntity<?> getCartByUserId(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            cartService.addProductToCart(cartId, cartRequest);
-            return ResponseEntity.status(HttpStatus.OK).body("Product added to cart successfully.");
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid input: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("/{cartId}")
-    public ResponseEntity<CartResponse> getCartDetails(@PathVariable Long cartId) {
-        try {
-            CartResponse cartResponse = cartService.getCartDetails(cartId);
+            CartResponse cartResponse = cartService.getCartByUserId( page, size);
             return ResponseEntity.ok(cartResponse);
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Không tìm thấy giỏ hàng của người dùng", "status", HttpStatus.NOT_FOUND.value()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Đã xảy ra lỗi không xác định", "status", HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
-    @PutMapping("/detail/{cartDetailId}")
-    public ResponseEntity<String> updateCartDetail(
-            @PathVariable Long cartDetailId,
-            @RequestParam Integer quantity) {
+    @PostMapping()
+    public ResponseEntity<?> addToCart( @RequestBody CartRequest cartRequest) {
         try {
-            cartService.updateCartDetail(cartDetailId, quantity);
-            return ResponseEntity.status(HttpStatus.OK).body("Cart detail updated successfully.");
+            cartService.addToCart( cartRequest);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart detail not found: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Không tìm thấy sản phẩm để thêm vào giỏ hàng", "status", HttpStatus.NOT_FOUND.value()));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid input: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1 và nhỏ hơn hoặc bằng số lượng có sẵn.", "status", HttpStatus.BAD_REQUEST.value()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Đã xảy ra lỗi không xác định", "status", HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
-    @DeleteMapping("/detail/{cartDetailId}")
-    public ResponseEntity<String> removeProductFromCart(@PathVariable Long cartDetailId) {
+    @PutMapping("/{cartDetailId}")
+    public ResponseEntity<?> updateCartItem(
+            @PathVariable Long cartDetailId,
+            @RequestBody @Valid CartRequest cartRequest) {
         try {
-            cartService.removeProductFromCart(cartDetailId);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Product removed from cart successfully.");
+            cartService.updateCartItem( cartDetailId, cartRequest);
+            return ResponseEntity.ok().build();
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart detail not found: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Không tìm thấy sản phẩm trong giỏ hàng để cập nhật", "status", HttpStatus.NOT_FOUND.value()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1 và nhỏ hơn hoặc bằng số lượng có sẵn.", "status", HttpStatus.BAD_REQUEST.value()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Đã xảy ra lỗi không xác định", "status", HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
-    @GetMapping("/detail/{cartId}")
-    public ResponseEntity<?> getCartDetailsPage(@PathVariable Long cartId, Pageable pageable) {
+    @DeleteMapping("/{cartDetailId}")
+    public ResponseEntity<?> removeCartItem( @PathVariable Long cartDetailId) {
         try {
-            return ResponseEntity.ok(cartService.getCartDetailsPage(cartId, pageable));
+            cartService.removeCartItem( cartDetailId);
+            return ResponseEntity.ok().build();
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Không tìm thấy sản phẩm trong giỏ hàng để xóa", "status", HttpStatus.NOT_FOUND.value()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Đã xảy ra lỗi không xác định", "status", HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 }

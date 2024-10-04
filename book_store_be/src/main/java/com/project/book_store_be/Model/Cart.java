@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -17,8 +18,8 @@ public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Integer totalQuantity;
-    private BigDecimal totalPrice;
+    @OneToMany
+    private List<CartDetail> cartDetails;
     @OneToOne
     private User user;
 
