@@ -176,10 +176,10 @@
 
         .ql-toolbar {
             border: 1px solid #e0e0e0 !important;
-            border-bottom: none !important;
+            // border-bottom: none !important;
             border-top-right-radius: 1rem;
             border-top-left-radius: 1rem;
-            background-color: #f8f9fa;
+            background-color: var(--white);
             padding: 1rem;
 
             .ql-formats {
@@ -198,7 +198,7 @@
                 }
 
                 &.ql-active {
-                    color: #2980b9;
+                    color: var(--primary);
                 }
             }
         }
@@ -208,15 +208,16 @@
             border-bottom-left-radius: 1rem;
             border: 1px solid #e0e0e0 !important;
             border-top: none !important;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
+            max-height: 40rem;
+            overflow: scroll;
+            background-color: var(--white);
 
             .ql-editor {
                 min-height: 25rem;
                 padding: 1.5rem;
-
-                &:focus {
-                    outline: none;
-                    box-shadow: inset 0 0 0 2px rgba(52, 152, 219, 0.2);
+                p {
+                    padding: 0;
                 }
             }
         }

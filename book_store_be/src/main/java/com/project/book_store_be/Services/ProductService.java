@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -36,7 +37,6 @@ public class ProductService {
     private final ImageProductService imageProductService;
     private final DisCountRepository disCountRepository;
     private final ReviewService reviewService;
-
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -62,6 +62,8 @@ public class ProductService {
                 .categories(categoryService.getCategories(request.getCategoriesId()))
                 .authors(authorService.getAuthors(request.getAuthorsId()))
                 .year_of_publication(request.getYear_of_publication())
+                .createDate(new Date())
+                .updateDate(new Date())
                 .build();
         productRepository.save(product);
         imageProductService.uploadMultipleImageProduct(images, product);
@@ -82,6 +84,7 @@ public class ProductService {
         pr.setStatus(request.getStatus());
         pr.setCategories(categoryService.getCategories(request.getCategoriesId()));
         pr.setAuthors(authorService.getAuthors(request.getAuthorsId()));
+        pr.setUpdateDate(new Date());
         return productRepository.save(pr);
     }
 
@@ -165,13 +168,11 @@ public class ProductService {
 
         List<Predicate> predicates = new ArrayList<>();
 
-        // Filter by categories (many-to-many)
         if (filterRequest.getCategoriesId() != null && !filterRequest.getCategoriesId().isEmpty()) {
             Join<Object, Object> categories = product.join("categories");
             predicates.add(categories.get("id").in(filterRequest.getCategoriesId()));
         }
 
-        // Filter by price range
         if (filterRequest.getMinPrice() != null) {
             predicates.add(cb.greaterThanOrEqualTo(product.get("cost"), filterRequest.getMinPrice()));
         }
@@ -179,11 +180,9 @@ public class ProductService {
             predicates.add(cb.lessThanOrEqualTo(product.get("cost"), filterRequest.getMaxPrice()));
         }
 
-        // Filter by publisher
         if (filterRequest.getPublisherId() != null) {
             predicates.add(cb.equal(product.get("publisher").get("id"), filterRequest.getPublisherId()));
         }
-
         query.where(predicates.toArray(new Predicate[0]));
         return entityManager.createQuery(query).getResultList();
     }
@@ -196,8 +195,8 @@ public class ProductService {
         return productRepository.findByStatus(ProductStatus.AVAILABLE);
     }
 
-    public List<Product> getLatestProducts() {
-        return productRepository.findAllByOrderByYearOfPublicationDesc(PageRequest.of(0, 10));
-    }
+//    public List<Product> getLatestProducts() {
+//        return productRepository.findAllByOrderByYearOfPublicationDesc(PageRequest.of(0, 10));
+//    }
 
 }

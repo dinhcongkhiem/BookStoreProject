@@ -9,7 +9,6 @@ import {
     User,
     Dashboard,
     Cart,
-    ProductManagent,
     AddProduct,
     EditProduct,
     DetailProduct,
@@ -20,10 +19,10 @@ import {
     AddDiscount,
     EditDiscount,
     ProductDetail,
+    ProductManagement,
 } from '../page';
 import OAuth2Redirect from '../component/HandlerRedirect/OAuth2Redirect/OAuth2Redirect';
 import ActiveAccountRedirect from '../component/HandlerRedirect/ActiveAccountRedirect/ActiveAccountRedirect';
-import { Add } from '@mui/icons-material';
 
 // Public routes
 const publicRoutes = [
@@ -47,7 +46,7 @@ const userRoutes = [
 
 const adminRoutes = [
     { path: '/admin/dashboard', component: Dashboard, label: 'Thống kê' },
-    { path: '/admin/product', component: ProductManagent, label: 'Sản phẩm' },
+    { path: '/admin/product', component: ProductManagement, label: 'Sản phẩm' },
     { path: '/admin/product/add', component: AddProduct },
     { path: '/admin/product/edit', component: EditProduct },
     { path: '/admin/detailproduct', component: DetailProduct },

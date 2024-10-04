@@ -13,8 +13,7 @@ public class ProductRequest {
     private String name;
     private Long publisherId;
     private Integer number_of_pages;
-    private Year year_of_publication;
-
+    private Integer year_of_publication;
     private BigDecimal cost;
     private BigDecimal original_price;
     private String size;

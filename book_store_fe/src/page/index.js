@@ -9,7 +9,7 @@ import User from './User/User';
 import Cart from './Cart/Cart';
 import ProductDetail from './ProductDetail/ProductDetail';
 
-import ProductManagent from './Admin/Product/ProductManagent';
+import ProductManagement from './Admin/Product/ProductManagement';
 import AddProduct from './Admin/Product/AddProduct';
 import EditProduct from './Admin/Product/EditProduct';
 import DetailProduct from './Admin/Product/DetailProduct';
@@ -32,7 +32,7 @@ export {
     ProductDetail,
     Product,
     Cart,
-    ProductManagent,
+    ProductManagement,
     AddProduct,
     EditProduct,
     DetailProduct, Voucher, AddVoucher,

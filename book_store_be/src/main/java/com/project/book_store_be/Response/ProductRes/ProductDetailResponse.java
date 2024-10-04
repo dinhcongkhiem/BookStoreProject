@@ -16,7 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 public class ProductDetailResponse extends ProductBaseResponse {
-    private Year year_of_publication;
+    private Integer year_of_publication;
     private Integer number_of_pages;
     private Integer review_count;
     private Integer quantity;

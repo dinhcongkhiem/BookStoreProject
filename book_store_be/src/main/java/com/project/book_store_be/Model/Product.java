@@ -21,7 +21,8 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    private Year year_of_publication;
+    @Column(length = 4)
+    private Integer year_of_publication;
     private Integer number_of_pages;
     private Integer quantity;
     private ProductStatus status;
@@ -39,6 +40,8 @@ public class Product {
     private List<Category> categories;
     @ManyToMany
     private List<Author> authors;
+    private Date createDate;
+    private Date updateDate;
 
 
 }

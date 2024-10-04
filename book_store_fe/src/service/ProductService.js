@@ -6,12 +6,12 @@ class ProductServiceClass {
         let pageRequest = 0;
         let pageSizeRequest = 20;
 
-        if(page) {
-            pageRequest = page; 
+        if (page) {
+            pageRequest = page;
         }
 
-        if(pageSize) {
-            pageSizeRequest = pageSize
+        if (pageSize) {
+            pageSizeRequest = pageSize;
         }
         let config = {
             method: 'get',
@@ -19,7 +19,7 @@ class ProductServiceClass {
             headers: {
                 'Content-Type': 'application/json',
             },
-            params: {pageNumber: pageRequest, pageSize: pageSizeRequest},
+            params: { pageNumber: pageRequest, pageSize: pageSizeRequest },
             withCredentials: true,
         };
         return httpRequest.request(config);
@@ -30,12 +30,29 @@ class ProductServiceClass {
             method: 'get',
             maxBodyLength: Infinity,
             url: PRODUCT_URL,
-            params: {id: 4},
+            params: { id: 4 },
             headers: {},
             withCredentials: true,
         };
 
-        return axios.request(config);
+        return httpRequest.request(config);
+    };
+
+    uploadImgInDescription = (formData) => {
+        console.log("haha");
+        
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: 'http://localhost:8080/api/v1/image',
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+            withCredentials: true,
+
+            data: formData,
+        };
+        return httpRequest.request(config);
     };
 }
 const ProductService = new ProductServiceClass();

@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     TextField,
@@ -21,6 +21,10 @@ import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import ImageResize from 'quill-image-resize-module-react';
 import { toast } from 'react-toastify';
+import { formats, modules } from '../../../utills/ReactQuillConfig';
+import { useMutation } from '@tanstack/react-query';
+import ProductService from '../../../service/ProductService';
+import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 const cx = classNames.bind(style);
 window.Quill = Quill;
 
@@ -38,10 +42,11 @@ function AddProduct() {
         description: '',
     });
     const [selectedImages, setSelectedImages] = useState([]);
-    const [ImagesInDescription, setImageInDescription] = useState([]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const quillRef = useRef(null);
 
+    const [isLoading, setIsLoading] = useState(false);
+    
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevState) => ({
@@ -64,11 +69,9 @@ function AddProduct() {
         }
         files = files.filter((file) => {
             const isDuplicate = selectedImages.some((img) => img.name === file.name);
-
             if (isDuplicate) {
                 toast.warn('Vui lòng chọn các ảnh sản phẩm khác nhau!', { position: 'bottom-right' });
             }
-
             return !isDuplicate;
         });
 
@@ -94,65 +97,49 @@ function AddProduct() {
             return prevImages.filter((_, i) => i !== index);
         });
     };
-    const modules = {
-        toolbar: [
-            [{ header: '1' }, { header: '2' }],
-            [{ size: [] }],
-            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-            [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-            ['link', 'image'],
-            ['clean'],
-        ],
-        clipboard: {
-            matchVisual: false,
+   
+    const uploadImgInDesc = useMutation({
+        mutationFn: (data) => ProductService.uploadImgInDescription(data),
+        onError: (error) => {
+            console.log(error);
         },
-        imageResize: {
-            parchment: Quill.import('parchment'),
-            modules: ['Resize', 'DisplaySize', 'Toolbar'],
-        },
-        // handers: {
-        //     imgage
-        // }
-    };
+    });
+    
+    useEffect(() => {
+        const quill = quillRef?.current?.getEditor();
+        const toolbar = quill?.getModule('toolbar');
+        
+        toolbar?.addHandler('image', () => {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/*');
+            input.click();
+    
+            input.onchange = async () => {
+                if (!input.files || !input?.files?.length || !input?.files?.[0]) return;
+    
+                const editor = quillRef?.current?.getEditor();
+                const file = input.files[0];
+                const range = editor.getSelection(true);
+                const formDataReq = new FormData();
+                formDataReq.append('file', file);
+    
+                uploadImgInDesc.mutate(formDataReq, {
+                    onSuccess: (urlImg) => {
+                        console.log(urlImg);
+                        
+                        if (urlImg) {
+                            editor.insertEmbed(range.index, 'image', urlImg.data); 
+                        }
+                    },
+                });
+            };
+        });
+    }, [quillRef]);
 
-    const formats = [
-        'header',
-        'bold',
-        'italic',
-        'underline',
-        'strike',
-        'blockquote',
-        'list',
-        'bullet',
-        'indent',
-        'link',
-        'image',
-        'color',
-    ];
-    // useEffect(() => {
-    //     quillRef.current
-    //         .getEditor()
-    //         .getModule('toolbar')
-    //         .addHandler('image', () => {
-    //             const input = document.createElement('input');
-    //             input.setAttribute('type', 'file');
-    //             input.setAttribute('accept', 'image/*');
-    //             input.click();
-    //             input.onchange = async () => {
-    //                 if (!input.files || !input?.files?.length || !input?.files?.[0]) return;
-    //                 const editor = quillRef?.current?.getEditor();
-    //                 const file = input.files[0];
-    //                 setImageInDescription((prev) => [...prev, file]);
-    //                 const range = editor.getSelection(true);
-    //                 const urlImg = URL.createObjectURL(file);
-    //                 editor.insertEmbed(
-    //                     range.index,
-    //                     'image',
-    //                     'bs'
-    //                 );
-    //             };
-    //         });
-    // }, [quillRef]);
+    if (uploadImgInDesc.isLoading) {
+        setIsLoading(true);
+    }
 
     return (
         <Box component="form" onSubmit={handleSubmit} className={cx('form')}>
@@ -322,6 +309,7 @@ function AddProduct() {
                 onClose={() => setOpenSnackbar(false)}
                 message="Chỉ được chọn tối đa 4 ảnh"
             />
+            <ModalLoading isLoading={isLoading} />
         </Box>
     );
 }

@@ -13,10 +13,15 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.zip.CRC32;
 
 
 @Service
@@ -38,31 +43,32 @@ public class AmazonS3Service {
                 .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                 .build();
     }
-
-    private File convertMultiPartFileToFile(MultipartFile file) {
-        File convertedFile = new File(Objects.requireNonNull(file.getOriginalFilename()));
-        try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
-            fos.write(file.getBytes());
-        } catch (IOException e) {
-            throw new RuntimeException("Lỗi khi chuyển đổi MultipartFile thành File", e);
-        }
-        return convertedFile;
+    public File convertToJpg(MultipartFile file) throws IOException {
+        InputStream inputStream = file.getInputStream();
+        BufferedImage bufferedImage = ImageIO.read(inputStream);
+        File outputFile = File.createTempFile(hashFileName(Objects.requireNonNull(file.getOriginalFilename())),
+                ".jpg");
+        ImageIO.write(bufferedImage, "jpg", outputFile);
+        return outputFile;
     }
-
-    public String uploadFile(String key, MultipartFile file) throws IOException {
-        File convertedFile = convertMultiPartFileToFile(file);
+    public String uploadFile(MultipartFile file) throws IOException {
+        File convertedFile = convertToJpg(file);
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .acl(ObjectCannedACL.PUBLIC_READ)
-                .key(key)
+                .key(convertedFile.getName())
                 .build();
 
        s3Client.putObject(putObjectRequest, RequestBody.fromFile(convertedFile));
 
         convertedFile.delete();
-        return "https://" + bucketName + ".s3." + Region.AP_SOUTHEAST_1.id() + ".amazonaws.com/" + key;
+        return "https://" + bucketName + ".s3." + Region.AP_SOUTHEAST_1.id() + ".amazonaws.com/" + convertedFile.getName();
     }
-
+    private String hashFileName(String input) {
+        CRC32 crc32 = new CRC32();
+        crc32.update(input.getBytes(StandardCharsets.UTF_8));
+        return Long.toHexString(crc32.getValue());
+    }
 }
 

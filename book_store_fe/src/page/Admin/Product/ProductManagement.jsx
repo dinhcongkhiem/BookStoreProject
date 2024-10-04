@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import classNames from 'classnames/bind';
-import style from './ProductManagent.module.scss';
+import style from './ProductManagement.module.scss';
 import {
     Table,
     TableBody,
@@ -84,8 +84,7 @@ const Product = () => {
 
     useEffect(() => {
         if(productRes) {
-            console.log(productRes);
-            
+            console.log(productRes);  
         }
     }, [productRes]);
 
