@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.Year;
 import java.util.Date;
 import java.util.List;
 
@@ -20,24 +21,27 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    private Date publication_date;
+    @Column(length = 4)
+    private Integer year_of_publication;
     private Integer number_of_pages;
     private Integer quantity;
     private ProductStatus status;
     private String size;
-    @ManyToOne
-    private Translator translator;
+    private String translatorName;
     private CoverType coverType;
     @Column(columnDefinition = "TEXT")
     private String description;
     private BigDecimal cost;
     private BigDecimal original_price;
+    private String manufacturer;
     @ManyToOne
     private Publisher publisher;
     @ManyToMany
     private List<Category> categories;
     @ManyToMany
     private List<Author> authors;
+    private Date createDate;
+    private Date updateDate;
 
 
 }

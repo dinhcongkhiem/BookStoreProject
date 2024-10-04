@@ -1,22 +1,22 @@
 package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.DiscountStatus;
+import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Model.DisCount;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Repository.DisCountRepository;
 import com.project.book_store_be.Repository.ProductRepository;
+import com.project.book_store_be.Request.ProductFilterRequest;
 import com.project.book_store_be.Request.ProductRequest;
 import com.project.book_store_be.Response.ProductRes.ProductDetailResponse;
 import com.project.book_store_be.Response.ProductRes.ProductResponse;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,6 +37,8 @@ public class ProductService {
     private final ImageProductService imageProductService;
     private final DisCountRepository disCountRepository;
     private final ReviewService reviewService;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public Page<ProductResponse> getAllProducts(int pageNumber, int pageSize) {
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize);
@@ -59,7 +61,9 @@ public class ProductService {
                 .status(request.getStatus())
                 .categories(categoryService.getCategories(request.getCategoriesId()))
                 .authors(authorService.getAuthors(request.getAuthorsId()))
-                .publication_date(new Date())
+                .year_of_publication(request.getYear_of_publication())
+                .createDate(new Date())
+                .updateDate(new Date())
                 .build();
         productRepository.save(product);
         imageProductService.uploadMultipleImageProduct(images, product);
@@ -80,6 +84,7 @@ public class ProductService {
         pr.setStatus(request.getStatus());
         pr.setCategories(categoryService.getCategories(request.getCategoriesId()));
         pr.setAuthors(authorService.getAuthors(request.getAuthorsId()));
+        pr.setUpdateDate(new Date());
         return productRepository.save(pr);
     }
 
@@ -125,18 +130,20 @@ public class ProductService {
                 .id(product.getId())
                 .name(product.getName())
                 .original_price(product.getOriginal_price())
-                .publication_date(product.getPublication_date())
+                .year_of_publication(product.getYear_of_publication())
                 .number_of_pages(product.getNumber_of_pages())
                 .description(product.getDescription())
                 .quantity(product.getQuantity())
                 .coverType(product.getCoverType())
                 .size(product.getSize())
-                .translator(product.getTranslator())
+                .translatorName(product.getTranslatorName())
+                .manufacturer(product.getManufacturer())
                 .authors(product.getAuthors())
                 .categories(product.getCategories())
                 .publisher(product.getPublisher())
                 .discount(discountValue)
                 .discount_rate(discountRate)
+                .status(product.getStatus())
                 .price(product.getOriginal_price().subtract(discountValue))
 //                .quantity_sold()   PENDING
                 .rating_average(reviewService.calculateReviewAverage(product.getId()))
@@ -150,8 +157,46 @@ public class ProductService {
         return productRepository.findAllById(productIds);
     }
 
-    public List<Product> searchProducts(String productName, String categoryName, String authorName, String publisherName) {
-        return productRepository.searchProducts(productName, categoryName, authorName, publisherName);
+    public List<Product> searchProducts(String productName, String categoryName, String authorName, String publisherName,Pageable pageable) {
+        return productRepository.searchProducts(productName, categoryName, authorName, publisherName,pageable);
     }
+
+    public List<Product> filterProducts(ProductFilterRequest filterRequest) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Product> query = cb.createQuery(Product.class);
+        Root<Product> product = query.from(Product.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (filterRequest.getCategoriesId() != null && !filterRequest.getCategoriesId().isEmpty()) {
+            Join<Object, Object> categories = product.join("categories");
+            predicates.add(categories.get("id").in(filterRequest.getCategoriesId()));
+        }
+
+        if (filterRequest.getMinPrice() != null) {
+            predicates.add(cb.greaterThanOrEqualTo(product.get("cost"), filterRequest.getMinPrice()));
+        }
+        if (filterRequest.getMaxPrice() != null) {
+            predicates.add(cb.lessThanOrEqualTo(product.get("cost"), filterRequest.getMaxPrice()));
+        }
+
+        if (filterRequest.getPublisherId() != null) {
+            predicates.add(cb.equal(product.get("publisher").get("id"), filterRequest.getPublisherId()));
+        }
+        query.where(predicates.toArray(new Predicate[0]));
+        return entityManager.createQuery(query).getResultList();
+    }
+
+    public List<Product> getFilteredProducts(ProductFilterRequest filterRequest) {
+        return filterProducts(filterRequest);
+    }
+
+    public List<Product> getAvailableProducts() {
+        return productRepository.findByStatus(ProductStatus.AVAILABLE);
+    }
+
+//    public List<Product> getLatestProducts() {
+//        return productRepository.findAllByOrderByYearOfPublicationDesc(PageRequest.of(0, 10));
+//    }
 
 }

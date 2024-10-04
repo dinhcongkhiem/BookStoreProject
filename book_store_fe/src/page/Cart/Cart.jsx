@@ -16,7 +16,7 @@ import {
     TableRow,
     TableCell,
     TableBody,
-    TableContainer
+    TableContainer,
 } from '@mui/material';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import AddIcon from '@mui/icons-material/Add';
@@ -71,17 +71,12 @@ function Cart() {
     };
 
     const handleQuantityChange = (id, value) => {
-        const item = cartItems.find(item => item.id === id);
-        if (value < 1) {
-            return;
-        }
-
         setCartItems(
-            cartItems.map(item =>
+            cartItems.map((item) =>
                 item.id === id
-                    ? { ...item, quantity: Math.min(item.stock, value) }
-                    : item
-            )
+                    ? { ...item, quantity: Math.min(item.stock, parseInt(value) < 1 ? 1 : parseInt(value)) }
+                    : item,
+            ),
         );
     };
 
@@ -91,7 +86,7 @@ function Cart() {
     };
 
     const handleDeleteItem = (id) => {
-        setCartItems(cartItems.filter(item => item.id !== id));
+        setCartItems(cartItems.filter((item) => item.id !== id));
     };
 
     const handleCloseDialog = () => {
@@ -104,21 +99,25 @@ function Cart() {
     };
 
     const handleSelectAll = (event) => {
-        setSelectedItems(event.target.checked ? cartItems.map(item => item.id) : []);
+        setSelectedItems(event.target.checked ? cartItems.map((item) => item.id) : []);
     };
 
     const handleSelectItem = (id) => {
-        setSelectedItems(selectedItems.includes(id) ? selectedItems.filter(itemId => itemId !== id) : [...selectedItems, id]);
+        setSelectedItems(
+            selectedItems.includes(id) ? selectedItems.filter((itemId) => itemId !== id) : [...selectedItems, id],
+        );
     };
 
     const totalAmount = cartItems.reduce(
         (acc, item) => acc + (selectedItems.includes(item.id) ? item.price * item.quantity : 0),
-        0
+        0,
     );
 
     return (
         <div className={cx('cart-container')}>
-            <h2><b>Giỏ Hàng Của Bạn</b></h2>
+            <h2>
+                <b>Giỏ Hàng Của Bạn</b>
+            </h2>
             <div className={cx('cart-content')}>
                 <TableContainer
                     sx={{
@@ -175,7 +174,7 @@ function Cart() {
                                                 <button
                                                     className={cx('quantity-btn')}
                                                     onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                                                    disabled={item.quantity <= 1} // Vô hiệu hóa nút giảm nếu số lượng <= 1
+                                                    disabled={item.quantity <= 1}
                                                 >
                                                     <RemoveIcon />
                                                 </button>
@@ -189,28 +188,37 @@ function Cart() {
                                                     onInput={(e) => {
                                                         e.target.value = e.target.value.replace(/[^0-9]/g, '');
                                                     }}
-                                                    onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)} // Số lượng phải là số và >= 1
+                                                    onChange={(e) => {
+                                                        handleQuantityChange(item.id, e.target.value);
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        e.target.value <= 0 && handleQuantityChange(item.id, 1);
+                                                    }}
                                                 />
                                                 <button
                                                     className={cx('quantity-btn')}
                                                     onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                                                    disabled={item.quantity >= item.stock} // Vô hiệu hóa nút tăng nếu số lượng >= stock
+                                                    disabled={item.quantity >= item.stock}
                                                 >
                                                     <AddIcon />
                                                 </button>
                                             </div>
                                             <div className={cx('stock-remaining')}>
-                                                Số lượng còn lại: {item.stock - item.quantity}
+                                                Số lượng còn lại:
+                                                {isNaN(item.stock - item.quantity) ? 0 : item.stock - item.quantity}
                                             </div>
                                         </TableCell>
 
-
                                         <TableCell align="center" style={{ width: '15rem' }}>
-                                            {(item.price * item.quantity).toLocaleString()} <span>₫</span>
+                                            {isNaN(item.price * item.quantity)
+                                                ? 0
+                                                : (item.price * item.quantity).toLocaleString('vi-VN')}{' '}
+                                            <span>₫</span>
                                         </TableCell>
 
                                         <TableCell align="center">
-                                            <IconButton className={cx('delete-icon-btn')}
+                                            <IconButton
+                                                className={cx('delete-icon-btn')}
                                                 color="error"
                                                 onClick={() => handleDeleteIconClick(item.id)}
                                             >
@@ -239,18 +247,27 @@ function Cart() {
                     </div>
                     <div className={cx('summary-details')}>
                         <p>
-                            Tạm tính: <strong>{totalAmount.toLocaleString()} <span className={cx('currency-symbol')}>₫</span></strong>
+                            Tạm tính:{' '}
+                            <strong>
+                                {totalAmount.toLocaleString()} <span className={cx('currency-symbol')}>₫</span>
+                            </strong>
                         </p>
                         <p>
-                            Giảm giá: <strong>0 <span className={cx('currency-symbol')}>₫</span></strong>
+                            Giảm giá:{' '}
+                            <strong>
+                                0 <span className={cx('currency-symbol')}>₫</span>
+                            </strong>
                         </p>
                         <hr />
                         <p>
-                            Thành tiền: <strong>{totalAmount.toLocaleString()} <span className={cx('currency-symbol')}>₫</span></strong>
+                            Thành tiền:{' '}
+                            <strong>
+                                {totalAmount.toLocaleString()} <span className={cx('currency-symbol')}>₫</span>
+                            </strong>
                         </p>
                     </div>
                     <Button variant="outlined" color="primary" className={cx('checkout-button')}>
-                        Mua hàng ({selectedCount}) {/* Chỉ cập nhật số lượng sản phẩm được chọn */}
+                        Mua hàng ({selectedCount})
                     </Button>
                 </div>
             </div>
@@ -284,13 +301,10 @@ function Cart() {
                                 classes: {
                                     input: cx('custom-textfield'),
                                 },
-                                style: { width: '25rem' }
+                                style: { width: '25rem' },
                             }}
                         />
-                        <Button className={cx('search-button')}
-                            variant="outlined"
-                            disabled={searchTerm === ''}
-                        >
+                        <Button className={cx('search-button')} variant="outlined" disabled={searchTerm === ''}>
                             Xác nhận
                         </Button>
                     </div>
@@ -318,18 +332,10 @@ function Cart() {
                     <p>Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?</p>
                 </DialogContent>
                 <DialogActions>
-                    <Button
-                        onClick={handleConfirmDelete}
-                        variant="outlined"
-                        className={cx('cancel-button')}
-                    >
+                    <Button onClick={handleConfirmDelete} variant="outlined" className={cx('cancel-button')}>
                         Xác Nhận
                     </Button>
-                    <Button
-                        onClick={handleCloseDialog}
-                        variant="outlined"
-                        className={cx('delete-confirm-button')}
-                    >
+                    <Button onClick={handleCloseDialog} variant="outlined" className={cx('delete-confirm-button')}>
                         Hủy
                     </Button>
                 </DialogActions>

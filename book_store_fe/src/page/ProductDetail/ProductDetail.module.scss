@@ -1,0 +1,298 @@
+.ImageGallery {
+    display: none;
+}
+.wrapper-img {
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+.title {
+    font-size: 1.8rem;
+}
+.block {
+    border: 1px solid #ececec;
+    border-radius: 1rem;
+    padding: 3rem 2rem;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+.left {
+    .stiky-element {
+        position: sticky;
+        top: 3.5rem;
+    }
+    .wrapper-img {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .current-img {
+        width: 35rem;
+        height: 35rem;
+    }
+
+    .list-img {
+        margin: 2rem;
+        width: 100%;
+        .next-arrow {
+            right: 0px !important;
+        }
+        .prev-arrow {
+            left: 6px !important;
+        }
+
+        :global {
+            .slick-list {
+                margin: 0 3rem !important;
+            }
+            .slick-slide {
+                padding: 0 0.3rem;
+            }
+        }
+        .active {
+            border: 1px solid var(--primary) !important;
+            img {
+                transform: scale(1.05);
+            }
+        }
+        .img-item {
+            height: 8.1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-radius: 0.7rem;
+            cursor: pointer;
+            user-select: none;
+            outline: none !important;
+            border: 1px solid var(--white);
+            &:hover {
+                border: 1px solid var(--primary);
+                img {
+                    transform: scale(1.05);
+                }
+            }
+        }
+        img {
+            width: 100%;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+    }
+    .action {
+        display: flex;
+        margin: 2rem 3rem;
+        gap: 2rem;
+    }
+}
+
+.right {
+    > div {
+        margin-bottom: 1rem;
+    }
+    .info {
+        font-size: 1.4rem;
+        h4 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        a {
+            color: var(--primary);
+            margin-left: 0.6rem;
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+    .space-line {
+        margin: 0 2rem;
+        color: #cecece;
+    }
+    .quantity-sold {
+        color: #7a7e7f;
+        span {
+            color: var(--black);
+        }
+    }
+    .price {
+        margin-top: 3rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        p {
+            margin: 0;
+        }
+        .current-price {
+            font-size: 2.9rem;
+            font-weight: 600;
+        }
+        .original-price {
+            color: #7a7e7f;
+            font-size: 1.5rem;
+            text-decoration: line-through;
+        }
+        .discount-percent {
+            font-weight: 600;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            background-color: var(--hover-background-lighter);
+            margin: 0 1rem;
+        }
+    }
+
+    .shipping-info {
+        p {
+            display: block;
+            white-space: nowrap;
+            max-width: 50rem;
+            overflow: hidden;
+            text-overflow: clip;
+            margin: 0;
+        }
+    }
+
+    .quantity-container {
+        max-width: 15rem;
+        margin-left: 2rem;
+        display: flex;
+        border: 1px solid #ccc;
+        border-radius: 0.4em;
+        overflow: hidden;
+        .quantity-btn {
+            flex: 1;
+            align-items: center;
+            background-color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 0.4rem;
+            svg {
+                font-size: 2.3rem;
+            }
+            &:hover {
+                background-color: #f0f0f0;
+            }
+        }
+
+        .quantity-input {
+            flex: 2;
+            text-align: center;
+            border: none;
+            width: 100%;
+            outline: none;
+            padding: 0.3rem;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+        }
+
+        .quantity-input::-webkit-inner-spin-button,
+        .quantity-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    }
+    .detail-info {
+        font-size: 1.4rem;
+        p {
+            margin: 0;
+        }
+        a {
+            color: var(--primary);
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+        > div {
+            padding-left: 1.5rem;
+            border-bottom: 1px solid #ececec;
+            padding-bottom: 0.5rem;
+            margin: 0.5rem 0;
+        }
+    }
+}
+
+.related-products {
+    margin-bottom: 1rem;
+    .product {
+        display: block;
+        width: 100%;
+        flex-basis: 100%;
+    }
+    gap: 1.8rem;
+    :global {
+        .slick-slide {
+            padding: 0 10px;
+        }
+
+        .slick-list {
+            margin: 0 -10px;
+        }
+    }
+
+    .next-arrow {
+        right: -38px !important;
+    }
+    .prev-arrow {
+        left: -27px !important;
+    }
+}
+.rating-products {
+    margin-bottom: 3rem;
+    .rating-average {
+        font-weight: 600;
+        font-size: 4rem;
+        span {
+            font-size: 2rem;
+        }
+    }
+    .rating-label {
+        min-width: 4.2rem;
+    }
+    .review-rating {
+        background-color: #cecece;
+        height: 0.5rem;
+        flex: 1;
+        margin-left: 0.7rem;
+        margin-right: 1rem;
+        border-radius: 1rem;
+        overflow: hidden;
+        > div {
+            background-color: var(--primary);
+            height: 100%;
+            width: 0;
+        }
+    }
+    .comment {
+        p {
+            margin: 0;
+        }
+        border-left: 1px solid #ececec;
+        padding-left: 2rem;
+        .comment-item {
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #ececec;
+        }
+        .comment-info {
+            display: flex;
+            justify-content: space-between;
+            .user-name {
+                font-weight: 600;
+            }
+            .comment-date {
+                font-size: 1.4rem;
+
+                color: #7a7e7f;
+                margin-right: 3rem;
+            }
+        }
+        .comment-value {
+            margin-top: 0.5rem;
+            margin-left: 1rem;
+            font-size: 1.4rem;
+        }
+    }
+}
+
+.next-arrow,
+.prev-arrow {
+    font-size: 2rem;
+    opacity: 0.6;
+}

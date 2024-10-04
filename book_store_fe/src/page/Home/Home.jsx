@@ -16,8 +16,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import ProductsComponent from '../../component/ProductsComponent/ProductsComponent';
-import { Stack } from 'react-bootstrap';
-import { Rating } from '@mui/material';
 const cx = classNames.bind(style);
 function Home() {
     const listImgSlide = [

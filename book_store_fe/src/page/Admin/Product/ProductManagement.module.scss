@@ -1,0 +1,42 @@
+.product-management {
+    margin: 0 auto;
+}
+
+.title {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+}
+
+.product-table {
+    margin-top: 2rem;
+}
+
+.description-container {
+    position: relative !important;
+    overflow: auto;
+    transition: max-height 0.3s ease !important;
+    overflow: visible;
+    // margin-bottom: 1rem;
+}
+.status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.3s ease;
+
+    &.in-stock {
+        background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
+        color: white;
+    }
+
+    &.out-of-stock {
+        background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+        color: white;
+    }
+
+    &:hover {
+        opacity: 0.8;
+    }
+}

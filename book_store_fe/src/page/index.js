@@ -9,10 +9,17 @@ import User from './User/User';
 import Cart from './Cart/Cart';
 import ProductDetail from './ProductDetail/ProductDetail';
 
-import ProductManagent from './Admin/Product/ProductManagent';
+import ProductManagement from './Admin/Product/ProductManagement';
 import AddProduct from './Admin/Product/AddProduct';
 import EditProduct from './Admin/Product/EditProduct';
 import DetailProduct from './Admin/Product/DetailProduct';
+
+import Voucher from './Admin/Voucher/Voucher';
+import AddVoucher from './Admin/Voucher/AddVoucher';
+import EditVoucher from './Admin/Voucher/EditVoucher';
+import Discount from './Admin/Discount/Discount';
+import AddDiscount from './Admin/Discount/AddDiscount';
+import EditDiscount from './Admin/Discount/EditDiscount';
 
 export {
     Home,
@@ -25,9 +32,10 @@ export {
     ProductDetail,
     Product,
     Cart,
-    ProductManagent,
+    ProductManagement,
     AddProduct,
     EditProduct,
-    DetailProduct,
+    DetailProduct, Voucher, AddVoucher,
+    EditVoucher, Discount, AddDiscount, EditDiscount
 };
 export * from './Admin';

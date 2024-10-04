@@ -2,10 +2,12 @@ package com.project.book_store_be.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.book_store_be.Model.Product;
+import com.project.book_store_be.Request.ProductFilterRequest;
 import com.project.book_store_be.Request.ProductRequest;
 import com.project.book_store_be.Services.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -73,7 +75,23 @@ public class ProductController {
             @RequestParam(required = false) String productName,
             @RequestParam(required = false) String categoryName,
             @RequestParam(required = false) String authorName,
-            @RequestParam(required = false) String publisherName) {
-        return productService.searchProducts(productName, categoryName, authorName, publisherName);
+            @RequestParam(required = false) String publisherName,
+            Pageable pageable) {
+        return productService.searchProducts(productName, categoryName, authorName, publisherName,pageable);
+    }
+
+    @PostMapping("/filter")
+    public List<Product> filterProducts(@RequestBody ProductFilterRequest filterRequest) {
+        return productService.getFilteredProducts(filterRequest);
+    }
+
+    @GetMapping("/products/available")
+    public List<Product> getAvailableProducts() {
+        return productService.getAvailableProducts();
+    }
+
+    @GetMapping("/products/latest")
+    public List<Product> getLatestProducts() {
+        return productService.getLatestProducts();
     }
 }

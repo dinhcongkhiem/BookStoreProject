@@ -4,6 +4,7 @@ import com.project.book_store_be.Model.ImageProduct;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Repository.ImageRepository;
 import com.project.book_store_be.Repository.ProductRepository;
+import com.project.book_store_be.Response.ImageProductResponse;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,14 @@ public class ImageProductService {
     @Autowired
     private AmazonS3Service service;
 
+    public String uploadImage(MultipartFile images) {
+        try {
+            return service.uploadFile(images);
+        }catch (IOException e) {
+            System.out.println("Err when upload file img - ImgProductService - 38");
+            return null;
+        }
+    }
     public void uploadMultipleImageProduct(List<MultipartFile> images, Product product) {
         try {
             if (images != null && images.size() > 0) {
@@ -40,14 +49,19 @@ public class ImageProductService {
             throw new RuntimeException(e);
         }
     }
+    @Async
+    public CompletableFuture<String> uploadFileAsync(MultipartFile file, Long productId) throws IOException {
+        String fileUrl = InsertProductImage(file, productId);
+        return CompletableFuture.completedFuture(fileUrl);
+    }
     public String InsertProductImage(MultipartFile file, Long productId) throws IOException {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException("Invalid product ID:" + productId));
         if (file.isEmpty()) {
             throw new IllegalArgumentException("File must not be empty");
         }
-        String fileName = file.getOriginalFilename();
-        String fileUrl = service.uploadFile(fileName, file);
+        String fileName = String.valueOf(100 + (int)(Math.random() * 900));
+        String fileUrl = service.uploadFile(file);
         ImageProduct imageProduct = ImageProduct.builder()
                 .nameImage(product.getName() + "_" + fileName)
                 .urlImage(fileUrl)
@@ -56,25 +70,21 @@ public class ImageProductService {
         repo.save(imageProduct);
         return fileUrl;
     }
-    public void deleteImageProduct(Long id) {
-        if (repo.existsById(id)) {
-            repo.deleteById(id);
-        } else {
-            throw new IllegalArgumentException("ImageProduct with ID " + id + "not found");
-        }
-    }
-    public List<ImageProduct> getImagesProductId(Long productId) {
-        return repo.findByProductId(productId);
+    public List<ImageProductResponse> getImagesProductId(Long productId) {
+        return repo.findByProductIdOrderByIsThumbnailDesc(productId).stream().map(this::convertToResponse).toList();
     }
 
     public ImageProduct getThumbnailProduct(Long productId) {
         return repo.findThumbnailByProductId(productId).orElse(null);
     }
 
-    @Async
-    public CompletableFuture<String> uploadFileAsync(MultipartFile file, Long productId) throws IOException {
-        String fileUrl = InsertProductImage(file, productId);
-        return CompletableFuture.completedFuture(fileUrl);
+    private ImageProductResponse convertToResponse(ImageProduct imageProduct) {
+        return ImageProductResponse.builder()
+                .id(imageProduct.getId())
+                .urlImage(imageProduct.getUrlImage())
+                .nameImage(imageProduct.getNameImage())
+                .isThumbnail(imageProduct.getIsThumbnail())
+                .build();
     }
 
 

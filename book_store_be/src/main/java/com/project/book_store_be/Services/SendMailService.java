@@ -4,6 +4,7 @@ import com.project.book_store_be.Model.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SendMailService {
@@ -49,6 +51,7 @@ public class SendMailService {
             helper.setText(htmlContent, true);
 
             helper.setCc(ccGmailShop);
+            log.info("Send email to {}", user.getEmail());
             mailSender.send(mimeMessage);
 
         }catch(MessagingException e){
