@@ -9,17 +9,26 @@
     @media (max-width: 740px) {
         margin: 0;
     }
+
     .content {
         border-radius: 3rem;
         box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
         min-width: 70rem;
         padding: 5rem;
+        position: relative;
 
         @media (max-width: 740px) {
             width: 100%;
             height: 100%;
             box-shadow: none;
         }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
         h3 {
             text-align: center;
             margin-bottom: 4rem;
@@ -31,37 +40,43 @@
         .input-wrapper {
             margin-bottom: 2rem;
         }
+
         .action {
             margin-top: 4rem;
             display: flex;
             flex-direction: column-reverse;
             align-items: center;
             gap: 1rem;
+
             p {
                 font-size: 1.4rem;
             }
+
             button {
-                width: 80%;
+                width: 100%;
                 padding: 1rem 2rem;
+                margin-top: -2rem;
             }
         }
+
         .address-input {
             display: flex;
             justify-content: space-between;
             gap: 1rem;
             margin-bottom: 1rem;
         }
+
         .other-option {
             color: var(--black);
             width: 100%;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            margin-top: 2rem;
             button {
-                width: 48%;
+                width: 100%;
                 padding: 0.7rem;
                 font-weight: 600;
                 border-color: rgb(179, 179, 179);
-                justify-content: space-around;
             }
         }
     }

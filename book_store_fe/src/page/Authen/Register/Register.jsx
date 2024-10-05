@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import classNames from 'classnames/bind';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Visibility from '@mui/icons-material/Visibility';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
     Button,
     FormHelperText,
@@ -21,7 +22,6 @@ import style from '../Authen.module.scss';
 import { validateInputsRegister } from '../../../utills/ValidateInputs';
 import AddressService from '../../../service/AddressService';
 import googleIcon from '../../../assets/icons/google.png';
-import facebookIcon from '../../../assets/icons/facebook.png';
 import AuthService from '../../../service/AuthService';
 import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 import { toast } from 'react-toastify';
@@ -176,9 +176,13 @@ function Register() {
     return (
         <div className={cx('wrapper')}>
             <div className={cx('content')}>
+                <IconButton className={cx('back-button')} onClick={() => navigate('/')}>
+                    <ArrowBackIcon />
+                </IconButton>
                 <h3>Đăng ký</h3>
                 <div className={cx('input-wrapper')}>
                     <TextField
+                        size="small"
                         error={listErr.fullname}
                         required
                         fullWidth
@@ -193,6 +197,7 @@ function Register() {
                 </div>
                 <div className={cx('input-wrapper')}>
                     <TextField
+                        size="small"
                         error={listErr.email || listErr.emailFormat}
                         required
                         fullWidth
@@ -209,6 +214,7 @@ function Register() {
                 </div>
                 <div className={cx('input-wrapper')}>
                     <TextField
+                        size="small"
                         error={listErr.phoneNum}
                         required
                         fullWidth
@@ -223,8 +229,11 @@ function Register() {
                 </div>
                 <div className={cx('address-input')}>
                     <FormControl fullWidth required error={listErr.province}>
-                        <InputLabel id="provinces">Tỉnh/Thành Phố</InputLabel>
+                        <InputLabel size="small" id="provinces">
+                            Tỉnh/Thành Phố
+                        </InputLabel>
                         <Select
+                            size="small"
                             labelId="provinces"
                             label="Tỉnh/Thành Phố"
                             value={province}
@@ -239,8 +248,11 @@ function Register() {
                         <FormHelperText>{listErr.province ? 'Vui lòng chọn tỉnh/thành phố' : ''}</FormHelperText>
                     </FormControl>
                     <FormControl fullWidth required error={listErr.district}>
-                        <InputLabel id="districts">Quận/Huyện</InputLabel>
+                        <InputLabel size="small" id="districts">
+                            Quận/Huyện
+                        </InputLabel>
                         <Select
+                            size="small"
                             labelId="districts"
                             label="Quận/Huyện"
                             value={district}
@@ -255,8 +267,11 @@ function Register() {
                         <FormHelperText>{listErr.district ? 'Vui lòng chọn quận/huyện' : ''}</FormHelperText>
                     </FormControl>
                     <FormControl fullWidth required error={listErr.commune}>
-                        <InputLabel id="communes">Xã/Phường/TT</InputLabel>
+                        <InputLabel size="small" id="communes">
+                            Xã/Phường/TT
+                        </InputLabel>
                         <Select
+                            size="small"
                             labelId="communes"
                             label="Xã/Phường/TT"
                             value={commune}
@@ -273,6 +288,7 @@ function Register() {
                 </div>
                 <div className={cx('input-wrapper')}>
                     <TextField
+                        size="small"
                         error={listErr.addressDetail}
                         required
                         fullWidth
@@ -287,8 +303,11 @@ function Register() {
                 </div>
                 <div className={cx('input-wrapper')}>
                     <FormControl sx={{ width: '100%' }} error={listErr.password} required>
-                        <InputLabel htmlFor="password">Mật khẩu</InputLabel>
+                        <InputLabel size="small" htmlFor="password">
+                            Mật khẩu
+                        </InputLabel>
                         <OutlinedInput
+                            size="small"
                             id="password"
                             type={showPassword ? 'text' : 'password'}
                             endAdornment={
@@ -317,8 +336,11 @@ function Register() {
                         required
                         error={listErr.confirmPassword.match || listErr.confirmPassword.required}
                     >
-                        <InputLabel htmlFor="confirm-password">Xác nhận mật khẩu</InputLabel>
+                        <InputLabel size="small" htmlFor="confirm-password">
+                            Xác nhận mật khẩu
+                        </InputLabel>
                         <OutlinedInput
+                            size="small"
                             id="confirm-password"
                             type={showConfirmPassword ? 'text' : 'password'}
                             endAdornment={
@@ -341,8 +363,8 @@ function Register() {
                             {listErr.confirmPassword.required
                                 ? 'Vui lòng nhập xác nhận mật khẩu'
                                 : listErr.confirmPassword.match
-                                ? 'Mật khẩu xác nhận không khớp'
-                                : ''}
+                                  ? 'Mật khẩu xác nhận không khớp'
+                                  : ''}
                         </FormHelperText>
                     </FormControl>
                 </div>
@@ -366,12 +388,20 @@ function Register() {
                 </div>
                 <br />
                 <div className={cx('other-option')}>
-                    <Button variant="outlined">
-                        <img src={googleIcon} /> Đăng nhập với Google
-                    </Button>
-
-                    <Button variant="outlined">
-                        <img src={facebookIcon} /> Đăng nhập với Facebook
+                    <Button
+                        fullWidth
+                        variant="outlined"
+                        onClick={() =>
+                            (window.location.href =
+                                'http://localhost:8080/oauth2/authorize/google?redirect_uri=http://localhost:3000/oauth2/redirect')
+                        }
+                        sx={{
+                            margin: '-2rem 0',
+                            gap: '10px',
+                        }}
+                    >
+                        <img src={googleIcon} alt="Google Icon" />
+                        Đăng nhập với Google
                     </Button>
                 </div>
             </div>
