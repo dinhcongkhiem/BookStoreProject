@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import classNames from 'classnames/bind';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Visibility from '@mui/icons-material/Visibility';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
     Button,
     Checkbox,
@@ -21,9 +22,9 @@ import FormControl from '@mui/material/FormControl';
 
 import style from '../Authen.module.scss';
 import googleIcon from '../../../assets/icons/google.png';
-import facebookIcon from '../../../assets/icons/facebook.png';
 import { validateInputsLogin } from '../../../utills/ValidateInputs';
 import { AuthenticationContext } from '../../../context/AuthenticationProvider';
+
 const cx = classNames.bind(style);
 function Login() {
     const navigate = useNavigate();
@@ -38,6 +39,7 @@ function Login() {
     const [isRemember, setIsRemember] = useState(true);
     const LoginBtnRef = useRef();
     const { login, authentication } = useContext(AuthenticationContext);
+
     const handleClickShowPassword = () => setShowPassword((show) => !show);
 
     const handleMouseDownPassword = (event) => {
@@ -49,6 +51,7 @@ function Login() {
             login(email, password, isRemember, navigate);
         }
     };
+
     useEffect(() => {
         console.log(authentication.isAuthen);
 
@@ -69,10 +72,14 @@ function Login() {
     return (
         <div className={cx('wrapper')}>
             <div className={cx('content')}>
+                <IconButton className={cx('back-button')} onClick={() => navigate('/')}>
+                    <ArrowBackIcon />
+                </IconButton>
                 <h3>Đăng nhập</h3>
                 <FormGroup>
                     <div className={cx('input-wrapper')}>
                         <TextField
+                            size="small"
                             error={listErr.email || listErr.emailFormat}
                             required
                             fullWidth
@@ -89,8 +96,11 @@ function Login() {
                     </div>
                     <div className={cx('input-wrapper')}>
                         <FormControl sx={{ width: '100%' }} error={listErr.password} required>
-                            <InputLabel htmlFor="outlined-adornment-password">Mật khẩu</InputLabel>
+                            <InputLabel size="small" htmlFor="outlined-adornment-password">
+                                Mật khẩu
+                            </InputLabel>
                             <OutlinedInput
+                                size="small"
                                 id="outlined-adornment-password"
                                 type={showPassword ? 'text' : 'password'}
                                 endAdornment={
@@ -134,30 +144,24 @@ function Login() {
                                 {' Đăng ký'}
                             </Link>
                         </p>
-                        <Button variant="contained" onClick={handleLogin} ref={LoginBtnRef}>
+                        <Button variant="contained" onClick={handleLogin} ref={LoginBtnRef} fullWidth>
                             Đăng nhập
                         </Button>
                     </div>
-                    <br />
                     <div className={cx('other-option')}>
                         <Button
+                            fullWidth
                             variant="outlined"
                             onClick={() =>
                                 (window.location.href =
                                     'http://localhost:8080/oauth2/authorize/google?redirect_uri=http://localhost:3000/oauth2/redirect')
                             }
+                            sx={{
+                                gap: '10px',
+                            }}
                         >
-                            <img src={googleIcon} /> Đăng nhập với Google
-                        </Button>
-
-                        <Button
-                            variant="outlined"
-                            onClick={() =>
-                                (window.location.href =
-                                    'http://localhost:8080/oauth2/authorize/facebook?redirect_uri=http://localhost:3000/oauth2/redirect')
-                            }
-                        >
-                            <img src={facebookIcon} /> Đăng nhập với Facebook
+                            <img src={googleIcon} alt="Google Icon" style={{ width: '24px', height: '24px' }} />
+                            Đăng nhập với Google
                         </Button>
                     </div>
                 </FormGroup>
