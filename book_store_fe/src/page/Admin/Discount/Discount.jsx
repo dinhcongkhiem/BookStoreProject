@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import classNames from 'classnames/bind';
 import style from './Discount.module.scss';
 import {
@@ -77,31 +77,9 @@ const initialDiscounts = [
 ];
 
 const Discount = () => {
-    const [discounts, setDiscounts] = useState(initialDiscounts);
-    const [filteredDiscounts, setFilteredDiscounts] = useState(initialDiscounts);
-    const [searchTerm, setSearchTerm] = useState('');
+    const navigate = useNavigate();
     const [detailOpen, setDetailOpen] = useState(false);
     const [selectedDiscount, setSelectedDiscount] = useState(null);
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [orderBy, setOrderBy] = useState('id');
-    const [order, setOrder] = useState('asc');
-    const [statistics, setStatistics] = useState({
-        totalDiscounts: 0,
-        activeDiscounts: 0,
-        inactiveDiscounts: 0,
-        averageDiscount: 0,
-    });
-
-    const navigate = useNavigate();
-
-    const handleEdit = (discount) => {
-        navigate('/admin/discount/edit', { state: { discount } });
-    };
-
-    const handleDelete = (id) => {
-        setDiscounts(discounts.filter((d) => d.id !== id));
-    };
 
     const handleView = (discount) => {
         setSelectedDiscount(discount);
@@ -113,55 +91,9 @@ const Discount = () => {
         setSelectedDiscount(null);
     };
 
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+    const handleEdit = (discount) => {
+        navigate('/admin/discount/edit', { state: { discount } });
     };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
-    const handleRequestSort = (property) => {
-        const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(property);
-    };
-
-    const handleSearch = (event) => {
-        setSearchTerm(event.target.value);
-    };
-
-    useEffect(() => {
-        let filtered = discounts.filter(
-            (discount) =>
-                discount.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                discount.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                discount.condition.toLowerCase().includes(searchTerm.toLowerCase()),
-        );
-
-        filtered.sort((a, b) => {
-            if (b[orderBy] < a[orderBy]) {
-                return order === 'asc' ? 1 : -1;
-            }
-            if (b[orderBy] > a[orderBy]) {
-                return order === 'asc' ? -1 : 1;
-            }
-            return 0;
-        });
-
-        setFilteredDiscounts(filtered);
-        setPage(0);
-
-        // Update statistics
-        const stats = {
-            totalDiscounts: discounts.length,
-            activeDiscounts: discounts.filter((d) => d.status === 'Đang hoạt động').length,
-            inactiveDiscounts: discounts.filter((d) => d.status === 'Không hoạt động').length,
-            averageDiscount: discounts.reduce((sum, d) => sum + d.discountValue, 0) / discounts.length,
-        };
-        setStatistics(stats);
-    }, [searchTerm, discounts, order, orderBy]);
 
     return (
         <div className={cx('discount-management')}>
@@ -177,7 +109,7 @@ const Discount = () => {
                                 Tổng số mã giảm giá
                             </Typography>
                             <Typography className={cx('stat-value')} variant="h5" component="div">
-                                {statistics.totalDiscounts}
+                                {initialDiscounts.length}
                             </Typography>
                         </CardContent>
                     </Card>
@@ -189,7 +121,7 @@ const Discount = () => {
                                 Mã đang hoạt động
                             </Typography>
                             <Typography className={cx('stat-value')} variant="h5" component="div">
-                                {statistics.activeDiscounts}
+                                {initialDiscounts.filter((d) => d.status === 'Đang hoạt động').length}
                             </Typography>
                         </CardContent>
                     </Card>
@@ -201,7 +133,7 @@ const Discount = () => {
                                 Mã không hoạt động
                             </Typography>
                             <Typography className={cx('stat-value')} variant="h5" component="div">
-                                {statistics.inactiveDiscounts}
+                                {initialDiscounts.filter((d) => d.status === 'Không hoạt động').length}
                             </Typography>
                         </CardContent>
                     </Card>
@@ -213,7 +145,11 @@ const Discount = () => {
                                 Trung bình % giảm giá
                             </Typography>
                             <Typography className={cx('stat-value')} variant="h5" component="div">
-                                {statistics.averageDiscount.toFixed(2)}%
+                                {(
+                                    initialDiscounts.reduce((sum, d) => sum + d.discountValue, 0) /
+                                    initialDiscounts.length
+                                ).toFixed(2)}
+                                %
                             </Typography>
                         </CardContent>
                     </Card>
@@ -226,8 +162,6 @@ const Discount = () => {
                     size="small"
                     variant="outlined"
                     placeholder="Tìm kiếm khuyến mãi..."
-                    value={searchTerm}
-                    onChange={handleSearch}
                     InputProps={{
                         endAdornment: (
                             <InputAdornment position="end">
@@ -253,65 +187,37 @@ const Discount = () => {
                     <TableHead>
                         <TableRow>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'id'}
-                                    direction={orderBy === 'id' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('id')}
-                                >
+                                <TableSortLabel>
                                     <b>ID</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'code'}
-                                    direction={orderBy === 'code' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('code')}
-                                >
+                                <TableSortLabel>
                                     <b>Mã</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'discountValue'}
-                                    direction={orderBy === 'discountValue' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('discountValue')}
-                                >
+                                <TableSortLabel>
                                     <b>Giá trị (%)</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'startDate'}
-                                    direction={orderBy === 'startDate' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('startDate')}
-                                >
+                                <TableSortLabel>
                                     <b>Ngày bắt đầu</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'expirationDate'}
-                                    direction={orderBy === 'expirationDate' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('expirationDate')}
-                                >
+                                <TableSortLabel>
                                     <b>Ngày hết hạn</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'condition'}
-                                    direction={orderBy === 'condition' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('condition')}
-                                >
+                                <TableSortLabel>
                                     <b>Điều kiện</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell className={cx('status-cell')}>
-                                <TableSortLabel
-                                    active={orderBy === 'status'}
-                                    direction={orderBy === 'status' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('status')}
-                                >
+                                <TableSortLabel>
                                     <b>Trạng thái</b>
                                 </TableSortLabel>
                             </TableCell>
@@ -321,64 +227,56 @@ const Discount = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredDiscounts
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((discount) => (
-                                <TableRow key={discount.id}>
-                                    <TableCell>{discount.id}</TableCell>
-                                    <TableCell>{discount.code}</TableCell>
-                                    <TableCell>{discount.discountValue}%</TableCell>
-                                    <TableCell>{new Date(discount.startDate).toLocaleDateString()}</TableCell>
-                                    <TableCell>{new Date(discount.expirationDate).toLocaleDateString()}</TableCell>
-                                    <TableCell>{discount.condition}</TableCell>
-                                    <TableCell className={cx('status-cell')}>
-                                        <div className={cx('status-container')}>
-                                            <span
-                                                className={cx('status', {
-                                                    active: discount.status === 'Đang hoạt động',
-                                                    inactive: discount.status === 'Không hoạt động',
-                                                })}
-                                            >
-                                                {discount.status}
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <IconButton
-                                            onClick={() => handleView(discount)}
-                                            aria-label="view"
-                                            sx={{ color: 'blue' }}
+                        {initialDiscounts.map((discount) => (
+                            <TableRow key={discount.id}>
+                                <TableCell>{discount.id}</TableCell>
+                                <TableCell>{discount.code}</TableCell>
+                                <TableCell>{discount.discountValue}%</TableCell>
+                                <TableCell>{new Date(discount.startDate).toLocaleDateString()}</TableCell>
+                                <TableCell>{new Date(discount.expirationDate).toLocaleDateString()}</TableCell>
+                                <TableCell>{discount.condition}</TableCell>
+                                <TableCell className={cx('status-cell')}>
+                                    <div className={cx('status-container')}>
+                                        <span
+                                            className={cx('status', {
+                                                active: discount.status === 'Đang hoạt động',
+                                                inactive: discount.status === 'Không hoạt động',
+                                            })}
                                         >
-                                            <VisibilityIcon />
-                                        </IconButton>
-                                        <IconButton
-                                            onClick={() => handleEdit(discount)}
-                                            aria-label="edit"
-                                            sx={{ color: 'green' }}
-                                        >
-                                            <EditIcon />
-                                        </IconButton>
-                                        <IconButton
-                                            onClick={() => handleDelete(discount.id)}
-                                            aria-label="delete"
-                                            sx={{ color: 'red' }}
-                                        >
-                                            <DeleteIcon />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                            {discount.status}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <IconButton
+                                        onClick={() => handleView(discount)}
+                                        aria-label="view"
+                                        sx={{ color: 'blue' }}
+                                    >
+                                        <VisibilityIcon />
+                                    </IconButton>
+                                    <IconButton
+                                        onClick={() => handleEdit(discount)}
+                                        aria-label="edit"
+                                        sx={{ color: 'green' }}
+                                    >
+                                        <EditIcon />
+                                    </IconButton>
+                                    <IconButton aria-label="delete" sx={{ color: 'red' }}>
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </TableCell>
+                            </TableRow>
+                        ))}
                     </TableBody>
                 </Table>
             </TableContainer>
             <TablePagination
                 rowsPerPageOptions={[5, 10, 25]}
                 component="div"
-                count={filteredDiscounts.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
+                count={initialDiscounts.length}
+                rowsPerPage={5}
+                page={0}
             />
 
             <Dialog open={detailOpen} onClose={handleCloseDetail} maxWidth="sm" fullWidth>

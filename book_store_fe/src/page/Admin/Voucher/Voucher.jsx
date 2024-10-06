@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import classNames from 'classnames/bind';
 import style from './Voucher.module.scss';
 import {
@@ -76,26 +76,9 @@ const formatDate = (dateString) => {
 };
 
 const Voucher = () => {
-    const [vouchers, setVouchers] = useState(initialVouchers);
-    const [filteredVouchers, setFilteredVouchers] = useState(initialVouchers);
-    const [searchTerm, setSearchTerm] = useState('');
+    const navigate = useNavigate();
     const [detailOpen, setDetailOpen] = useState(false);
     const [selectedVoucher, setSelectedVoucher] = useState(null);
-
-    const navigate = useNavigate();
-
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [orderBy, setOrderBy] = useState('id');
-    const [order, setOrder] = useState('asc');
-
-    const handleEdit = (voucher) => {
-        navigate('/admin/voucher/edit', { state: { voucher } });
-    };
-
-    const handleDelete = (id) => {
-        setVouchers(vouchers.filter((v) => v.id !== id));
-    };
 
     const handleView = (voucher) => {
         setSelectedVoucher(voucher);
@@ -107,45 +90,9 @@ const Voucher = () => {
         setSelectedVoucher(null);
     };
 
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+    const handleEdit = (voucher) => {
+        navigate('/admin/voucher/edit', { state: { voucher } });
     };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
-    const handleRequestSort = (property) => {
-        const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(property);
-    };
-
-    const handleSearch = (event) => {
-        setSearchTerm(event.target.value);
-    };
-
-    useEffect(() => {
-        let filtered = vouchers.filter(
-            (voucher) =>
-                voucher.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                voucher.status.toLowerCase().includes(searchTerm.toLowerCase()),
-        );
-
-        filtered.sort((a, b) => {
-            if (b[orderBy] < a[orderBy]) {
-                return order === 'asc' ? 1 : -1;
-            }
-            if (b[orderBy] > a[orderBy]) {
-                return order === 'asc' ? -1 : 1;
-            }
-            return 0;
-        });
-
-        setFilteredVouchers(filtered);
-        setPage(0);
-    }, [searchTerm, vouchers, order, orderBy]);
 
     return (
         <div className={cx('voucher-management')}>
@@ -161,8 +108,6 @@ const Voucher = () => {
                     size="small"
                     variant="outlined"
                     placeholder="Tìm kiếm mã giảm giá..."
-                    value={searchTerm}
-                    onChange={handleSearch}
                     InputProps={{
                         endAdornment: (
                             <InputAdornment position="end">
@@ -187,56 +132,32 @@ const Voucher = () => {
                     <TableHead>
                         <TableRow>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'id'}
-                                    direction={orderBy === 'id' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('id')}
-                                >
+                                <TableSortLabel>
                                     <b>ID</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'code'}
-                                    direction={orderBy === 'code' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('code')}
-                                >
+                                <TableSortLabel>
                                     <b>Mã</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'discountValue'}
-                                    direction={orderBy === 'discountValue' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('discountValue')}
-                                >
+                                <TableSortLabel>
                                     <b>Giá trị</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'startDate'}
-                                    direction={orderBy === 'startDate' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('startDate')}
-                                >
+                                <TableSortLabel>
                                     <b>Ngày bắt đầu</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'expirationDate'}
-                                    direction={orderBy === 'expirationDate' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('expirationDate')}
-                                >
+                                <TableSortLabel>
                                     <b>Ngày hết hạn</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'status'}
-                                    direction={orderBy === 'status' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('status')}
-                                >
+                                <TableSortLabel>
                                     <b>Trạng thái</b>
                                 </TableSortLabel>
                             </TableCell>
@@ -246,7 +167,7 @@ const Voucher = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredVouchers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((voucher) => (
+                        {initialVouchers.map((voucher) => (
                             <TableRow key={voucher.id}>
                                 <TableCell>{voucher.id}</TableCell>
                                 <TableCell>{voucher.code}</TableCell>
@@ -280,11 +201,7 @@ const Voucher = () => {
                                     >
                                         <EditIcon />
                                     </IconButton>
-                                    <IconButton
-                                        onClick={() => handleDelete(voucher.id)}
-                                        aria-label="delete"
-                                        sx={{ color: 'red' }}
-                                    >
+                                    <IconButton aria-label="delete" sx={{ color: 'red' }}>
                                         <DeleteIcon />
                                     </IconButton>
                                 </TableCell>
@@ -296,11 +213,9 @@ const Voucher = () => {
             <TablePagination
                 rowsPerPageOptions={[5, 10, 25]}
                 component="div"
-                count={filteredVouchers.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
+                count={initialVouchers.length}
+                rowsPerPage={5}
+                page={0}
             />
 
             <Dialog open={detailOpen} onClose={handleCloseDetail} maxWidth="sm" fullWidth>
