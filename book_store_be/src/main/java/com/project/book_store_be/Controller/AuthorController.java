@@ -19,6 +19,16 @@ public class AuthorController {
     private AuthorService authorService;
 
     @GetMapping
+    public List<Author> getAllPublisher(@RequestParam(defaultValue = "") String keyword) {
+        if (keyword.isEmpty()) {
+            return authorService.getAllAuthor();
+        } else {
+            return authorService.searchPublishersByName(keyword);
+        }
+    }
+
+
+    @GetMapping
     public List<Author> getAllAuthors(){
         return authorService.getAllAuthor();
     }

@@ -18,9 +18,9 @@ public class CategoryService {
         return categoryRepository.findAll();
     }
 
-    public List<Category> searchCategoriesByName(String keyword) {
-        return categoryRepository.findByNameContainingIgnoreCase(keyword);
-    }
+//    public List<Category> searchCategoriesByName(String keyword) {
+//        return categoryRepository.findByNameContainingIgnoreCase(keyword);
+//    }
 
     public List<Category> getCategories(List<Long> categoryId) {
         return categoryRepository.findAllById(categoryId);
