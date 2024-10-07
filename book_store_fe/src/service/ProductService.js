@@ -2,16 +2,19 @@ import axios from 'axios';
 import httpRequest from '../utills/httpRequest';
 import { PRODUCT_URL } from './config';
 class ProductServiceClass {
-    getListProduct = (page, pageSize) => {
+    getListProduct = ({ page, pageSize, categoryId, price, publisher, keyword, sort }) => {
         let pageRequest = 0;
         let pageSizeRequest = 20;
 
         if (page) {
-            pageRequest = page;
+            pageRequest = page - 1;
         }
 
         if (pageSize) {
             pageSizeRequest = pageSize;
+        }
+        if(price === 'null,null') {
+            price = null
         }
         let config = {
             method: 'get',
@@ -19,10 +22,18 @@ class ProductServiceClass {
             headers: {
                 'Content-Type': 'application/json',
             },
-            params: { pageNumber: pageRequest, pageSize: pageSizeRequest },
+            params: {
+                page: pageRequest,
+                pageSize: pageSizeRequest,
+                category: categoryId,
+                price: price,
+                publisher: publisher,
+                keyword,
+                sort,
+            },
             withCredentials: true,
         };
-        return httpRequest.request(config);
+        return axios.request(config);
     };
 
     getProductDetail = (id) => {
@@ -30,7 +41,7 @@ class ProductServiceClass {
             method: 'get',
             maxBodyLength: Infinity,
             url: PRODUCT_URL,
-            params: { id: 4 },
+            params: { id: id },
             headers: {},
             withCredentials: true,
         };
@@ -39,8 +50,8 @@ class ProductServiceClass {
     };
 
     uploadImgInDescription = (formData) => {
-        console.log("haha");
-        
+        console.log('haha');
+
         let config = {
             method: 'post',
             maxBodyLength: Infinity,
@@ -53,6 +64,38 @@ class ProductServiceClass {
             data: formData,
         };
         return httpRequest.request(config);
+    };
+
+    insertProduct = (product, images) => {
+        const data = new FormData();
+        data.append(product);
+        images?.foreach((img) => {
+            data.append('images', img);
+        });
+
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: PRODUCT_URL,
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+            withCredentials: true,
+            data: data,
+        };
+
+        return httpRequest.request(config);
+    };
+
+    getPriceRange = () => {
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: PRODUCT_URL + '/price-range',
+            withCredentials: true,
+        };
+
+        return axios.request(config);
     };
 }
 const ProductService = new ProductServiceClass();

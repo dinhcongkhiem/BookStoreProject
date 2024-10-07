@@ -1,0 +1,60 @@
+.sidebar {
+    > div {
+        margin-top: 2rem;
+        border-bottom: 1px solid #ececec;
+        padding: 0 1rem;
+        padding-bottom: 2rem;
+    }
+    h4 {
+        font-size: 1.7rem;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+    p {
+        margin: 0;
+    }
+    .price {
+        .label-range {
+            text-align: center;
+            span {
+                font-weight: 500;
+            }
+            .price-separator {
+                margin: 0 1.5rem;
+            }
+        }
+        .slide-price-range {
+            width: 90%;
+            margin: 0 auto;
+            margin-top: 2rem;
+            span {
+                color: var(--hover-background-lighter);
+            }
+            :global {
+                .MuiSlider-thumb {
+                    color: var(--primary);
+                }
+            }
+        }
+    }
+
+    .show-more-btn {
+        padding: 0.3rem 0;
+        background-color: #fff;
+        font-size: 1.5rem;
+        font-weight: 500;
+        width: 100%;
+        color: var(--primary);
+        transition: all 0.3s ease;
+        svg {
+            margin-left: 0.7rem;
+        }
+        &:hover {
+            background-color: var(--hover-background-lighter);
+        }
+        &:active {
+            opacity: 0.7;
+        }
+    }
+  
+}

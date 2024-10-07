@@ -16,6 +16,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import ProductsComponent from '../../component/ProductsComponent/ProductsComponent';
+import { useQuery } from '@tanstack/react-query';
+import ProductService from '../../service/ProductService';
+
+import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
 const cx = classNames.bind(style);
 function Home() {
     const listImgSlide = [
@@ -35,6 +39,23 @@ function Home() {
         nextArrow: <NextArrow />,
         prevArrow: <PrevArrow />,
     };
+
+    const {
+        data: productsNewest,
+        error,
+        isLoading,
+    } = useQuery({
+        queryKey: ['products'],
+        queryFn: () =>
+            ProductService.getListProduct({ sort: 'newest', pageSize: 10, page: 0 }).then(
+                (response) => response.data.content,
+            ),
+        retry: 1,
+    });
+    if (error) {
+        console.log(error);
+    }
+
     return (
         <div className={cx('wrapper')}>
             <div className={cx('carouselContainer')}>
@@ -84,11 +105,13 @@ function Home() {
                     </Link>
                 </div>
                 <div className={cx('productContainer')}>
-                    {testListHotDeal.map(() => {
-                        return <ProductsComponent />;
-                    })}
+                    {Array.isArray(productsNewest) &&
+                        productsNewest.map((product) => {
+                            return <ProductsComponent product={product} />;
+                        })}
                 </div>
             </div>
+            <ModalLoading isLoading={isLoading} />
         </div>
     );
 }

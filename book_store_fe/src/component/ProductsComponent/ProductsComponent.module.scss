@@ -19,8 +19,10 @@
     .thumbnail {
         width: 100%;
         overflow: hidden;
+        display: flex;
+        justify-content: center;
         img {
-            width: 100%;
+            width: 85%;
             height: 100%;
             object-fit: cover;
             transition: transform 0.5s ease;
@@ -28,11 +30,15 @@
     }
 
     .product-properties {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 17.5rem;
         padding: 1rem;
         border-top: 1px solid #ececec;
         h4 {
             font-weight: 500;
-            font-size: 1.7rem;
+            font-size: 1.6rem;
         }
         p {
             font-size: 1.5rem;
@@ -40,7 +46,6 @@
         }
     }
     .ratingList {
-        margin-top: 1rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -54,5 +59,16 @@
         justify-content: flex-end;
         font-weight: 600;
         font-size: 1.8rem;
+    }
+    .discount-percent {
+        font-weight: 500;
+        font-size: 1.5rem;
+        padding: 0.3rem;
+        border-radius: 0.5rem;
+        background-color: var(--hover-background-lighter);
+        margin: 0 1rem;
+    }
+    .discountPrice {
+        color: rgb(255, 66, 78);;
     }
 }

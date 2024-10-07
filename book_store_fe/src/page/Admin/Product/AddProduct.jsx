@@ -12,6 +12,9 @@ import {
     Grid,
     Paper,
     Snackbar,
+    Autocomplete,
+    InputAdornment,
+    OutlinedInput,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
@@ -25,6 +28,7 @@ import { formats, modules } from '../../../utills/ReactQuillConfig';
 import { useMutation } from '@tanstack/react-query';
 import ProductService from '../../../service/ProductService';
 import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
+import { corverTypeData, statusData, yearOfPublicationData } from '../../../utills/ProductManagerUtills';
 const cx = classNames.bind(style);
 window.Quill = Quill;
 
@@ -32,35 +36,27 @@ Quill.register('modules/imageResize', ImageResize);
 
 function AddProduct() {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        name: '',
-        importPrice: '',
-        sellingPrice: '',
-        quantity: '',
-        status: 'Còn hàng',
-        category: '',
-        description: '',
-    });
+
+    const [name, setName] = useState();
+    const [publisherId, setPublisherId] = useState();
+    const [numberOfPages, setNumberOfPages] = useState();
+    const [yearOfPublication, setYearOfPublication] = useState();
+    const [cost, setCost] = useState();
+    const [originalPrice, setOriginalPrice] = useState();
+    const [size, setSize] = useState();
+    const [quantity, setQuantity] = useState();
+    const [status, setStatus] = useState(0);
+    const [coverType, setCoverType] = useState(0);
+    const [manufacturer, setManufacturer] = useState();
+    const [categoriesId, setCategoriesId] = useState([]);
+    const [authorsId, setAuthorsId] = useState([]);
+    const [description, setDescription] = useState([]);
+
     const [selectedImages, setSelectedImages] = useState([]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const quillRef = useRef(null);
-
     const [isLoading, setIsLoading] = useState(false);
-    
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prevState) => ({
-            ...prevState,
-            [name]: value,
-        }));
-    };
 
-    const handleChangeDescription = (e) => {
-        setFormData((prev) => ({
-            ...prev,
-            description: e,
-        }));
-    };
     const handleImageChange = (e) => {
         let files = Array.from(e.target.files);
         if (selectedImages.length + files.length > 10) {
@@ -84,7 +80,7 @@ function AddProduct() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('Submitting:', { ...formData, images: selectedImages });
+        // console.log('Submitting:', { ...formData, images: selectedImages });
         // navigate('/admin/product');
     };
 
@@ -97,39 +93,39 @@ function AddProduct() {
             return prevImages.filter((_, i) => i !== index);
         });
     };
-   
+
     const uploadImgInDesc = useMutation({
         mutationFn: (data) => ProductService.uploadImgInDescription(data),
         onError: (error) => {
             console.log(error);
         },
     });
-    
+
     useEffect(() => {
         const quill = quillRef?.current?.getEditor();
         const toolbar = quill?.getModule('toolbar');
-        
+
         toolbar?.addHandler('image', () => {
             const input = document.createElement('input');
             input.setAttribute('type', 'file');
             input.setAttribute('accept', 'image/*');
             input.click();
-    
+
             input.onchange = async () => {
                 if (!input.files || !input?.files?.length || !input?.files?.[0]) return;
-    
+
                 const editor = quillRef?.current?.getEditor();
                 const file = input.files[0];
                 const range = editor.getSelection(true);
                 const formDataReq = new FormData();
                 formDataReq.append('file', file);
-    
+
                 uploadImgInDesc.mutate(formDataReq, {
                     onSuccess: (urlImg) => {
                         console.log(urlImg);
-                        
+
                         if (urlImg) {
-                            editor.insertEmbed(range.index, 'image', urlImg.data); 
+                            editor.insertEmbed(range.index, 'image', urlImg.data);
                         }
                     },
                 });
@@ -154,83 +150,189 @@ function AddProduct() {
                             fullWidth
                             label="Tên sách"
                             name="name"
-                            value={formData.name}
-                            onChange={handleChange}
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
                             required
                             margin="normal"
                             variant="outlined"
                         />
-                        <TextField
-                            size="small"
-                            fullWidth
-                            label="Giá nhập"
-                            name="importPrice"
-                            type="number"
-                            inputProps={{
-                                min: 0,
-                            }}
-                            value={formData.importPrice}
-                            onChange={handleChange}
-                            required
-                            margin="normal"
-                            variant="outlined"
-                        />
-                        <TextField
-                            size="small"
-                            fullWidth
-                            label="Giá bán"
-                            name="sellingPrice"
-                            inputProps={{
-                                min: 0,
-                            }}
-                            type="number"
-                            value={formData.sellingPrice}
-                            onChange={handleChange}
-                            required
-                            margin="normal"
-                            variant="outlined"
-                        />
-                        <TextField
-                            size="small"
-                            fullWidth
-                            label="Số lượng"
-                            name="quantity"
-                            type="number"
-                            value={formData.quantity}
-                            onChange={handleChange}
-                            required
-                            margin="normal"
-                            variant="outlined"
-                        />
-                        <FormControl fullWidth size="small" margin="normal" variant="outlined">
-                            <InputLabel id="status-label">Trạng thái</InputLabel>
-                            <Select
-                                labelId="status-label"
-                                name="status"
-                                value={formData.status}
-                                onChange={handleChange}
-                                label="Trạng thái"
-                            >
-                                <MenuItem value="Còn hàng">Còn hàng</MenuItem>
-                                <MenuItem value="Hết hàng">Hết hàng</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth size="small" margin="normal" variant="outlined">
-                            <InputLabel id="category-label">Danh mục</InputLabel>
-                            <Select
-                                labelId="category-label"
-                                name="category"
-                                value={formData.category}
-                                onChange={handleChange}
-                                label="Danh mục"
+
+                        <div className="row gap-3 m-0 my-3">
+                            <TextField
+                                size="small"
+                                fullWidth
+                                label="Số lượng"
+                                name="quantity"
+                                type="number"
+                                value={quantity}
+                                onChange={(e) => setQuantity(e.target.value)}
                                 required
-                            >
-                                <MenuItem value="Fiction">Fiction</MenuItem>
-                                <MenuItem value="Non-fiction">Non-fiction</MenuItem>
-                                <MenuItem value="Science">Science</MenuItem>
-                                <MenuItem value="History">History</MenuItem>
-                            </Select>
-                        </FormControl>
+                                margin="normal"
+                                variant="outlined"
+                                sx={{ flex: '1', margin: '0' }}
+                            />
+                            <TextField
+                                size="small"
+                                fullWidth
+                                label="Số trang"
+                                name="quantity"
+                                type="number"
+                                value={numberOfPages}
+                                onChange={(e) => setNumberOfPages(e.target.value)}
+                                required
+                                margin="normal"
+                                variant="outlined"
+                                sx={{ flex: '1', margin: '0' }}
+                            />
+                            <TextField
+                                size="small"
+                                fullWidth
+                                label="Kích thước"
+                                name="quantity"
+                                type="number"
+                                value={size}
+                                onChange={(e) => setSize(e.target.value)}
+                                required
+                                margin="normal"
+                                variant="outlined"
+                                sx={{ flex: '1', margin: '0' }}
+                            />
+                        </div>
+                        <div className="row gap-3 m-0 my-3 align-items-center">
+                            <FormControl size="small" sx={{ flex: '1' }}>
+                                <InputLabel htmlFor="status-select">Trạng thái</InputLabel>
+                                <Select
+                                    labelId="status-select-label"
+                                    id="status-select"
+                                    value={status}
+                                    label="Trạng thái"
+                                    onChange={(e) => setStatus(e.target.value)}
+                                >
+                                    {statusData.map((stt) => (
+                                        <MenuItem value={stt.code}>{stt.label}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <FormControl size="small" sx={{ flex: '1' }}>
+                                <InputLabel htmlFor="coverType-select">Loại bìa</InputLabel>
+                                <Select
+                                    labelId="coverType-select-label"
+                                    id="coverType-select"
+                                    value={coverType}
+                                    label="Loại bìa"
+                                    onChange={(e) => setCoverType(e.target.value)}
+                                >
+                                    {corverTypeData.map((stt) => (
+                                        <MenuItem value={stt.code}>{stt.label}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <Autocomplete
+                                disableClearable
+                                options={yearOfPublicationData.map((year) => ({ label: year, code: year }))}
+                                value={yearOfPublication}
+                                renderInput={(params) => <TextField {...params} label="Năm xuất bản" />}
+                                size="small"
+                                onChange={(e) => setYearOfPublication(e.target.value)}
+                                sx={{ flex: '1' }}
+                            />
+                        </div>
+                        <div className="row gap-3 m-0 my-3">
+                            <FormControl size="small" sx={{ flex: '1' }} required>
+                                <InputLabel htmlFor="outlined-adornment-password">Giá nhập</InputLabel>
+                                <OutlinedInput
+                                    id="outlined-adornment-password"
+                                    type={'number'}
+                                    endAdornment={<InputAdornment position="end">₫</InputAdornment>}
+                                    value={cost}
+                                    onChange={(e) => setCost(e.target.value)}
+                                    label="Mật khẩu"
+                                />
+                                {/* <FormHelperText>{listErr.password ? 'Vui lòng nhập mật khẩu' : ''}</FormHelperText> */}
+                            </FormControl>
+                            <FormControl size="small" sx={{ flex: '1' }} required>
+                                <InputLabel htmlFor="outlined-adornment-password">Giá bán</InputLabel>
+                                <OutlinedInput
+                                    id="outlined-adornment-password"
+                                    type={'number'}
+                                    endAdornment={<InputAdornment position="end">₫</InputAdornment>}
+                                    value={originalPrice}
+                                    onChange={(e) => {
+                                        if(e.target.value) {
+                                            
+                                        }
+                                        setOriginalPrice(e.target.value)
+                                    }}
+                                    label="Mật khẩu"
+                                />
+                                {/* <FormHelperText>{listErr.password ? 'Vui lòng nhập mật khẩu' : ''}</FormHelperText> */}
+                            </FormControl>
+                        </div>
+                        <div className="row gap-3 m-0 my-3">
+                            <TextField
+                                size="small"
+                                label="Nhà phát hành"
+                                inputProps={{
+                                    min: 0,
+                                }}
+                                value={publisherId}
+                                onChange={(e) => setPublisherId(e.target.value)}
+                                required
+                                margin="normal"
+                                variant="outlined"
+                                sx={{ flex: '1', margin: '0' }}
+                            />
+                            <TextField
+                                size="small"
+                                label="NXB"
+                                name="sellingPrice"
+                                inputProps={{
+                                    min: 0,
+                                }}
+                                type="number"
+                                value={manufacturer}
+                                onChange={(e) => setManufacturer(e.target.value)}
+                                required
+                                margin="normal"
+                                variant="outlined"
+                                className="col-6"
+                                sx={{ flex: '1', margin: '0' }}
+                            />
+                        </div>
+
+                        <div className="row gap-3 m-0 my-3">
+                            <TextField
+                                size="small"
+                                label="Tác giả"
+                                name="importPrice"
+                                type="number"
+                                inputProps={{
+                                    min: 0,
+                                }}
+                                value={authorsId}
+                                onChange={(e) => setAuthorsId(e.target.value)}
+                                required
+                                margin="normal"
+                                variant="outlined"
+                                sx={{ flex: '1', margin: '0' }}
+                            />
+                            <TextField
+                                size="small"
+                                label="Thể loại"
+                                name="sellingPrice"
+                                inputProps={{
+                                    min: 0,
+                                }}
+                                type="number"
+                                value={categoriesId}
+                                onChange={(e) => setCategoriesId(e.target.value)}
+                                required
+                                margin="normal"
+                                variant="outlined"
+                                className="col-6"
+                                sx={{ flex: '1', margin: '0' }}
+                            />
+                        </div>
                     </Paper>
                 </Grid>
                 <Grid item xs={12} md={6} sx={{ height: '100%' }}>
@@ -289,8 +391,8 @@ function AddProduct() {
                 <ReactQuill
                     ref={quillRef}
                     theme="snow"
-                    value={formData.description}
-                    onChange={handleChangeDescription}
+                    value={description}
+                    onChange={setDescription}
                     modules={modules}
                     formats={formats}
                 />

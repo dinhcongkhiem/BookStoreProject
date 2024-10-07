@@ -58,6 +58,5 @@ const adminRoutes = [
     { path: '/admin/discount/edit', component: EditDiscount },
 ];
 
-const adminMainRoutes = adminRoutes.filter((route) => route.label);
 
-export { publicRoutes, userRoutes, adminRoutes, adminMainRoutes };
+export { publicRoutes, userRoutes, adminRoutes };

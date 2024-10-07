@@ -33,6 +33,7 @@ public class Product {
     private String description;
     private BigDecimal cost;
     private BigDecimal original_price;
+    private BigDecimal price;
     private String manufacturer;
     @ManyToOne
     private Publisher publisher;
@@ -40,6 +41,8 @@ public class Product {
     private List<Category> categories;
     @ManyToMany
     private List<Author> authors;
+    @ManyToOne
+    private Discount discount;
     private Date createDate;
     private Date updateDate;
 

@@ -1,7 +1,7 @@
 package com.project.book_store_be.Controller;
 
+import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Request.DisCountRequest;
-import com.project.book_store_be.Model.DisCount;
 import com.project.book_store_be.Services.DisCountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -18,7 +17,7 @@ public class DisCountController {
     @Autowired
     private DisCountService service;
     @GetMapping
-    public Page<DisCount> getDiscounts(
+    public Page<Discount> getDiscounts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return service.getDiscounts(page, size);
@@ -27,7 +26,7 @@ public class DisCountController {
     @PostMapping
     public ResponseEntity<?> createDiscount(@RequestBody DisCountRequest disCountRequest) {
         try {
-            DisCount createdDisCount = service.createDiscount(disCountRequest);
+            Discount createdDisCount = service.createDiscount(disCountRequest);
             return new ResponseEntity<>(createdDisCount, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -38,7 +37,7 @@ public class DisCountController {
     public ResponseEntity<?> updateDiscount(@PathVariable Long id, @RequestBody DisCountRequest disCountRequest) {
         try {
             // Gọi service để cập nhật Discount
-            DisCount updatedDiscount = service.updateDiscount(id, disCountRequest);
+            Discount updatedDiscount = service.updateDiscount(id, disCountRequest);
             return new ResponseEntity<>(updatedDiscount, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
