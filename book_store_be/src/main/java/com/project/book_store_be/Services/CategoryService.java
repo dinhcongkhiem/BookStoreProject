@@ -18,16 +18,17 @@ public class CategoryService {
         return categoryRepository.findAll();
     }
 
-    public Category getCategoryById(Long id) {
-        return categoryRepository.findById(id).orElse(null);
+    public List<Category> searchCategoriesByName(String keyword) {
+        return categoryRepository.findByNameContainingIgnoreCase(keyword);
     }
 
-    public List<Category> getCategories(List<Long> categoriesId) {
-        return categoryRepository.findAllById(categoriesId);
+    public List<Category> getCategories(List<Long> categoryId) {
+        return categoryRepository.findAllById(categoryId);
     }
+
     public Category createCategory(Category category) {
         if (categoryRepository.findByName(category.getName()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category name already exists");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên danh mục đã tồn tại");
         }
         return categoryRepository.save(category);
     }
@@ -36,20 +37,20 @@ public class CategoryService {
         Category category = categoryRepository.findById(id).orElse(null);
         if (category != null) {
             if (category.getName().equals(categoryDetails.getName())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New category name must be different from the old name");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên danh mục mới phải khác với tên cũ");
             }
             if (categoryRepository.findByName(categoryDetails.getName()).isPresent()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category name already exists");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên danh mục đã tồn tại");
             }
             category.setName(categoryDetails.getName());
             return categoryRepository.save(category);
         }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục");
     }
 
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục");
         }
         categoryRepository.deleteById(id);
     }

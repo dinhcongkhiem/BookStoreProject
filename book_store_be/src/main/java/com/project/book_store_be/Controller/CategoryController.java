@@ -14,20 +14,23 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
-
     @GetMapping("/api/v1/category")
-    public List<Category> getAllCategories() {
+    public List<Category> getAllCategories(@RequestParam(value = "keyword", defaultValue = "") String keyword) {
+        if (!keyword.isEmpty()) {
+            return categoryService.searchCategoriesByName(keyword);
+        }
         return categoryService.getAllCategories();
     }
 
-    @GetMapping("/api/v1/category/{id}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
-        Category category = categoryService.getCategoryById(id);
-        if (category == null) {
+    @GetMapping("/api/v1/category/categoryIds")
+    public ResponseEntity<List<Category>> getCategories(@RequestParam List<Long> categoryIds) {
+        List<Category> categories = categoryService.getCategories(categoryIds);
+        if (categories.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(category);
+        return ResponseEntity.ok(categories);
     }
+
     @PostMapping("/api/v1/admin/category")
     public Category createCategory(@RequestBody Category category) {
         return categoryService.createCategory(category);
