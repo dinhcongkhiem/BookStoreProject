@@ -24,7 +24,6 @@ public class AuthorService {
     }
 
 
-
     public List<Author> getAllAuthor(){
         return repo.findAll();
     }
