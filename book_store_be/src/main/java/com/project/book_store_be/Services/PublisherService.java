@@ -20,7 +20,6 @@ public class PublisherService {
         return repo.findByNameContainingIgnoreCase(keyword);
     }
 
-
     public Optional<Publisher> getPublisherById(Long id){
         return repo.findById(id);
     }

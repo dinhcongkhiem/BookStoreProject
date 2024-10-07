@@ -27,7 +27,6 @@ public class AuthorController {
         }
     }
 
-
     @GetMapping("/{id}")
     public ResponseEntity<Author> getAuthorById(@PathVariable Long id) {
         Optional<Author> author = authorService.getAuthorById(id);

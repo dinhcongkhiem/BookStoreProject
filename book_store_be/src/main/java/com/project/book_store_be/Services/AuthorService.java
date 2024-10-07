@@ -23,7 +23,6 @@ public class AuthorService {
         return repo.findByNameContainingIgnoreCase(keyword);
     }
 
-
     public List<Author> getAllAuthor(){
         return repo.findAll();
     }
