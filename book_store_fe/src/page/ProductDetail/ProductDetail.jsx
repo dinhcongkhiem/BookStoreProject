@@ -1,11 +1,11 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import classNames from 'classnames/bind';
 import Slider from 'react-slick';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Rating } from '@mui/material';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import ProductsComponent from '../../component/ProductsComponent/ProductsComponent';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
@@ -23,6 +23,7 @@ import { Gallery, Item } from 'react-photoswipe-gallery';
 
 const cx = classNames.bind(style);
 function ProductDetail() {
+    const [searchParams, setSearchParams] = useSearchParams();
     const [activeIndex, setActiveIndex] = useState(1);
     const [quantityProduct, setQuantityProduct] = useState(1);
     const {
@@ -30,15 +31,15 @@ function ProductDetail() {
         error,
         isLoading,
     } = useQuery({
-        queryKey: ['products'],
-        queryFn: () => ProductService.getProductDetail().then((response) => response.data),
+        queryKey: ['products', searchParams.toString()],
+        queryFn: () => ProductService.getProductDetail(searchParams.get('id')).then((response) => response.data),
         retry: 1,
     });
 
     const testListHotDeal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     const settingsHotDeal = {
         dots: false,
-        infinite: true,
+        infinite: false,
         speed: 500,
         slidesToShow: 5,
         slidesToScroll: 1,
@@ -52,13 +53,12 @@ function ProductDetail() {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const handleConfirm = () => {
-        // Xử lý hành động xác nhận ở đây
         console.log('Action Confirmed!');
         setOpen(false);
     };
     const openGalleryRef = useRef(null);
-    // if (error) return <h1 style={{ textAlign: 'center', margin: '10rem 0' }}>VUI LÒNG THỬ LẠI</h1>;
-    // if (isLoading) return <ModalLoading isLoading={true} />;
+    if (error) return <h1 style={{ textAlign: 'center', margin: '10rem 0' }}>VUI LÒNG THỬ LẠI</h1>;
+
     return (
         <>
             <div className="row my-5">
@@ -76,9 +76,9 @@ function ProductDetail() {
                                 <Slider {...settingsHotDeal}>
                                     {product?.images?.map((image, index) => {
                                         console.log(image);
-
                                         return (
                                             <div
+                                                key={index}
                                                 className={cx('img-item', { active: index === activeIndex })}
                                                 onClick={() => setActiveIndex(index)}
                                             >
@@ -423,6 +423,7 @@ function ProductDetail() {
                 title="Xác nhận xóa"
                 message="Bạn có chắc chắn muốn xóa mục này không?"
             />
+            <ModalLoading isLoading={isLoading} />
         </>
     );
 }

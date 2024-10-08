@@ -16,6 +16,9 @@ public class PublisherService {
     public List<Publisher> getAllPublisher(){
         return repo.findAll();
     }
+    public List<Publisher> searchPublishersByName(String keyword) {
+        return repo.findByNameContainingIgnoreCase(keyword);
+    }
 
     public Optional<Publisher> getPublisherById(Long id){
         return repo.findById(id);

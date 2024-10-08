@@ -5,7 +5,6 @@ import com.project.book_store_be.Enum.ProductStatus;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.Year;
 import java.util.List;
 
 @Data
@@ -22,6 +21,7 @@ public class ProductRequest {
     private String translator;
     private CoverType coverType;
     private String manufacturer;
+    private String description;
     private List<Long> categoriesId;
     private List<Long> authorsId;
 }

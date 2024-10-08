@@ -2,43 +2,68 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.DiscountStatus;
 import com.project.book_store_be.Enum.ProductStatus;
-import com.project.book_store_be.Model.DisCount;
+import com.project.book_store_be.Enum.SoftProductType;
+import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Repository.DisCountRepository;
 import com.project.book_store_be.Repository.ProductRepository;
-import com.project.book_store_be.Request.ProductFilterRequest;
+import com.project.book_store_be.Repository.Specification.ProductSpecification;
 import com.project.book_store_be.Request.ProductRequest;
 import com.project.book_store_be.Response.ProductRes.ProductDetailResponse;
 import com.project.book_store_be.Response.ProductRes.ProductResponse;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.math.RoundingMode;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
+    private static final BigDecimal ONE_HUNDRED = new BigDecimal(100);
     private final ProductRepository productRepository;
     private final PublisherService publisherService;
     private final CategoryService categoryService;
     private final AuthorService authorService;
     private final ImageProductService imageProductService;
-    private final DisCountRepository disCountRepository;
     private final ReviewService reviewService;
-    @PersistenceContext
-    private EntityManager entityManager;
+
+    public Page<ProductResponse> getProductsAvailable(
+            int page, int pageSize, Long category, List<BigDecimal> price,
+            List<Long> publisher, String sort, String keyword
+    ) {
+        SoftProductType sortType = SoftProductType.fromValue(sort);
+        Specification<Product> spec = ProductSpecification.getProduct(
+                 category, price,publisher, keyword, ProductStatus.AVAILABLE);
+
+        Sort sortValue = Sort.unsorted();
+        switch (sortType) {
+            case TOPSELLER:
+//                sort = Sort.by(Sort.Direction.ASC, "creationDate"); // Sắp xếp theo ngày tạo tăng dần
+//                break;
+            case NEWEST:
+                sortValue = Sort.by(Sort.Direction.ASC, "createDate");
+                break;
+            case PRICE_DESC:
+                sortValue = Sort.by(Sort.Direction.DESC, "price");
+                break;
+            case PRICE_ASC:
+                sortValue = Sort.by(Sort.Direction.ASC, "price");
+                break;
+        }
+
+        Pageable pageable = PageRequest.of(page, pageSize, sortValue);
+        return productRepository.findAll(spec, pageable).map(this::convertToProductResponse);
+
+    }
 
     public Page<ProductResponse> getAllProducts(int pageNumber, int pageSize) {
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize);
@@ -55,13 +80,18 @@ public class ProductService {
                 .name(request.getName())
                 .publisher(publisherService.getPublisherById(request.getPublisherId()).orElse(null))
                 .number_of_pages(request.getNumber_of_pages())
+                .year_of_publication(request.getYear_of_publication())
                 .cost(request.getCost())
                 .original_price(request.getOriginal_price())
+                .price(request.getOriginal_price())
+                .size(request.getSize())
                 .quantity(request.getQuantity())
                 .status(request.getStatus())
+                .coverType(request.getCoverType())
+                .manufacturer(request.getManufacturer())
                 .categories(categoryService.getCategories(request.getCategoriesId()))
                 .authors(authorService.getAuthors(request.getAuthorsId()))
-                .year_of_publication(request.getYear_of_publication())
+                .description(request.getDescription())
                 .createDate(new Date())
                 .updateDate(new Date())
                 .build();
@@ -75,30 +105,49 @@ public class ProductService {
 
     public Product updateProduct(Long id, ProductRequest request) {
         Product pr = productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Product not found"));
+        BigDecimal price = request.getOriginal_price();
+        if (pr.getDiscount() != null && pr.getDiscount().getStatus() == DiscountStatus.ACTIVE) {
+            BigDecimal discountAmount = pr.getOriginal_price()
+                    .multiply(BigDecimal.valueOf(pr.getDiscount().getDiscountRate()))
+                    .divide(ONE_HUNDRED, RoundingMode.HALF_UP);
+
+            price = pr.getOriginal_price().subtract(discountAmount);
+        }
+
         pr.setName(request.getName());
         pr.setPublisher(publisherService.getPublisherById(request.getPublisherId()).orElse(null));
         pr.setNumber_of_pages(request.getNumber_of_pages());
         pr.setCost(request.getCost());
         pr.setOriginal_price(request.getOriginal_price());
+        pr.setSize(request.getSize());
         pr.setQuantity(request.getQuantity());
         pr.setStatus(request.getStatus());
+        pr.setCoverType(request.getCoverType());
+        pr.setManufacturer(request.getManufacturer());
         pr.setCategories(categoryService.getCategories(request.getCategoriesId()));
         pr.setAuthors(authorService.getAuthors(request.getAuthorsId()));
+        pr.setDescription(request.getDescription());
+        pr.setPrice(price);
         pr.setUpdateDate(new Date());
         return productRepository.save(pr);
     }
-
+    public Map<String,BigDecimal> getPriceRange() {
+        Map<BigDecimal, BigDecimal> result = productRepository.findMinAndMaxPrice();
+        BigDecimal minPrice = result.get("min");
+        BigDecimal maxPrice = result.get("max");
+        return Map.of("min", minPrice, "max", maxPrice);
+    }
     public ProductResponse convertToProductResponse(Product product) {
-        DisCount disCount = disCountRepository.findByStatus(DiscountStatus.ACTIVE).orElse(null);
+
         Integer discountRate = 0;
-        BigDecimal discountValue = BigDecimal.ZERO;
-        if (disCount != null && disCount.getProducts().contains(product)) {
-            discountRate = disCount.getDiscountRate();
-            discountValue = product.getOriginal_price()
-                    .multiply(BigDecimal.valueOf(discountRate))
-                    .divide(BigDecimal.valueOf(100));
+
+        if(product.getDiscount() != null) {
+            discountRate = product.getDiscount().getDiscountRate();
         }
-        String thumbnailUrl =  imageProductService.getThumbnailProduct(product.getId()) != null
+        BigDecimal discountValue = product.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
+                .divide(ONE_HUNDRED, RoundingMode.HALF_UP);
+
+        String thumbnailUrl = imageProductService.getThumbnailProduct(product.getId()) != null
                 ? imageProductService.getThumbnailProduct(product.getId()).getUrlImage() : null;
         return ProductResponse.builder()
                 .id(product.getId())
@@ -108,23 +157,20 @@ public class ProductService {
                 .thumbnail_url(thumbnailUrl)
                 .discount(discountValue)
                 .discount_rate(discountRate)
-                .price(product.getOriginal_price().subtract(discountValue))
+                .price(product.getPrice())
+                .rating_average(reviewService.calculateReviewAverage(product.getId()))
                 .build();
 //                .quantity_sold()   PENDING
-//                .rating_average() PENDING
-//                .review_count()    PENDING PENDING
     }
 
     public ProductDetailResponse convertToProductDetailResponse(Product product) {
-        DisCount disCount = disCountRepository.findByStatus(DiscountStatus.ACTIVE).orElse(null);
         Integer discountRate = 0;
-        BigDecimal discountValue = BigDecimal.ZERO;
-        if (disCount != null && disCount.getProducts().contains(product)) {
-            discountRate = disCount.getDiscountRate();
-            discountValue = product.getOriginal_price()
-                    .multiply(BigDecimal.valueOf(discountRate))
-                    .divide(BigDecimal.valueOf(100));
+
+        if(product.getDiscount() != null) {
+            discountRate = product.getDiscount().getDiscountRate();
         }
+        BigDecimal discountValue = product.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
+                .divide(ONE_HUNDRED, RoundingMode.HALF_UP);
 
         return ProductDetailResponse.builder()
                 .id(product.getId())
@@ -157,46 +203,5 @@ public class ProductService {
         return productRepository.findAllById(productIds);
     }
 
-    public List<Product> searchProducts(String productName, String categoryName, String authorName, String publisherName,Pageable pageable) {
-        return productRepository.searchProducts(productName, categoryName, authorName, publisherName,pageable);
-    }
-
-    public List<Product> filterProducts(ProductFilterRequest filterRequest) {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Product> query = cb.createQuery(Product.class);
-        Root<Product> product = query.from(Product.class);
-
-        List<Predicate> predicates = new ArrayList<>();
-
-        if (filterRequest.getCategoriesId() != null && !filterRequest.getCategoriesId().isEmpty()) {
-            Join<Object, Object> categories = product.join("categories");
-            predicates.add(categories.get("id").in(filterRequest.getCategoriesId()));
-        }
-
-        if (filterRequest.getMinPrice() != null) {
-            predicates.add(cb.greaterThanOrEqualTo(product.get("cost"), filterRequest.getMinPrice()));
-        }
-        if (filterRequest.getMaxPrice() != null) {
-            predicates.add(cb.lessThanOrEqualTo(product.get("cost"), filterRequest.getMaxPrice()));
-        }
-
-        if (filterRequest.getPublisherId() != null) {
-            predicates.add(cb.equal(product.get("publisher").get("id"), filterRequest.getPublisherId()));
-        }
-        query.where(predicates.toArray(new Predicate[0]));
-        return entityManager.createQuery(query).getResultList();
-    }
-
-    public List<Product> getFilteredProducts(ProductFilterRequest filterRequest) {
-        return filterProducts(filterRequest);
-    }
-
-    public List<Product> getAvailableProducts() {
-        return productRepository.findByStatus(ProductStatus.AVAILABLE);
-    }
-
-//    public List<Product> getLatestProducts() {
-//        return productRepository.findAllByOrderByYearOfPublicationDesc(PageRequest.of(0, 10));
-//    }
 
 }

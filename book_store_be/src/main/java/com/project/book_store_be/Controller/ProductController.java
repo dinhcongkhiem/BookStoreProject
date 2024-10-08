@@ -6,13 +6,16 @@ import com.project.book_store_be.Request.ProductFilterRequest;
 import com.project.book_store_be.Request.ProductRequest;
 import com.project.book_store_be.Services.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -23,19 +26,27 @@ public class ProductController {
 
     @GetMapping("/list")
     public ResponseEntity<Page<?>> getAllProducts(
-            @RequestParam(defaultValue = "0") int pageNumber,
-            @RequestParam(defaultValue = "20") int pageSize) {
-        return ResponseEntity.ok().body(productService.getAllProducts(pageNumber, pageSize));
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(required = false) Long category,
+            @RequestParam(required = false) List<BigDecimal> price,
+            @RequestParam(required = false) List<Long> publisher,
+            @RequestParam(required = false, defaultValue = "newest") String sort,
+            @RequestParam(required = false) String keyword
+    ) {
+        return ResponseEntity.ok().body(productService.getProductsAvailable(page, pageSize, category,
+                price, publisher, sort, keyword));
     }
 
     @GetMapping()
-    public ResponseEntity<?> getProduct(@RequestParam Long id){
+    public ResponseEntity<?> getProduct(@RequestParam Long id) {
         try {
             return ResponseEntity.ok(productService.findProductById(id));
-        }catch (NoSuchElementException e){
+        } catch (NoSuchElementException e) {
             return ResponseEntity.badRequest().body("No product found with id: " + id);
         }
     }
+
     @PostMapping()
     public ResponseEntity<?> addProduct(
             @RequestParam("product") String productJson,
@@ -59,7 +70,7 @@ public class ProductController {
         try {
             productService.deleteProduct(id);
             return ResponseEntity.ok().build();
-        }catch (NoSuchElementException e){
+        } catch (NoSuchElementException e) {
             return ResponseEntity.badRequest().body("No product found with id: " + id);
         }
     }
@@ -70,28 +81,8 @@ public class ProductController {
         return ResponseEntity.ok(updatedProduct);
     }
 
-    @GetMapping("/search")
-    public List<Product> searchProducts(
-            @RequestParam(required = false) String productName,
-            @RequestParam(required = false) String categoryName,
-            @RequestParam(required = false) String authorName,
-            @RequestParam(required = false) String publisherName,
-            Pageable pageable) {
-        return productService.searchProducts(productName, categoryName, authorName, publisherName,pageable);
-    }
-
-    @PostMapping("/filter")
-    public List<Product> filterProducts(@RequestBody ProductFilterRequest filterRequest) {
-        return productService.getFilteredProducts(filterRequest);
-    }
-
-    @GetMapping("/products/available")
-    public List<Product> getAvailableProducts() {
-        return productService.getAvailableProducts();
-    }
-
-    @GetMapping("/products/latest")
-    public List<Product> getLatestProducts() {
-        return productService.getLatestProducts();
+    @GetMapping("/price-range")
+    public ResponseEntity<Map<String, BigDecimal>> getPriceRange() {
+        return ResponseEntity.ok(productService.getPriceRange());
     }
 }

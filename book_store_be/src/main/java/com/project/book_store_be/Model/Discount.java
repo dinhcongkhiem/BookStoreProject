@@ -17,24 +17,13 @@ import java.util.List;
 @Builder(toBuilder = true)
 @Entity
 @Table(name = "discount")
-public class DisCount {
+public class Discount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private Date startDate;
-
     private Date endDate;
-
     private Integer discountRate;
     private DiscountStatus status;
-    @OneToMany
-    @JoinTable(
-            name = "discount_detail",
-            joinColumns = @JoinColumn(name = "discount_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
-    private List<Product> products;
-
 
 }

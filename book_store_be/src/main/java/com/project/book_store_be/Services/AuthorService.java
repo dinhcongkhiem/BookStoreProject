@@ -18,6 +18,11 @@ public class AuthorService {
     @Autowired
     private AuthorRepository repo;
 
+
+    public List<Author> searchPublishersByName(String keyword) {
+        return repo.findByNameContainingIgnoreCase(keyword);
+    }
+
     public List<Author> getAllAuthor(){
         return repo.findAll();
     }
