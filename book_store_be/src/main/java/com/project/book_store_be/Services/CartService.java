@@ -2,7 +2,7 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.DiscountStatus;
 import com.project.book_store_be.Model.Cart;
-import com.project.book_store_be.Model.DisCount;
+import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.CartRepository;
@@ -111,12 +111,13 @@ public class CartService {
     }
 
     private BigDecimal calculateDiscount(Product product) {
-        DisCount disCount = disCountRepository.findByStatus(DiscountStatus.ACTIVE).orElse(null);
-        if (disCount != null && disCount.getProducts().contains(product)) {
+        Discount discount = product.getDiscount();
+        if (discount != null && discount.getStatus() == DiscountStatus.ACTIVE) {
             return product.getOriginal_price()
-                    .multiply(BigDecimal.valueOf(disCount.getDiscountRate()))
+                    .multiply(BigDecimal.valueOf(discount.getDiscountRate()))
                     .divide(BigDecimal.valueOf(100));
         }
         return BigDecimal.ZERO;
     }
+
 }
