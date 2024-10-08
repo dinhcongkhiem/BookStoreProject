@@ -49,6 +49,7 @@ function Product() {
                 page: page,
                 categoryId: searchParams.get('c') || null,
                 price: `${searchParams.get('min') || null},${searchParams.get('max') || null}`,
+                publisher: searchParams.get('pub')  ? decodeURIComponent( searchParams.get('pub')) : null,
             }).then((response) => response.data),
         retry: 1,
     });
@@ -65,7 +66,7 @@ function Product() {
     const handleChangePage = (event, value) => {
         setPage(value);
         const newSearchParams = new URLSearchParams(searchParams);
-        newSearchParams.set('p',value);
+        newSearchParams.set('p', value);
         setSearchParams(Object.fromEntries(newSearchParams.entries()));
     };
     useEffect(() => {

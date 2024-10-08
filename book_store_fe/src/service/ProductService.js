@@ -2,20 +2,8 @@ import axios from 'axios';
 import httpRequest from '../utills/httpRequest';
 import { PRODUCT_URL } from './config';
 class ProductServiceClass {
-    getListProduct = ({ page, pageSize, categoryId, price, publisher, keyword, sort }) => {
-        let pageRequest = 0;
-        let pageSizeRequest = 20;
-
-        if (page) {
-            pageRequest = page - 1;
-        }
-
-        if (pageSize) {
-            pageSizeRequest = pageSize;
-        }
-        if(price === 'null,null') {
-            price = null
-        }
+    getListProduct = ({ page = 1, pageSize = 20, categoryId, price, publisher, keyword, sort }) => {
+        price = price === 'null,null' ? null : price;
         let config = {
             method: 'get',
             url: PRODUCT_URL + '/list',
@@ -23,11 +11,11 @@ class ProductServiceClass {
                 'Content-Type': 'application/json',
             },
             params: {
-                page: pageRequest,
-                pageSize: pageSizeRequest,
+                page: page - 1,
+                pageSize,
                 category: categoryId,
-                price: price,
-                publisher: publisher,
+                price,
+                publisher,
                 keyword,
                 sort,
             },

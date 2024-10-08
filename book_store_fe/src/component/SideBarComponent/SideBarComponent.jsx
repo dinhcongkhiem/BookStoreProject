@@ -9,6 +9,7 @@ import CatogoryService from '../../service/CategoryService';
 import { useSearchParams } from 'react-router-dom';
 import ProductService from '../../service/ProductService';
 import useDebounce from '../../hooks/useDebounce';
+import PublisherService from '../../service/Publisher';
 const cx = classNames.bind(style);
 
 function SideBarComponent() {
@@ -19,12 +20,23 @@ function SideBarComponent() {
     const [isShowMoreBublisher, setShowMoreBublisher] = useState(false);
 
     const [priceRange, setPriceRange] = useState([]);
-    const [selectedPublisher, setSeletedPublisher] = useState(0);
+    const [selectedPublisher, setSelectedPublisher] = useState([]);
     const debounceValue = useDebounce(priceRange, 600);
 
     const handleChangePriceRange = (event, newValue) => {
         setPriceRange(newValue);
     };
+
+    const handleCheckboxChange = (id) => {
+        setSelectedPublisher((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter((publisherId) => publisherId !== id);
+            } else {
+                return [...prev, id];
+            }
+        });
+    };
+
     const handleChangeCategory = (categoryId) => {
         if (categoryId === 0) {
             const newSearchParams = new URLSearchParams(searchParams);
@@ -34,23 +46,12 @@ function SideBarComponent() {
             setSearchParams((prevParams) => {
                 const newParams = new URLSearchParams(prevParams);
                 newParams.set('c', categoryId);
-                newParams.delete('p')
+                newParams.delete('p');
                 return newParams;
             });
         }
         setSelectedCategory(categoryId);
     };
-
-    const listPublisher = [
-        'Nhà Xuất Bản Kim ĐỒng',
-        'Nhà Xất Bản Trẻ',
-        'Tân Việt',
-        'Nhã Nam',
-        'Alpha Books',
-        'First News',
-        'MCBooks',
-        'Skybooks',
-    ];
 
     const { data: categories } = useQuery({
         queryKey: ['categories'],
@@ -62,6 +63,29 @@ function SideBarComponent() {
         queryFn: () => ProductService.getPriceRange().then((response) => response.data),
         retry: 1,
     });
+    const { data: publishers } = useQuery({
+        queryKey: ['publishers'],
+        queryFn: () => PublisherService.getAll().then((res) => res.data),
+        retry: 1,
+    });
+
+    useEffect(() => {
+        if (selectedPublisher.length > 0) {
+            setSearchParams((prevParams) => {
+                const newParams = new URLSearchParams(prevParams);
+                newParams.set('pub', selectedPublisher);
+                newParams.delete('p');
+                return newParams;
+            });
+        } else {
+            setSearchParams((prevParams) => {
+                const newParams = new URLSearchParams(prevParams);
+                newParams.delete('pub');
+                newParams.delete('p');
+                return newParams;
+            });
+        }
+    }, [selectedPublisher]);
 
     useEffect(() => {
         const minPrice = searchParams.get('min');
@@ -155,14 +179,15 @@ function SideBarComponent() {
 
             <div className={cx('publisher')}>
                 <h4>Nhà cung cấp</h4>
-                <Collapse in={isShowMoreBublisher} collapsedSize={210}>
-                    {listPublisher.map((pusher, index) => {
+                <Collapse in={isShowMoreBublisher} collapsedSize={225}>
+                    {publishers?.map((pusher, index) => {
                         return (
                             <div key={index}>
                                 <FormControlLabel
-                                    onChange={() => setSeletedPublisher((prev) => (prev === index ? -1 : index))}
-                                    control={<Checkbox checked={selectedPublisher === index} />}
-                                    label={<p className="label-publisher">{pusher}</p>}
+                                    sx={{ marginLeft: '.2rem' }}
+                                    onChange={() => handleCheckboxChange(pusher.id)}
+                                    control={<Checkbox checked={selectedPublisher.includes(pusher.id)} size="small" />}
+                                    label={<p className="label-publisher">{pusher.name}</p>}
                                 />
                             </div>
                         );
