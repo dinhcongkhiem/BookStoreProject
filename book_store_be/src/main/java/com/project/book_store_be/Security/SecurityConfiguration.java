@@ -44,8 +44,10 @@ public class SecurityConfiguration {
             "/api/v1/auth/**",
             "/api/v1/product/**",
             "/api/v1/category/**",
+            "/api/v1/cart/**",
             "/api-docs/**",
-            "/swagger-ui/**"
+            "/swagger-ui/**",
+            "/api/v1/publisher"
 
 //            list url with permitAll;
     };

@@ -1,12 +1,10 @@
 package com.project.book_store_be.Controller;
 
-import com.project.book_store_be.Model.Cart;
 import com.project.book_store_be.Request.CartRequest;
 import com.project.book_store_be.Response.CartResponse;
 import com.project.book_store_be.Services.CartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +23,7 @@ public class CartController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            CartResponse cartResponse = cartService.getCartByUserId( page, size);
+            CartResponse cartResponse = cartService.getCartByUserId(page, size);
             return ResponseEntity.ok(cartResponse);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -38,9 +36,9 @@ public class CartController {
     }
 
     @PostMapping()
-    public ResponseEntity<?> addToCart( @RequestBody CartRequest cartRequest) {
+    public ResponseEntity<?> addToCart(@RequestBody CartRequest cartRequest) {
         try {
-            cartService.addToCart( cartRequest);
+            cartService.addToCart(cartRequest);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -54,12 +52,12 @@ public class CartController {
         }
     }
 
-    @PutMapping("/{cartDetailId}")
+    @PutMapping("/{cartId}")
     public ResponseEntity<?> updateCartItem(
-            @PathVariable Long cartDetailId,
+            @PathVariable Long cartId,
             @RequestBody @Valid CartRequest cartRequest) {
         try {
-            cartService.updateCartItem( cartDetailId, cartRequest);
+            cartService.updateCartItem(cartId, cartRequest);
             return ResponseEntity.ok().build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -73,10 +71,10 @@ public class CartController {
         }
     }
 
-    @DeleteMapping("/{cartDetailId}")
-    public ResponseEntity<?> removeCartItem( @PathVariable Long cartDetailId) {
+    @DeleteMapping("/{cartId}")
+    public ResponseEntity<?> removeCartItem(@PathVariable Long cartId) {
         try {
-            cartService.removeCartItem( cartDetailId);
+            cartService.removeCartItem(cartId);
             return ResponseEntity.ok().build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -87,4 +85,3 @@ public class CartController {
         }
     }
 }
-

@@ -2,10 +2,9 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.DiscountStatus;
 import com.project.book_store_be.Model.Cart;
-import com.project.book_store_be.Model.CartDetail;
 import com.project.book_store_be.Model.DisCount;
 import com.project.book_store_be.Model.Product;
-import com.project.book_store_be.Repository.CartDetailRepository;
+import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.CartRepository;
 import com.project.book_store_be.Repository.DisCountRepository;
 import com.project.book_store_be.Repository.ProductRepository;
@@ -28,7 +27,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CartService {
     private final CartRepository cartRepository;
-    private final CartDetailRepository cartDetailRepository;
     private final ProductRepository productRepository;
     private final DisCountRepository disCountRepository;
     private final ImageProductService imageProductService;
@@ -36,72 +34,67 @@ public class CartService {
 
 
     public CartResponse getCartByUserId(int page, int size) {
-        Cart cart = cartRepository.findByUser(userService.getCurrentUser()).orElseThrow();
+        User currentUser = userService.getCurrentUser();
         Pageable pageable = PageRequest.of(page, size);
-        Page<CartDetail> cartDetailsPage = cartDetailRepository.findByCart(cart, pageable);
-        return convertToCartResponse(cartDetailsPage);
+        Page<Cart> cartPage = cartRepository.findByUser(currentUser, pageable);
+        return convertToCartResponse(cartPage);
     }
 
     public void addToCart(CartRequest cartRequest) {
-        Cart cart = cartRepository.findByUser(userService.getCurrentUser()).orElseThrow();
+        User currentUser = userService.getCurrentUser();
         Product product = productRepository.findById(cartRequest.getProductId())
                 .orElseThrow(() -> new NoSuchElementException("Product not found"));
-        Optional<CartDetail> cartDetailOptional = cartDetailRepository.findByCartAndProduct(cart, product);
+        Optional<Cart> cartOptional = cartRepository.findByUserAndProduct(currentUser, product);
 
         if (cartRequest.getCartQuantity() < 1 || cartRequest.getCartQuantity() > product.getQuantity()) {
             throw new IllegalArgumentException("Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1 và nhỏ hơn hoặc bằng số lượng có sẵn.");
         }
-        if (cartDetailOptional.isPresent()) {
-            CartDetail cartDetail = cartDetailOptional.get();
-            cartDetail.setCartQuantity(cartRequest.getCartQuantity() + cartDetail.getCartQuantity());
-            cartDetailRepository.save(cartDetail);
+        if (cartOptional.isPresent()) {
+            Cart cart = cartOptional.get();
+            cart.setCartQuantity(cartRequest.getCartQuantity() + cart.getCartQuantity());
+            cartRepository.save(cart);
             return;
         }
-        CartDetail cartDetail = new CartDetail();
-        cartDetail.setProduct(product);
-        cartDetail.setCartQuantity(cartRequest.getCartQuantity());
-        cartDetail.setCart(cart);
-        cartDetailRepository.save(cartDetail);
+        Cart cart = new Cart();
+        cart.setProduct(product);
+        cart.setCartQuantity(cartRequest.getCartQuantity());
+        cart.setUser(currentUser);
+        cartRepository.save(cart);
     }
 
-    public void updateCartItem(Long cartDetailId, CartRequest cartRequest) {
-        Cart cart = cartRepository.findByUser(userService.getCurrentUser()).orElseThrow();
-        CartDetail cartDetail = cartDetailRepository.findById(cartDetailId)
+    public void updateCartItem(Long cartId, CartRequest cartRequest) {
+        Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Product not found in cart"));
 
-        if (cartRequest.getCartQuantity() < 1 || cartRequest.getCartQuantity() > cartDetail.getProduct().getQuantity()) {
+        if (cartRequest.getCartQuantity() < 1 || cartRequest.getCartQuantity() > cart.getProduct().getQuantity()) {
             throw new IllegalArgumentException("Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1 và nhỏ hơn hoặc bằng số lượng có sẵn.");
         }
 
-        cartDetail.setCartQuantity(cartRequest.getCartQuantity());
-        cartDetailRepository.save(cartDetail);
+        cart.setCartQuantity(cartRequest.getCartQuantity());
+        cartRepository.save(cart);
     }
 
-    public void removeCartItem(Long productId) {
-        Cart cart = cartRepository.findByUser(userService.getCurrentUser()).orElseThrow();
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new NoSuchElementException("Product not found"));
-
-        CartDetail cartDetail = cartDetailRepository.findByCartAndProduct(cart, product)
+    public void removeCartItem(Long cartId) {
+        Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Product not found in cart"));
 
-        cartDetailRepository.delete(cartDetail);
+        cartRepository.delete(cart);
     }
 
-    private CartResponse convertToCartResponse(Page<CartDetail> cartDetailsPage) {
-        List<ProductCartResponse> productResponses = cartDetailsPage.getContent().stream()
+    private CartResponse convertToCartResponse(Page<Cart> cartPage) {
+        List<ProductCartResponse> productResponses = cartPage.getContent().stream()
                 .map(this::convertToProductCartResponse)
                 .collect(Collectors.toList());
         return CartResponse.builder()
                 .cart(productResponses)
-                .totalPages(cartDetailsPage.getTotalPages())
-                .currentPage(cartDetailsPage.getNumber())
-                .totalItems(cartDetailsPage.getTotalElements())
+                .totalPages(cartPage.getTotalPages())
+                .currentPage(cartPage.getNumber())
+                .totalItems(cartPage.getTotalElements())
                 .build();
     }
 
-    private ProductCartResponse convertToProductCartResponse(CartDetail detail) {
-        Product product = detail.getProduct();
+    private ProductCartResponse convertToProductCartResponse(Cart cart) {
+        Product product = cart.getProduct();
         BigDecimal discountValue = calculateDiscount(product);
         String thumbnailUrl = imageProductService.getThumbnailProduct(product.getId()) != null
                 ? imageProductService.getThumbnailProduct(product.getId()).getUrlImage()
@@ -109,7 +102,7 @@ public class CartService {
         return ProductCartResponse.builder()
                 .productId(product.getId())
                 .productName(product.getName())
-                .cartQuantity(detail.getCartQuantity())
+                .cartQuantity(cart.getCartQuantity())
                 .original_price(product.getOriginal_price())
                 .discount(discountValue)
                 .price(product.getOriginal_price().subtract(discountValue))

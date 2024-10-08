@@ -15,13 +15,18 @@ import java.util.List;
 public class CategoryController {
     private final CategoryService categoryService;
     @GetMapping("/api/v1/category")
-    public List<Category> getAllCategories(@RequestParam(value = "keyword", defaultValue = "") String keyword) {
+    public ResponseEntity<List<Category>> getAllCategories(@RequestParam(value = "keyword", defaultValue = "") String keyword) {
+        List<Category> categories;
         if (!keyword.isEmpty()) {
-            return categoryService.searchCategoriesByName(keyword);
+            categories = categoryService.searchCategoriesByName(keyword);
+        } else {
+            categories = categoryService.getAllCategories();
         }
-        return categoryService.getAllCategories();
+        if (categories.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(categories);
     }
-
     @GetMapping("/api/v1/category/categoryIds")
     public ResponseEntity<List<Category>> getCategories(@RequestParam List<Long> categoryIds) {
         List<Category> categories = categoryService.getCategories(categoryIds);

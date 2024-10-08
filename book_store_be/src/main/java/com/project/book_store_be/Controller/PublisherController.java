@@ -17,16 +17,18 @@ public class PublisherController {
     private PublisherService publisherService;
 
     @GetMapping
-    public List<Publisher> getAllPublisher(@RequestParam(defaultValue = "") String keyword) {
+    public ResponseEntity<List<Publisher>> getAllPublisher(@RequestParam(defaultValue = "") String keyword) {
+        List<Publisher> publishers;
         if (keyword.isEmpty()) {
-            return publisherService.getAllPublisher();
+            publishers = publisherService.getAllPublisher();
         } else {
-            return publisherService.searchPublishersByName(keyword);
+            publishers = publisherService.searchPublishersByName(keyword);
         }
+        if (publishers.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(publishers);
     }
-
-
-
     @GetMapping("/{id}")
     public ResponseEntity<Publisher> getPublisherById(@PathVariable Long id){
         Optional<Publisher> publisher = publisherService.getPublisherById(id);
