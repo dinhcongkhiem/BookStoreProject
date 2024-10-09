@@ -47,7 +47,7 @@ function Home() {
     } = useQuery({
         queryKey: ['products'],
         queryFn: () =>
-            ProductService.getListProduct({ sort: 'newest', pageSize: 10, page: 0 }).then(
+            ProductService.getListProduct({ sort: 'newest', pageSize: 10, page: 1 }).then(
                 (response) => response.data.content,
             ),
         retry: 1,

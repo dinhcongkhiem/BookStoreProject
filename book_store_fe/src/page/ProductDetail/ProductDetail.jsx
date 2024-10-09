@@ -24,7 +24,7 @@ import { Gallery, Item } from 'react-photoswipe-gallery';
 const cx = classNames.bind(style);
 function ProductDetail() {
     const [searchParams, setSearchParams] = useSearchParams();
-    const [activeIndex, setActiveIndex] = useState(1);
+    const [activeIndex, setActiveIndex] = useState(0);
     const [quantityProduct, setQuantityProduct] = useState(1);
     const {
         data: product,
@@ -269,7 +269,7 @@ function ProductDetail() {
                         <p
                             className="mx-4"
                             dangerouslySetInnerHTML={{
-                                __html: product?.description?.replace(/\\u003c/g, '<').replace(/\\u003e/g, '>'),
+                                __html: product?.description?.replace(/\\u003c/g, '<').replace(/\\u003e/g, '>').replace(/\\n/g, '<br>'),
                             }}
                         ></p>
                     </div>

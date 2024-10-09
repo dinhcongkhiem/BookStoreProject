@@ -1,23 +1,62 @@
-import { useContext, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Fragment, useContext, useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faShoppingCart, faUser } from '@fortawesome/free-solid-svg-icons';
 import { Navbar, Container, Nav } from 'react-bootstrap';
-import Tippy from '@tippyjs/react/headless';
 
 import classNames from 'classnames/bind';
 
 import logoBook from '../../../assets/image/Logo-BookBazaar-nobg.png';
 import { AuthenticationContext } from '../../../context/AuthenticationProvider';
 import style from './Header.module.scss';
+import { Autocomplete, CircularProgress, ListItemIcon, Menu, MenuItem, Popper, TextField } from '@mui/material';
+import { Logout, ManageAccounts, Clear, Cancel } from '@mui/icons-material';
+
+import ProductService from '../../../service/ProductService';
+import { useQuery } from '@tanstack/react-query';
+import useDebounce from '../../../hooks/useDebounce';
 const cx = classNames.bind(style);
 
 function Header() {
+    const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { authentication, logout } = useContext(AuthenticationContext);
+    const [anchorEl, setAnchorEl] = useState(null);
 
+    const [isFocusSearch, setIsFocusSearch] = useState(false);
+    const open = Boolean(anchorEl);
+    const [keyword, setKeyword] = useState('');
+    const [openOptions, setOpenOptions] = useState(false);
+    const debouncedKeyword = useDebounce(keyword.trim(), 800);
+
+    const {
+        data: options,
+        error,
+        isLoading,
+    } = useQuery({
+        queryKey: ['searchResult', debouncedKeyword],
+        queryFn: () =>
+            ProductService.getListProduct({ page: 1, pageSize: 5, keyword: debouncedKeyword }).then(
+                (response) => response.data.content,
+            ),
+        retry: 1,
+        enabled: !!debouncedKeyword,
+    });
+    const handleNavigateSearch = () => {
+        navigate(`/product?q=${encodeURIComponent(keyword)}`)
+    }
     useEffect(() => {
-        console.log('hihi');
+        const handleKeyPress = (e) => {
+            if (e.key === 'Enter') {
+                handleNavigateSearch();
+            }
+        };
+        window.addEventListener('keypress', handleKeyPress);
+        return () => {
+            window.removeEventListener('keypress', handleKeyPress);
+        };
     }, []);
+
     return (
         <header className={cx('headerWrapper')}>
             <div className={cx('container')}>
@@ -26,39 +65,123 @@ function Header() {
                         <img src={logoBook} alt="BookStore Logo" className={cx('logoImage')} />
                     </Link>
                 </div>
-                <div className={cx('search')}>
-                    <input type="text" placeholder="Tìm kiếm sách..." className={cx('searchInput')} />
-                    <FontAwesomeIcon icon={faSearch} className={cx('searchIcon')} />
+                <div className={cx('search', { 'search-focus': isFocusSearch })}>
+                    <Autocomplete
+                        freeSolo
+                        disableClearable
+                        open={openOptions}
+                        onOpen={() => setOpenOptions(true)}
+                        onClose={() => setOpenOptions(false)}
+                        options={keyword.length > 0 && options?.length > 0 ? options : []}
+                        className={cx('textInputSearch')}
+                        getOptionLabel={(option) => option?.name || ''}
+                        ListboxComponent={(props) => <ul {...props} className={cx('custom-listbox')} />}
+                        PopperComponent={(props) => <Popper {...props} className={cx('customPoper')} />}
+                        inputValue={keyword}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                placeholder="Tìm kiếm sách..."
+                                onFocus={() => setIsFocusSearch(true)}
+                                onBlur={() => {
+                                    setIsFocusSearch(false);
+                                }}
+                                onChange={(e) => setKeyword(e.target.value)}
+                                InputProps={{
+                                    ...params.InputProps,
+                                    endAdornment: (
+                                        <Fragment>
+                                            {keyword.length > 0 ? (
+                                                isLoading ? (
+                                                    <CircularProgress color="inherit" size={14} sx={{ opacity: 0.7 }} />
+                                                ) : (
+                                                    <button className={cx('clear-btn')} onClick={() => setKeyword('')}>
+                                                        <Cancel />
+                                                    </button>
+                                                )
+                                            ) : null}
+                                        </Fragment>
+                                    ),
+                                }}
+                            />
+                        )}
+                        renderOption={(props, option) => (
+                            <li
+                                {...props}
+                                key={option.id}
+                                className={cx('search-result')}
+                                onClick={() => {
+                                    navigate(`/product/detail?id=${option.id}`);
+                                    setOpenOptions(false);
+                                }}
+                            >
+                                <img src={option.thumbnail_url} alt={option.name} />
+                                <div>
+                                    <strong>{option.name}</strong>
+                                    <p>
+                                        {option.price.toLocaleString('vi-VN')}
+                                        <span>₫</span>
+                                    </p>
+                                </div>
+                            </li>
+                        )}
+                        filterOptions={(x) => x}
+                    />
+
+                    <span></span>
+                    <button className={cx('search-btn')} onClick={handleNavigateSearch}>
+                        <FontAwesomeIcon icon={faSearch} />
+                    </button>
                 </div>
                 <div className={cx('action')}>
-                    <Link to='/cart'>
+                    <Link to="/cart">
                         <div className={cx('cart')}>
                             <FontAwesomeIcon icon={faShoppingCart} size="lg" />
                         </div>
                     </Link>
                     {authentication.isAuthen ? (
-                        <Tippy
-                            interactive
-                            placement="bottom-end"
-                            render={(attrs) => (
-                                <>
-                                    <ul className={cx('user-menu')} {...attrs}>
-                                        <li>
-                                            <Link to="/user">Thông tin cá nhân</Link>
-                                        </li>
-                                        <li>
-                                            <Link to="/" onClick={() => logout()}>
-                                                Đăng xuất
-                                            </Link>
-                                        </li>
-                                    </ul>
-                                </>
-                            )}
-                        >
-                            <div className={cx('user')} style={{ cursor: 'auto' }}>
+                        <>
+                            <div
+                                className={cx('user')}
+                                style={{ cursor: 'auto' }}
+                                onClick={(event) => setAnchorEl(event.currentTarget)}
+                            >
                                 <FontAwesomeIcon icon={faUser} size="lg" />
                             </div>
-                        </Tippy>
+                            <Menu
+                                id="basic-menu"
+                                anchorEl={anchorEl}
+                                open={open}
+                                onClose={() => setAnchorEl(null)}
+                                MenuListProps={{
+                                    'aria-labelledby': 'basic-button',
+                                }}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'right',
+                                }}
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'right',
+                                }}
+                                sx={{ marginTop: '1rem' }}
+                            >
+                                <MenuItem onClick={() => setAnchorEl(null)}>
+                                    <ListItemIcon>
+                                        <ManageAccounts fontSize="small" />
+                                    </ListItemIcon>
+                                    <Link to="/user">Thông tin cá nhân</Link>
+                                </MenuItem>
+                                <MenuItem onClick={() => setAnchorEl(null)}>
+                                    <Link to="/" onClick={() => logout()}>
+                                        <ListItemIcon>
+                                            <Logout fontSize="small" />
+                                        </ListItemIcon>
+                                        Đăng xuất
+                                    </Link>
+                                </MenuItem>
+                            </Menu>
+                        </>
                     ) : (
                         <div className={cx('signin')}>
                             <Link to="/login">

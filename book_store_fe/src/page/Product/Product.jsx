@@ -49,7 +49,8 @@ function Product() {
                 page: page,
                 categoryId: searchParams.get('c') || null,
                 price: `${searchParams.get('min') || null},${searchParams.get('max') || null}`,
-                publisher: searchParams.get('pub')  ? decodeURIComponent( searchParams.get('pub')) : null,
+                publisher: searchParams.get('pub') ? decodeURIComponent(searchParams.get('pub')) : null,
+                keyword: searchParams.get('q') ? decodeURIComponent(searchParams.get('q')) : null,
             }).then((response) => response.data),
         retry: 1,
     });
@@ -110,15 +111,20 @@ function Product() {
                     </div>
                 </div>
                 <div className={cx('products')}>
-                    {products?.content?.map((p) => {
-                        return (
-                            <ProductsComponent
-                                product={p}
-                                key={p.id}
-                                onClick={() => navigate(`/product/detail?id=${p.id}`)}
-                            />
-                        );
-                    })}
+                    {(() => {
+                        const datas = products?.content;
+                        if (datas && datas.length > 0) {
+                            return datas.map((p) => (
+                                <ProductsComponent
+                                    product={p}
+                                    key={p.id}
+                                    onClick={() => navigate(`/product/detail?id=${p.id}`)}
+                                />
+                            ));
+                        } else {
+                            return <h1>Không có sản phẩm nào phù hợp</h1>; 
+                        }
+                    })()}
                 </div>
                 <div className="d-flex justify-content-center mt-5 mb-3">
                     <Pagination
@@ -126,7 +132,7 @@ function Product() {
                         onChange={handleChangePage}
                         variant="outlined"
                         page={parseInt(page)}
-                        count={products?.totalPages}
+                        count={products?.totalPages < 1 ? 1 : products?.totalPages}
                     />
                 </div>
             </div>
