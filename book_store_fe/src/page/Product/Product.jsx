@@ -122,7 +122,7 @@ function Product() {
                                 />
                             ));
                         } else {
-                            return <h1>Không có sản phẩm nào phù hợp</h1>; 
+                            return <h1 style={{width: '100%',textAlign: 'center' }}>Không có sản phẩm nào phù hợp</h1>; 
                         }
                     })()}
                 </div>
