@@ -34,9 +34,12 @@ public class CartController {
                     .body(Map.of("message", "Đã xảy ra lỗi không xác định", "status", HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
-
     @PostMapping()
-    public ResponseEntity<?> addToCart(@RequestBody CartRequest cartRequest) {
+    public ResponseEntity<?> addToCart(@RequestBody @Valid CartRequest cartRequest) {
+        if (cartRequest.getProductId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Product ID không được để trống", "status", HttpStatus.BAD_REQUEST.value()));
+        }
         try {
             cartService.addToCart(cartRequest);
             return ResponseEntity.status(HttpStatus.CREATED).build();

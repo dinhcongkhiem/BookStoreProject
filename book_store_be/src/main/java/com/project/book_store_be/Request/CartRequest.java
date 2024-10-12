@@ -9,7 +9,6 @@ import lombok.Data;
 @Data
 @Builder
 public class CartRequest {
-    @NotNull(message = "Product ID không được để trống")
     private Long productId;
     @NotNull(message = "Số lượng không được để trống")
     @Min(value = 1, message = "Số lượng phải ít nhất là 1")
