@@ -28,10 +28,8 @@ import java.util.stream.Collectors;
 public class CartService {
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
-    private final DisCountRepository disCountRepository;
     private final ImageProductService imageProductService;
     private final UserService userService;
-
 
     public CartResponse getCartByUserId(int page, int size) {
         User currentUser = userService.getCurrentUser();
@@ -51,7 +49,11 @@ public class CartService {
         }
         if (cartOptional.isPresent()) {
             Cart cart = cartOptional.get();
-            cart.setCartQuantity(cartRequest.getCartQuantity() + cart.getCartQuantity());
+            int newQuantity = cart.getCartQuantity() + cartRequest.getCartQuantity();
+            if (newQuantity > product.getQuantity()) {
+                throw new IllegalArgumentException("Tổng số lượng trong giỏ hàng vượt quá số lượng có sẵn trong kho.");
+            }
+            cart.setCartQuantity(newQuantity);
             cartRepository.save(cart);
             return;
         }
@@ -65,8 +67,8 @@ public class CartService {
     public void updateCartItem(Long cartId, CartRequest cartRequest) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Product not found in cart"));
-
-        if (cartRequest.getCartQuantity() < 1 || cartRequest.getCartQuantity() > cart.getProduct().getQuantity()) {
+        Product product = cart.getProduct();
+        if (cartRequest.getCartQuantity() < 1 || cartRequest.getCartQuantity() > product.getQuantity()) {
             throw new IllegalArgumentException("Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1 và nhỏ hơn hoặc bằng số lượng có sẵn.");
         }
 
@@ -102,7 +104,8 @@ public class CartService {
         return ProductCartResponse.builder()
                 .productId(product.getId())
                 .productName(product.getName())
-                .cartQuantity(cart.getCartQuantity())
+                .quantity(cart.getCartQuantity())
+                .productQuantity(product.getQuantity())
                 .original_price(product.getOriginal_price())
                 .discount(discountValue)
                 .price(product.getOriginal_price().subtract(discountValue))
