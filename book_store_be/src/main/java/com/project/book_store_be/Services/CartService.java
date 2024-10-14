@@ -129,6 +129,6 @@ public class CartService {
         if (cartItems.isEmpty()) {
             throw new IllegalArgumentException("No cart items found for the current user.");
         }
-        return cartItems.stream().mapToInt(Cart::getCartQuantity).sum();
+        return (int) cartItems.stream().count();
     }
 }
