@@ -21,14 +21,17 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private BigDecimal totalAmount; // tổng tiền gốc
+    private BigDecimal totalAmount;
     private BigDecimal shippingFee;
-    private BigDecimal finalAmount; //tổng tiền sau khi tính giảm giá và ship
+    private BigDecimal finalAmount;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderDetail> orderDetails;
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private OrderDetail orderDetail;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+    @OneToOne
+    @JoinColumn(name = "address_id")
+    private Address address;
 }

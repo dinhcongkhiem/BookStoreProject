@@ -123,5 +123,12 @@ public class CartService {
         }
         return BigDecimal.ZERO;
     }
-
+    public int getTotalCartItems() {
+        User currentUser = userService.getCurrentUser();
+        Optional<Cart> cartItems = cartRepository.findByUser(currentUser);
+        if (cartItems.isEmpty()) {
+            throw new IllegalArgumentException("No cart items found for the current user.");
+        }
+        return cartItems.stream().mapToInt(Cart::getCartQuantity).sum();
+    }
 }
