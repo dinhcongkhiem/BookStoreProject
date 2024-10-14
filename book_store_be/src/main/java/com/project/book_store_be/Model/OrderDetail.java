@@ -20,7 +20,7 @@ public class OrderDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Date orderDate;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;
     @ManyToOne

@@ -26,8 +26,8 @@ public class Order {
     private BigDecimal finalAmount;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
-    private OrderDetail orderDetail;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<OrderDetail> orderDetails;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
