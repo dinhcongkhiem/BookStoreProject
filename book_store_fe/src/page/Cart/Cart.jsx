@@ -27,57 +27,79 @@ import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { Table } from 'react-bootstrap';
-
+import CartService from '../../service/CartService';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import useDebounce from '../../hooks/useDebounce';
+import ConfirmModal from '../../component/Modal/ConfirmModal/ConfirmModal';
 const cx = classNames.bind(style);
 
-const productsInCart = [
-    {
-        id: 1,
-        name: 'Sách học lập trình Java',
-        price: 150000,
-        quantity: 1,
-        stock: 100,
-        image: 'link-to-image-1.jpg',
-    },
-    {
-        id: 2,
-        name: 'Sách học lập trình Java',
-        price: 150000,
-        quantity: 1,
-        stock: 100,
-        image: 'link-to-image-1.jpg',
-    },
-];
-
 function Cart() {
-    const [cartItems, setCartItems] = useState(productsInCart);
     const [selectedItems, setSelectedItems] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
     const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCount, setSelectedCount] = useState(0);
-
+    const queryClient = useQueryClient();
     useEffect(() => {
         setSelectedCount(selectedItems.length);
     }, [selectedItems]);
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-    };
+    const { data: productsInCart } = useQuery({
+        queryKey: ['productsInCart'],
+        queryFn: () =>
+            CartService.getProductInCart({ page: 1 }).then((response) => {
+                const updatedData = response.data.cart.map((item) => ({
+                    ...item,
+                    initialQuantity: item.quantity,
+                }));
+                return { ...response.data, cart: updatedData };
+            }),
+        retry: 1,
+    });
 
-    const handleClearSearch = () => {
-        setSearchTerm('');
-    };
+    const updateCartMutation = useMutation({
+        mutationFn: (data) => CartService.updateCartItem(data),
+        onError: (error) => {
+            console.log(error);
+        },
+        onSuccess: (data, d) => {
+            queryClient.setQueryData(['productsInCart'], (oldData) => {
+                return {
+                    ...oldData,
+                    cart: oldData.cart.map((item) => (item.id === d.cartId ? { ...item, initialQuantity: d.qty } : item)),
+                };
+            });
+        },
+    });
 
-    const handleQuantityChange = (id, value) => {
-        setCartItems(
-            cartItems.map((item) =>
-                item.id === id
-                    ? { ...item, quantity: Math.min(item.stock, parseInt(value) < 1 ? 1 : parseInt(value)) }
-                    : item,
-            ),
-        );
+    const debouncedUpdate = useDebounce((id, quantity) => {
+        const existingCartItem = productsInCart.cart.find((cart) => cart.id === id);
+        if (existingCartItem && existingCartItem.initialQuantity !== quantity) {
+            updateCartMutation.mutate({ qty: quantity, cartId: id });
+        }
+    }, 600);
+
+    const handleQuantityChange = (productId, value) => {
+        queryClient.setQueryData(['productsInCart'], (oldData) => {
+            if (!oldData) return oldData;
+
+            return {
+                ...oldData,
+                cart: oldData.cart.map((item) => {
+                    if (item.productId === productId) {
+                        const newQuantity = value >= 1 ? Math.min(value, item.productQuantity) : 0;
+                        debouncedUpdate(item.id, newQuantity);
+
+                        return {
+                            ...item,
+                            quantity: newQuantity,
+                        };
+                    }
+                    return item;
+                }),
+            };
+        });
     };
 
     const handleDeleteIconClick = (id) => {
@@ -85,21 +107,25 @@ function Cart() {
         setOpenDialog(true);
     };
 
-    const handleDeleteItem = (id) => {
-        setCartItems(cartItems.filter((item) => item.id !== id));
-    };
-
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
-    };
-
-    const handleConfirmDelete = () => {
-        handleDeleteItem(itemToDelete);
-        setOpenDialog(false);
-    };
+    const { mutate: handleConfirmDelete } = useMutation({
+        mutationFn: (id) => CartService.removeCartItem(id),
+        onError: (error) => {
+            console.log(error);
+        },
+        onSuccess: (data, id) => {
+            queryClient.setQueryData(['productsInCart'], (oldData) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    cart: oldData.cart.filter((item) => item.id !== id),
+                };
+            });
+            setOpenDialog(false);
+        },
+    });
 
     const handleSelectAll = (event) => {
-        setSelectedItems(event.target.checked ? cartItems.map((item) => item.id) : []);
+        setSelectedItems(event.target.checked ? productsInCart.cart.map((item) => item.productId) : []);
     };
 
     const handleSelectItem = (id) => {
@@ -108,8 +134,8 @@ function Cart() {
         );
     };
 
-    const totalAmount = cartItems.reduce(
-        (acc, item) => acc + (selectedItems.includes(item.id) ? item.price * item.quantity : 0),
+    const totalAmount = productsInCart?.cart?.reduce(
+        (acc, item) => acc + (selectedItems.includes(item.productId) ? item.price * item.quantity : 0),
         0,
     );
 
@@ -120,6 +146,7 @@ function Cart() {
             </h2>
             <div className={cx('cart-content')}>
                 <TableContainer
+                    className={cx('cart-item-container')}
                     sx={{
                         width: '100%',
                         overflowX: 'auto',
@@ -143,8 +170,8 @@ function Cart() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {cartItems.length > 0 ? (
-                                cartItems.map((item) => (
+                            {productsInCart?.cart?.length > 0 ? (
+                                productsInCart.cart.map((item) => (
                                     <TableRow
                                         hover
                                         role="checkbox"
@@ -153,17 +180,17 @@ function Cart() {
                                     >
                                         <TableCell padding="checkbox">
                                             <Checkbox
-                                                checked={selectedItems.includes(item.id)}
-                                                onChange={() => handleSelectItem(item.id)}
+                                                checked={selectedItems.includes(item.productId)}
+                                                onChange={() => handleSelectItem(item.productId)}
                                             />
                                         </TableCell>
                                         <TableCell>
                                             <img
-                                                src={image1}
+                                                src={item.thumbnail_url}
                                                 alt="Banner"
-                                                style={{ width: '50px', marginRight: '10px' }}
+                                                style={{ width: '65px', marginRight: '10px' }}
                                             />
-                                            {item.name}
+                                            {item.productName}
                                         </TableCell>
                                         <TableCell align="center">
                                             {item.price.toLocaleString()} <span>₫</span>
@@ -173,7 +200,9 @@ function Cart() {
                                             <div className={cx('quantity-container')}>
                                                 <button
                                                     className={cx('quantity-btn')}
-                                                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                                    onClick={() =>
+                                                        handleQuantityChange(item.productId, item.quantity - 1)
+                                                    }
                                                     disabled={item.quantity <= 1}
                                                 >
                                                     <RemoveIcon />
@@ -184,35 +213,42 @@ function Cart() {
                                                     className={cx('quantity-input')}
                                                     value={item.quantity}
                                                     min="1"
-                                                    max={item.stock}
-                                                    onInput={(e) => {
-                                                        e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                                                    }}
+                                                    max={item.productQuantity}
                                                     onChange={(e) => {
-                                                        handleQuantityChange(item.id, e.target.value);
+                                                        const newValue = e.target.value.replace(/[^0-9]/g, '');
+                                                        const numericValue = Number(newValue);
+                                                        handleQuantityChange(item.productId, numericValue);
                                                     }}
                                                     onBlur={(e) => {
-                                                        e.target.value <= 0 && handleQuantityChange(item.id, 1);
+                                                        const newValue = parseInt(e.target.value);
+
+                                                        if (newValue <= 0 || isNaN(newValue)) {
+                                                            handleQuantityChange(item.productId, 1);
+                                                        }
                                                     }}
                                                 />
                                                 <button
                                                     className={cx('quantity-btn')}
-                                                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                                                    disabled={item.quantity >= item.stock}
+                                                    onClick={() =>
+                                                        handleQuantityChange(item.productId, item.quantity + 1)
+                                                    }
+                                                    disabled={item.quantity >= item.productQuantity}
                                                 >
                                                     <AddIcon />
                                                 </button>
                                             </div>
                                             <div className={cx('stock-remaining')}>
                                                 Số lượng còn lại:
-                                                {isNaN(item.stock - item.quantity) ? 0 : item.stock - item.quantity}
+                                                {isNaN(item.productQuantity - item.quantity)
+                                                    ? 0
+                                                    : item.productQuantity - item.quantity}
                                             </div>
                                         </TableCell>
 
                                         <TableCell align="center" style={{ width: '15rem' }}>
                                             {isNaN(item.price * item.quantity)
                                                 ? 0
-                                                : (item.price * item.quantity).toLocaleString('vi-VN')}{' '}
+                                                : (item.price * item.quantity)?.toLocaleString('vi-VN')}
                                             <span>₫</span>
                                         </TableCell>
 
@@ -247,22 +283,22 @@ function Cart() {
                     </div>
                     <div className={cx('summary-details')}>
                         <p>
-                            Tạm tính:{' '}
+                            Tạm tính:
                             <strong>
-                                {totalAmount.toLocaleString()} <span className={cx('currency-symbol')}>₫</span>
+                                {totalAmount?.toLocaleString()} <span className={cx('currency-symbol')}>₫</span>
                             </strong>
                         </p>
                         <p>
-                            Giảm giá:{' '}
+                            Giảm giá:
                             <strong>
                                 0 <span className={cx('currency-symbol')}>₫</span>
                             </strong>
                         </p>
                         <hr />
                         <p>
-                            Thành tiền:{' '}
+                            Thành tiền:
                             <strong>
-                                {totalAmount.toLocaleString()} <span className={cx('currency-symbol')}>₫</span>
+                                {totalAmount?.toLocaleString()} <span className={cx('currency-symbol')}>₫</span>
                             </strong>
                         </p>
                     </div>
@@ -272,7 +308,6 @@ function Cart() {
                 </div>
             </div>
 
-            {/* Dialog chọn mã giảm giá */}
             <Dialog open={discountDialogOpen} onClose={() => setDiscountDialogOpen(false)}>
                 <DialogTitle>Chọn mã giảm giá</DialogTitle>
                 <DialogContent>
@@ -280,7 +315,7 @@ function Cart() {
                         <TextField
                             placeholder="Tìm kiếm mã giảm giá..."
                             value={searchTerm}
-                            onChange={handleSearchChange}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
@@ -290,7 +325,7 @@ function Cart() {
                                 endAdornment: (
                                     <InputAdornment position="end">
                                         {searchTerm ? (
-                                            <IconButton onClick={handleClearSearch} className={cx('close-icon')}>
+                                            <IconButton onClick={() => setSearchTerm('')} className={cx('close-icon')}>
                                                 <CancelIcon />
                                             </IconButton>
                                         ) : (
@@ -318,28 +353,14 @@ function Cart() {
                 </DialogActions>
             </Dialog>
 
-            {/* Dialog xóa sản phẩm */}
-            <Dialog open={openDialog} onClose={handleCloseDialog} className={cx('delete-dialog')}>
-                <DialogTitle className={cx('dialog-title')}>
-                    <div className="dialog-content__text">
-                        <div className="dialog-content__title">
-                            <WarningAmberIcon style={{ marginRight: '0.5rem', fontSize: '2rem', color: 'orange' }} />
-                            Xác nhận xóa sản phẩm
-                        </div>
-                    </div>
-                </DialogTitle>
-                <DialogContent className={cx('dialog-content')}>
-                    <p>Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?</p>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleConfirmDelete} variant="outlined" className={cx('cancel-button')}>
-                        Xác Nhận
-                    </Button>
-                    <Button onClick={handleCloseDialog} variant="outlined" className={cx('delete-confirm-button')}>
-                        Hủy
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <ConfirmModal
+                open={openDialog}
+                onClose={() => setOpenDialog(false)}
+                onConfirm={() => handleConfirmDelete(itemToDelete)}
+                title={'Xác nhận'}
+                message={'Xóa sản phẩm này khỏi giỏ hàng của bạn'}
+                type={'warn'}
+            />
         </div>
     );
 }

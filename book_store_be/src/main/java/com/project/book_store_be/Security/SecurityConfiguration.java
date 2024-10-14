@@ -44,7 +44,6 @@ public class SecurityConfiguration {
             "/api/v1/auth/**",
             "/api/v1/product/**",
             "/api/v1/category/**",
-            "/api/v1/cart/**",
             "/api-docs/**",
             "/swagger-ui/**",
             "/api/v1/publisher"
@@ -54,6 +53,8 @@ public class SecurityConfiguration {
     private static final String[] USER_LIST_URL = {
             "/api/v1/user/**",
             "/api/v1/review/**",
+            "/api/v1/cart/**",
+
 //            list url with user role
     };
     private static final String[] ADMIN_LIST_URL = {

@@ -7,7 +7,7 @@ const PrivateRoute = ({ children }) => {
     const { authentication, loading } = useContext(AuthenticationContext);
     const navigate = useNavigate();
 
-    useEffect(() => {
+    useEffect(() => {        
         if (!loading) {
             if (!authentication.isAuthen) {
                 toast.warning('Bạn chưa đăng nhập!', { position: 'top-center' });

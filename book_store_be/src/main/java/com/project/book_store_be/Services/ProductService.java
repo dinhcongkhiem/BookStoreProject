@@ -3,6 +3,7 @@ package com.project.book_store_be.Services;
 import com.project.book_store_be.Enum.DiscountStatus;
 import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Enum.SoftProductType;
+import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Repository.DisCountRepository;
@@ -42,7 +43,7 @@ public class ProductService {
     ) {
         SoftProductType sortType = SoftProductType.fromValue(sort);
         Specification<Product> spec = ProductSpecification.getProduct(
-                 category, price,publisher, keyword, ProductStatus.AVAILABLE);
+                category, price, publisher, keyword, ProductStatus.AVAILABLE);
 
         Sort sortValue = Sort.unsorted();
         switch (sortType) {
@@ -68,6 +69,15 @@ public class ProductService {
     public Page<ProductResponse> getAllProducts(int pageNumber, int pageSize) {
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize);
         return productRepository.findAll(pageRequest).map(this::convertToProductResponse);
+    }
+
+    public List<ProductResponse> getTheSameAuthor(Long productId) {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NoSuchElementException("No product found with id: " + productId));
+        List<Author> authors = product.getAuthors();
+        return productRepository.findTop10ByAuthorsExceptCurrent(authors, productId, PageRequest.of(0, 10))
+                .stream().map(this::convertToProductResponse).toList();
     }
 
     public ProductDetailResponse findProductById(Long id) {
@@ -131,17 +141,19 @@ public class ProductService {
         pr.setUpdateDate(new Date());
         return productRepository.save(pr);
     }
-    public Map<String,BigDecimal> getPriceRange() {
+
+    public Map<String, BigDecimal> getPriceRange() {
         Map<BigDecimal, BigDecimal> result = productRepository.findMinAndMaxPrice();
         BigDecimal minPrice = result.get("min");
         BigDecimal maxPrice = result.get("max");
         return Map.of("min", minPrice, "max", maxPrice);
     }
+
     public ProductResponse convertToProductResponse(Product product) {
 
         Integer discountRate = 0;
 
-        if(product.getDiscount() != null) {
+        if (product.getDiscount() != null) {
             discountRate = product.getDiscount().getDiscountRate();
         }
         BigDecimal discountValue = product.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
@@ -166,7 +178,7 @@ public class ProductService {
     public ProductDetailResponse convertToProductDetailResponse(Product product) {
         Integer discountRate = 0;
 
-        if(product.getDiscount() != null) {
+        if (product.getDiscount() != null) {
             discountRate = product.getDiscount().getDiscountRate();
         }
         BigDecimal discountValue = product.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
@@ -195,6 +207,7 @@ public class ProductService {
                 .rating_average(reviewService.calculateReviewAverage(product.getId()))
                 .review_count(reviewService.getReviewCount(product.getId()))
                 .images(imageProductService.getImagesProductId(product.getId()))
+                .related_products(this.getTheSameAuthor(product.getId()))
                 .build();
     }
 
@@ -203,5 +216,11 @@ public class ProductService {
         return productRepository.findAllById(productIds);
     }
 
-
+    public Map<String, List<?>> getAttributes() {
+        Map<String, List<?>> attributes = new HashMap<>();
+        attributes.put("authors", authorService.getAllAuthor());
+        attributes.put("categories", categoryService.getAllCategories());
+        attributes.put("publishers", publisherService.getAllPublisher());
+        return attributes;
+    }
 }

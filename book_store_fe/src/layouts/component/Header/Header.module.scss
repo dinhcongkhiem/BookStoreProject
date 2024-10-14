@@ -147,7 +147,7 @@
 .cart,
 .user {
     color: #6c757d;
-    cursor: pointer;
+    cursor: pointer !important;
     transition: color 0.3s ease;
 
     &:hover {

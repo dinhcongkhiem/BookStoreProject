@@ -3,10 +3,11 @@ import { Rating, Stack } from '@mui/material';
 import classNames from 'classnames/bind';
 import style from './ProductsComponent.module.scss';
 import defaultProductImg from '../../assets/image/default-product-img.jpg';
+import { Link } from 'react-router-dom';
 const cx = classNames.bind(style);
-function ProductsComponent({ product, className, onClick }) {
+function ProductsComponent({ product, className, onClick, to}) {
     return (
-        <div className={cx('product', className)} onClick={onClick}>
+        <Link className={cx('product', className)} onClick={onClick} to={to}>
             <div className={cx('thumbnail')}>
                 {product?.thumbnail_url ? (
                     <img src={product?.thumbnail_url} alt={`product-thumbnail-${product?.id}`} />
@@ -46,7 +47,7 @@ function ProductsComponent({ product, className, onClick }) {
                     </div>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 }
 

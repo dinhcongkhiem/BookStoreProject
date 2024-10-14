@@ -4,18 +4,19 @@ import { List, ListItemButton } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import style from './AdminLayout.module.scss';
 import logoBook from '../../assets/image/Logo-BookBazaar-nobg.png';
-import Tippy from '@tippyjs/react';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { AuthenticationContext } from '../../context/AuthenticationProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { adminRoutes } from '../../routes/routes';
-
+import { ListItemIcon, Menu, MenuItem } from '@mui/material';
+import { Logout, ManageAccounts } from '@mui/icons-material';
 const cx = classNames.bind(style);
 function AdminLayout({ children }) {
     const navigate = useNavigate();
     const { authentication, logout } = useContext(AuthenticationContext);
-
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
     return (
         <div className={cx('wrapper')}>
             <header className={cx('header')}>
@@ -24,28 +25,48 @@ function AdminLayout({ children }) {
                         <img src={logoBook} alt="BookStore Logo" className={cx('logoImage')} />
                     </Link>
                 </div>
-                <Tippy
-                    interactive
-                    placement="bottom-end"
-                    render={(attrs) => (
-                        <>
-                            <ul className={cx('user-menu')} {...attrs}>
-                                <li>
-                                    <Link to="/user">Thông tin cá nhân</Link>
-                                </li>
-                                <li>
-                                    <Link to="/" onClick={() => logout()}>
-                                        Đăng xuất
-                                    </Link>
-                                </li>
-                            </ul>
-                        </>
-                    )}
-                >
-                    <div className={cx('user')} style={{ cursor: 'auto' }}>
-                        <FontAwesomeIcon icon={faUser} size="lg" style={{ color: '#6c757d' }} />
+                <>
+                    <div
+                        className={cx('user')}
+                        style={{ cursor: 'auto' }}
+                        onClick={(event) => setAnchorEl(event.currentTarget)}
+                    >
+                        <FontAwesomeIcon icon={faUser} size="lg" />
                     </div>
-                </Tippy>
+                    <Menu
+                        id="basic-menu"
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={() => setAnchorEl(null)}
+                        MenuListProps={{
+                            'aria-labelledby': 'basic-button',
+                        }}
+                        anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                            vertical: 'top',
+                            horizontal: 'right',
+                        }}
+                        sx={{ marginTop: '1rem' }}
+                    >
+                        <MenuItem onClick={() => setAnchorEl(null)}>
+                            <ListItemIcon>
+                                <ManageAccounts fontSize="small" />
+                            </ListItemIcon>
+                            <Link to="/user">Thông tin cá nhân</Link>
+                        </MenuItem>
+                        <MenuItem onClick={() => setAnchorEl(null)}>
+                            <Link to="/" onClick={() => logout()}>
+                                <ListItemIcon>
+                                    <Logout fontSize="small" />
+                                </ListItemIcon>
+                                Đăng xuất
+                            </Link>
+                        </MenuItem>
+                    </Menu>
+                </>
             </header>
 
             <div className={cx('container')} style={{ minHeight: '70rem' }}>

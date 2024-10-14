@@ -189,7 +189,6 @@ function AddProduct() {
                                 fullWidth
                                 label="Kích thước"
                                 name="quantity"
-                                type="number"
                                 value={size}
                                 onChange={(e) => setSize(e.target.value)}
                                 required

@@ -1,11 +1,9 @@
 import style from './User.module.scss';
 import classNames from 'classnames/bind';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faKey } from '@fortawesome/free-solid-svg-icons';
-import { AuthenticationContext } from '../../context/AuthenticationProvider';
-import { TextField, Button, Select, MenuItem, InputLabel, FormHelperText, FormControl } from '@mui/material';
 import UserInfo from './Tab/UserInfo';
 import ChangePassword from './Tab/ChangePassword';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';

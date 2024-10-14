@@ -1,5 +1,3 @@
-import { Label } from '@mui/icons-material';
-
 const getYearsFromCurrentTo1900 = () => {
     const currentYear = new Date().getFullYear();
     const years = [];

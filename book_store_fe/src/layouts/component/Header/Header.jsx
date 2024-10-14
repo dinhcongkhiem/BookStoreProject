@@ -19,9 +19,11 @@ const cx = classNames.bind(style);
 
 function Header() {
     const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const { authentication, logout } = useContext(AuthenticationContext);
     const [anchorEl, setAnchorEl] = useState(null);
+    const searchInputRef = useRef(null);
+    const btnSearchRef = useRef(null);
 
     const [isFocusSearch, setIsFocusSearch] = useState(false);
     const open = Boolean(anchorEl);
@@ -43,12 +45,16 @@ function Header() {
         enabled: !!debouncedKeyword,
     });
     const handleNavigateSearch = () => {
-        navigate(`/product?q=${encodeURIComponent(keyword)}`)
-    }
+        if( keyword.trim().length > 0) {
+            navigate(`/product?q=${encodeURIComponent(keyword)}`);
+        }
+    };
     useEffect(() => {
-        const handleKeyPress = (e) => {
-            if (e.key === 'Enter') {
-                handleNavigateSearch();
+        const handleKeyPress = (e) => {            
+            console.table({key: e.key, acttive: document.activeElement === searchInputRef.current, keyword: keyword.trim().length > 0});
+            
+            if (e.key === 'Enter' && document.activeElement === searchInputRef.current && keyword.trim().length > 0) {                
+                btnSearchRef.current.click();
             }
         };
         window.addEventListener('keypress', handleKeyPress);
@@ -56,6 +62,10 @@ function Header() {
             window.removeEventListener('keypress', handleKeyPress);
         };
     }, []);
+
+    useEffect(() => {
+        setKeyword("")
+    }, [searchParams]);
 
     return (
         <header className={cx('headerWrapper')}>
@@ -81,6 +91,7 @@ function Header() {
                         renderInput={(params) => (
                             <TextField
                                 {...params}
+                                inputRef={searchInputRef}
                                 placeholder="Tìm kiếm sách..."
                                 onFocus={() => setIsFocusSearch(true)}
                                 onBlur={() => {
@@ -129,7 +140,7 @@ function Header() {
                     />
 
                     <span></span>
-                    <button className={cx('search-btn')} onClick={handleNavigateSearch}>
+                    <button className={cx('search-btn')} onClick={handleNavigateSearch} ref={btnSearchRef}>
                         <FontAwesomeIcon icon={faSearch} />
                     </button>
                 </div>
@@ -167,13 +178,15 @@ function Header() {
                                 sx={{ marginTop: '1rem' }}
                             >
                                 <MenuItem onClick={() => setAnchorEl(null)}>
-                                    <ListItemIcon>
-                                        <ManageAccounts fontSize="small" />
-                                    </ListItemIcon>
-                                    <Link to="/user">Thông tin cá nhân</Link>
+                                    <Link to="/user" className="d-flex align-items-center">
+                                        <ListItemIcon>
+                                            <ManageAccounts fontSize="small" />
+                                        </ListItemIcon>
+                                        Thông tin cá nhân
+                                    </Link>
                                 </MenuItem>
-                                <MenuItem onClick={() => setAnchorEl(null)}>
-                                    <Link to="/" onClick={() => logout()}>
+                                <MenuItem onClick={() => setAnchorEl(null)} sx={{ alignItems: 'center' }}>
+                                    <Link to="/" onClick={() => logout()} className="d-flex align-items-center">
                                         <ListItemIcon>
                                             <Logout fontSize="small" />
                                         </ListItemIcon>

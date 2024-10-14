@@ -58,9 +58,9 @@ public class CartController {
     @PutMapping("/{cartId}")
     public ResponseEntity<?> updateCartItem(
             @PathVariable Long cartId,
-            @RequestBody @Valid CartRequest cartRequest) {
+            @RequestParam Integer qty) {
         try {
-            cartService.updateCartItem(cartId, cartRequest);
+            cartService.updateCartItem(cartId, qty);
             return ResponseEntity.ok().build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

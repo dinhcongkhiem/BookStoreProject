@@ -4,6 +4,7 @@ import { PRODUCT_URL } from './config';
 class ProductServiceClass {
     getListProduct = ({ page = 1, pageSize = 20, categoryId, price, publisher, keyword, sort }) => {
         price = price === 'null,null' ? null : price;
+        
         let config = {
             method: 'get',
             url: PRODUCT_URL + '/list',
@@ -16,7 +17,7 @@ class ProductServiceClass {
                 category: categoryId,
                 price,
                 publisher,
-                keyword,
+                keyword:  keyword,
                 sort,
             },
             withCredentials: true,

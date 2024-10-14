@@ -7,7 +7,7 @@ import style from './Product.module.scss';
 import ProductService from '../../service/ProductService';
 import { useQuery } from '@tanstack/react-query';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import SideBarComponent from '../../component/SideBarComponent/SideBarComponent';
 const cx = classNames.bind(style);
 
@@ -72,7 +72,7 @@ function Product() {
     };
     useEffect(() => {
         if (products) {
-            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, behavior: 'instant' });
         }
     }, [products]);
 
@@ -115,14 +115,12 @@ function Product() {
                         const datas = products?.content;
                         if (datas && datas.length > 0) {
                             return datas.map((p) => (
-                                <ProductsComponent
-                                    product={p}
-                                    key={p.id}
-                                    onClick={() => navigate(`/product/detail?id=${p.id}`)}
-                                />
+                                    <ProductsComponent product={p} key={p.id} to={`/product/detail?id=${p.id}`} />
                             ));
                         } else {
-                            return <h1 style={{width: '100%',textAlign: 'center' }}>Không có sản phẩm nào phù hợp</h1>; 
+                            return (
+                                <h1 style={{ width: '100%', textAlign: 'center' }}>Không có sản phẩm nào phù hợp</h1>
+                            );
                         }
                     })()}
                 </div>

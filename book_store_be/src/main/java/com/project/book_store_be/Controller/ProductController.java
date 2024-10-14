@@ -85,4 +85,9 @@ public class ProductController {
     public ResponseEntity<Map<String, BigDecimal>> getPriceRange() {
         return ResponseEntity.ok(productService.getPriceRange());
     }
+
+    @GetMapping("/attributes")
+    public ResponseEntity<?> getAtributes() {
+        return ResponseEntity.ok(productService.getAttributes());
+    }
 }

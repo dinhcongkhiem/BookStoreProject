@@ -34,7 +34,7 @@ public class CartService {
     public CartResponse getCartByUserId(int page, int size) {
         User currentUser = userService.getCurrentUser();
         Pageable pageable = PageRequest.of(page, size);
-        Page<Cart> cartPage = cartRepository.findByUser(currentUser, pageable);
+        Page<Cart> cartPage = cartRepository.findByUserOrderById(currentUser, pageable);
         return convertToCartResponse(cartPage);
     }
 
@@ -64,15 +64,15 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    public void updateCartItem(Long cartId, CartRequest cartRequest) {
+    public void updateCartItem(Long cartId, Integer quantity) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Product not found in cart"));
         Product product = cart.getProduct();
-        if (cartRequest.getCartQuantity() < 1 || cartRequest.getCartQuantity() > product.getQuantity()) {
+        if (quantity < 1 || quantity > product.getQuantity()) {
             throw new IllegalArgumentException("Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1 và nhỏ hơn hoặc bằng số lượng có sẵn.");
         }
 
-        cart.setCartQuantity(cartRequest.getCartQuantity());
+        cart.setCartQuantity(quantity);
         cartRepository.save(cart);
     }
 
@@ -102,6 +102,7 @@ public class CartService {
                 ? imageProductService.getThumbnailProduct(product.getId()).getUrlImage()
                 : null;
         return ProductCartResponse.builder()
+                .id(cart.getId())
                 .productId(product.getId())
                 .productName(product.getName())
                 .quantity(cart.getCartQuantity())

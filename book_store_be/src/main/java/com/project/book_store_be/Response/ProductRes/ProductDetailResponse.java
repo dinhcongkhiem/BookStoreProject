@@ -28,5 +28,6 @@ public class ProductDetailResponse extends ProductBaseResponse {
     private List<ImageProductResponse> images;
     private List<Category> categories;
     private Publisher publisher;
+    private List<ProductResponse> related_products;
 
 }

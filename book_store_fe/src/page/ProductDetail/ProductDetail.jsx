@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import classNames from 'classnames/bind';
 import Slider from 'react-slick';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Button, Rating } from '@mui/material';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import ProductsComponent from '../../component/ProductsComponent/ProductsComponent';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
@@ -16,13 +16,15 @@ import PrevArrow from '../../component/ReactSlickComponent/PrevArrow';
 import style from './ProductDetail.module.scss';
 import ProductService from '../../service/ProductService';
 import DetailInfoProductComponent from '../../component/DetailInfoProductComponent/DetailInfoProductComponent';
-import ConfirmModal from '../../component/Modal/ConfirmModal/ConfirmModal';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
 import UpdateAddressModal from '../../component/Modal/UpdateAddressModal/UpdateAddressModal';
 import { Gallery, Item } from 'react-photoswipe-gallery';
+import CartService from '../../service/CartService';
+import { toast } from 'react-toastify';
 
 const cx = classNames.bind(style);
 function ProductDetail() {
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeIndex, setActiveIndex] = useState(0);
     const [quantityProduct, setQuantityProduct] = useState(1);
@@ -36,7 +38,6 @@ function ProductDetail() {
         retry: 1,
     });
 
-    const testListHotDeal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     const settingsHotDeal = {
         dots: false,
         infinite: false,
@@ -57,6 +58,21 @@ function ProductDetail() {
         setOpen(false);
     };
     const openGalleryRef = useRef(null);
+
+    const addProductToCartMutation = useMutation({
+        mutationFn: (data) => CartService.addProductToCart(data),
+        onError: (error) => {
+            console.log(error);
+        },
+        onSuccess: () => {
+            toast.success('Đã thêm sản phẩm vào giỏ hàng!');
+        },
+    });
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    }, [product]);
+
     if (error) return <h1 style={{ textAlign: 'center', margin: '10rem 0' }}>VUI LÒNG THỬ LẠI</h1>;
 
     return (
@@ -73,19 +89,21 @@ function ProductDetail() {
                                 />
                             </div>
                             <div className={cx('list-img')}>
-                                <Slider {...settingsHotDeal}>
-                                    {product?.images?.map((image, index) => {
-                                        console.log(image);
-                                        return (
-                                            <div
-                                                key={index}
-                                                className={cx('img-item', { active: index === activeIndex })}
-                                                onClick={() => setActiveIndex(index)}
-                                            >
-                                                <img src={image?.urlImage} alt={image?.nameImage} />
-                                            </div>
-                                        );
-                                    })}
+                                <Slider
+                                    {...{
+                                        ...settingsHotDeal,
+                                        arrows: product?.images?.length > 5,
+                                    }}
+                                >
+                                    {product?.images?.map((image, index) => (
+                                        <div
+                                            key={index}
+                                            className={cx('img-item', { active: index === activeIndex })}
+                                            onClick={() => setActiveIndex(index)}
+                                        >
+                                            <img src={image?.urlImage} alt={image?.nameImage} />
+                                        </div>
+                                    ))}
                                 </Slider>
                             </div>
                             <div className={cx('ImageGallery')}>
@@ -124,6 +142,12 @@ function ProductDetail() {
                                 fullWidth
                                 size="large"
                                 sx={{ textTransform: 'none', fontWeight: 600 }}
+                                onClick={() =>
+                                    addProductToCartMutation.mutate({
+                                        productId: product?.id,
+                                        cartQuantity: quantityProduct,
+                                    })
+                                }
                             >
                                 Thêm vào giỏ hàng
                             </Button>
@@ -269,22 +293,39 @@ function ProductDetail() {
                         <p
                             className="mx-4"
                             dangerouslySetInnerHTML={{
-                                __html: product?.description?.replace(/\\u003c/g, '<').replace(/\\u003e/g, '>').replace(/\\n/g, '<br>'),
+                                __html: product?.description
+                                    ?.replace(/\\u003c/g, '<')
+                                    .replace(/\\u003e/g, '>')
+                                    .replace(/\\n/g, '<br>'),
                             }}
                         ></p>
                     </div>
                 </div>
             </div>
-            <div className={cx('related-products', 'block')}>
-                <h5 className={cx('title', 'mb-4', 'text-uppercase')}>Sản phẩm liên quan</h5>
-                <div className="px-5">
-                    <Slider {...settingsHotDeal}>
-                        {testListHotDeal.map(() => {
-                            return <ProductsComponent className={cx('product')} />;
-                        })}
-                    </Slider>
+            {product?.related_products?.length > 0 && (
+                <div className={cx('related-products', 'block')}>
+                    <h5 className={cx('title', 'mb-4', 'text-uppercase')}>Sách cùng tác giả</h5>
+                    <div className="px-5">
+                        <Slider
+                            {...{
+                                ...settingsHotDeal,
+                                arrows: product?.related_products?.length > 5,
+                            }}
+                        >
+                            {product?.related_products?.map((p) => {
+                                return (
+                                    <ProductsComponent
+                                        product={p}
+                                        className={cx('product')}
+                                        onClick={() => navigate(`/product/detail?id=${p.id}`)}
+                                    />
+                                );
+                            })}
+                        </Slider>
+                    </div>
                 </div>
-            </div>
+            )}
+
             <div className={cx('rating-products', 'block')}>
                 <h5 className={cx('title', 'mb-4')}>Đánh giá sản phẩm</h5>
                 <div className="d-flex gap-5">
@@ -423,7 +464,7 @@ function ProductDetail() {
                 title="Xác nhận xóa"
                 message="Bạn có chắc chắn muốn xóa mục này không?"
             />
-            <ModalLoading isLoading={isLoading} />
+            <ModalLoading isLoading={isLoading || addProductToCartMutation.isPending} />
         </>
     );
 }
