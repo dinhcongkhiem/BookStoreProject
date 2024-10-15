@@ -123,5 +123,9 @@ public class CartService {
         }
         return BigDecimal.ZERO;
     }
-
+    public int getTotalCartItems() {
+        User currentUser = userService.getCurrentUser();
+        long totalItems = cartRepository.countByUser(currentUser);
+        return (int) totalItems;
+    }
 }
