@@ -125,10 +125,7 @@ public class CartService {
     }
     public int getTotalCartItems() {
         User currentUser = userService.getCurrentUser();
-        Optional<Cart> cartItems = cartRepository.findByUser(currentUser);
-        if (cartItems.isEmpty()) {
-            throw new IllegalArgumentException("No cart items found for the current user.");
-        }
-        return (int) cartItems.stream().count();
+        long totalItems = cartRepository.countByUser(currentUser);
+        return (int) totalItems;
     }
 }
