@@ -22,6 +22,4 @@ public class ProductBaseResponse {
     private Integer quantity_sold;
     private Float rating_average;
     private List<Author> authors;
-
-
 }

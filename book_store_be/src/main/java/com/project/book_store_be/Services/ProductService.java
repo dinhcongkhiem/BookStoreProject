@@ -12,6 +12,7 @@ import com.project.book_store_be.Repository.Specification.ProductSpecification;
 import com.project.book_store_be.Request.ProductRequest;
 import com.project.book_store_be.Response.ProductRes.ProductDetailResponse;
 import com.project.book_store_be.Response.ProductRes.ProductResponse;
+import com.project.book_store_be.Response.ProductRes.ProductsForManagerResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -45,30 +46,46 @@ public class ProductService {
         Specification<Product> spec = ProductSpecification.getProduct(
                 category, price, publisher, keyword, ProductStatus.AVAILABLE);
 
-        Sort sortValue = Sort.unsorted();
-        switch (sortType) {
-            case TOPSELLER:
+        Sort sortValue = switch (sortType) {
 //                sort = Sort.by(Sort.Direction.ASC, "creationDate"); // Sắp xếp theo ngày tạo tăng dần
 //                break;
-            case NEWEST:
-                sortValue = Sort.by(Sort.Direction.ASC, "createDate");
-                break;
-            case PRICE_DESC:
-                sortValue = Sort.by(Sort.Direction.DESC, "price");
-                break;
-            case PRICE_ASC:
-                sortValue = Sort.by(Sort.Direction.ASC, "price");
-                break;
-        }
+            case PRICE_DESC -> Sort.by(Sort.Direction.DESC, "price");
+            case PRICE_ASC -> Sort.by(Sort.Direction.ASC, "price");
+            default -> Sort.by(Sort.Direction.ASC, "createDate");
+
+        };
 
         Pageable pageable = PageRequest.of(page, pageSize, sortValue);
         return productRepository.findAll(spec, pageable).map(this::convertToProductResponse);
 
     }
 
-    public Page<ProductResponse> getAllProducts(int pageNumber, int pageSize) {
-        Pageable pageRequest = PageRequest.of(pageNumber, pageSize);
-        return productRepository.findAll(pageRequest).map(this::convertToProductResponse);
+    public Page<?> getAllProducts(int pageNumber, int pageSize, String sort, String keyword) {
+        SoftProductType sortType = SoftProductType.fromValue(sort);
+
+        Sort sortValue = switch (sortType) {
+            case PRICE_DESC -> Sort.by(Sort.Direction.DESC, "price");
+            case PRICE_ASC -> Sort.by(Sort.Direction.ASC, "price");
+            case ID_ASC -> Sort.by(Sort.Direction.ASC, "id");
+            case ID_DESC -> Sort.by(Sort.Direction.DESC, "id");
+            case NAME_ASC -> Sort.by(Sort.Direction.ASC, "name");
+            case NAME_DESC -> Sort.by(Sort.Direction.DESC, "name");
+            case QTY_ASC -> Sort.by(Sort.Direction.ASC, "quantity");
+            case QTY_DESC -> Sort.by(Sort.Direction.DESC, "quantity");
+            case STATUS_ASC -> Sort.by(Sort.Direction.ASC, "status");
+            case STATUS_DESC -> Sort.by(Sort.Direction.DESC, "status");
+            case OLDEST -> Sort.by(Sort.Direction.DESC, "createDate");
+            default -> Sort.by(Sort.Direction.ASC, "createDate");
+        };
+        Pageable pageRequest = PageRequest.of(pageNumber, pageSize, sortValue);
+        Long id;
+        try {
+            id = Long.parseLong(keyword);
+        } catch (NumberFormatException e) {
+            id = -1L;
+        }
+        return productRepository.searchByNameContainingIgnoreCaseOrId(keyword,id,pageRequest)
+                .map(this::convertToForManagerRes);
     }
 
     public List<ProductResponse> getTheSameAuthor(Long productId) {
@@ -148,16 +165,20 @@ public class ProductService {
         BigDecimal maxPrice = result.get("max");
         return Map.of("min", minPrice, "max", maxPrice);
     }
+    public List<Product> findAllByIds(List<Long> productIds) {
+        return productRepository.findAllById(productIds);
+    }
 
+    public Map<String, List<?>> getAttributes() {
+        Map<String, List<?>> attributes = new HashMap<>();
+        attributes.put("authors", authorService.getAllAuthor());
+        attributes.put("categories", categoryService.getAllCategories());
+        attributes.put("publishers", publisherService.getAllPublisher());
+        return attributes;
+    }
     public ProductResponse convertToProductResponse(Product product) {
 
-        Integer discountRate = 0;
-
-        if (product.getDiscount() != null) {
-            discountRate = product.getDiscount().getDiscountRate();
-        }
-        BigDecimal discountValue = product.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
-                .divide(ONE_HUNDRED, RoundingMode.HALF_UP);
+        Map<String,?> discountValue = getDiscountValue(product);
 
         String thumbnailUrl = imageProductService.getThumbnailProduct(product.getId()) != null
                 ? imageProductService.getThumbnailProduct(product.getId()).getUrlImage() : null;
@@ -167,8 +188,8 @@ public class ProductService {
                 .original_price(product.getOriginal_price())
                 .authors(product.getAuthors())
                 .thumbnail_url(thumbnailUrl)
-                .discount(discountValue)
-                .discount_rate(discountRate)
+                .discount((BigDecimal) discountValue.get("discountVal"))
+                .discount_rate((Integer) discountValue.get("discountRate"))
                 .price(product.getPrice())
                 .rating_average(reviewService.calculateReviewAverage(product.getId()))
                 .build();
@@ -176,13 +197,7 @@ public class ProductService {
     }
 
     public ProductDetailResponse convertToProductDetailResponse(Product product) {
-        Integer discountRate = 0;
-
-        if (product.getDiscount() != null) {
-            discountRate = product.getDiscount().getDiscountRate();
-        }
-        BigDecimal discountValue = product.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
-                .divide(ONE_HUNDRED, RoundingMode.HALF_UP);
+        Map<String,?> discountValue = getDiscountValue(product);
 
         return ProductDetailResponse.builder()
                 .id(product.getId())
@@ -199,10 +214,10 @@ public class ProductService {
                 .authors(product.getAuthors())
                 .categories(product.getCategories())
                 .publisher(product.getPublisher())
-                .discount(discountValue)
-                .discount_rate(discountRate)
+                .discount((BigDecimal) discountValue.get("discountVal"))
+                .discount_rate((Integer) discountValue.get("discountRate"))
                 .status(product.getStatus())
-                .price(product.getOriginal_price().subtract(discountValue))
+                .price(product.getOriginal_price().subtract((BigDecimal) discountValue.get("discountVal")))
 //                .quantity_sold()   PENDING
                 .rating_average(reviewService.calculateReviewAverage(product.getId()))
                 .review_count(reviewService.getReviewCount(product.getId()))
@@ -211,16 +226,30 @@ public class ProductService {
                 .build();
     }
 
-
-    public List<Product> findAllByIds(List<Long> productIds) {
-        return productRepository.findAllById(productIds);
+    private ProductsForManagerResponse convertToForManagerRes(Product product) {
+        Map<String,?> discountValue = getDiscountValue(product);
+        String thumbnailUrl = imageProductService.getThumbnailProduct(product.getId()) != null
+                ? imageProductService.getThumbnailProduct(product.getId()).getUrlImage() : null;
+        return ProductsForManagerResponse.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .price(product.getOriginal_price().subtract((BigDecimal) discountValue.get("discountVal")))
+                .quantity(product.getQuantity())
+                .status(product.getStatus())
+                .createDate(product.getCreateDate())
+                .thumbnail_url(thumbnailUrl)
+                .build();
     }
 
-    public Map<String, List<?>> getAttributes() {
-        Map<String, List<?>> attributes = new HashMap<>();
-        attributes.put("authors", authorService.getAllAuthor());
-        attributes.put("categories", categoryService.getAllCategories());
-        attributes.put("publishers", publisherService.getAllPublisher());
-        return attributes;
+    private Map<String,?> getDiscountValue(Product p) {
+        Integer discountRate = 0;
+
+        if (p.getDiscount() != null) {
+            discountRate = p.getDiscount().getDiscountRate();
+        }
+        BigDecimal discountValue = p.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
+                .divide(ONE_HUNDRED, RoundingMode.HALF_UP);
+        return Map.of("discountRate",discountRate,"discountVal",discountValue);
     }
+
 }

@@ -24,8 +24,8 @@ import java.util.NoSuchElementException;
 public class ProductController {
     private final ProductService productService;
 
-    @GetMapping("/list")
-    public ResponseEntity<Page<?>> getAllProducts(
+    @GetMapping("/available")
+    public ResponseEntity<Page<?>> getAvailableProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int pageSize,
             @RequestParam(required = false) Long category,
@@ -36,6 +36,16 @@ public class ProductController {
     ) {
         return ResponseEntity.ok().body(productService.getProductsAvailable(page, pageSize, category,
                 price, publisher, sort, keyword));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<?> getALlProduct(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(required = false, defaultValue = "newest") String sort,
+            @RequestParam(required = false) String keyword
+    ){
+        return ResponseEntity.ok().body(productService.getAllProducts(page, pageSize,sort, keyword));
     }
 
     @GetMapping()

@@ -4,10 +4,9 @@ import { PRODUCT_URL } from './config';
 class ProductServiceClass {
     getListProduct = ({ page = 1, pageSize = 20, categoryId, price, publisher, keyword, sort }) => {
         price = price === 'null,null' ? null : price;
-        
         let config = {
             method: 'get',
-            url: PRODUCT_URL + '/list',
+            url: PRODUCT_URL + '/available',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -86,6 +85,36 @@ class ProductServiceClass {
 
         return axios.request(config);
     };
+
+    getAllProductForMng = ({ page = 1, pageSize = 20, keyword, sort }) => {        
+        let config = {
+            method: 'get',
+            url: PRODUCT_URL + '/all',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            params: {
+                page: page - 1,
+                pageSize,
+                keyword:  keyword,
+                sort,
+            },
+            withCredentials: true,
+        };
+        return httpRequest.request(config);
+    };
+
+    getAttributes = () => {
+        let config = {
+            method: 'get',
+            url: PRODUCT_URL + '/attributes',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+        };
+        return httpRequest.request(config);
+    }
 }
 const ProductService = new ProductServiceClass();
 export default ProductService;

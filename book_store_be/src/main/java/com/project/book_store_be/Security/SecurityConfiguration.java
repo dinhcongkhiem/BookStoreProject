@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -42,24 +43,25 @@ public class SecurityConfiguration {
 
     private static final String[] WHITE_LIST_URL = {
             "/api/v1/auth/**",
-            "/api/v1/product/**",
-            "/api/v1/category/**",
             "/api-docs/**",
             "/swagger-ui/**",
-            "/api/v1/publisher"
-
-//            list url with permitAll;
+            "/api/v1/product/detail"
     };
+
+    private static final String[] WHITE_LIST_GET_METHOD = {
+            "/api/v1/product", "/api/v1/product/available",
+            "/api/v1/product/price-range", "/api/v1/product/attributes",
+            "/api/v1/publisher/**", "/api/v1/category/**"
+    };
+
     private static final String[] USER_LIST_URL = {
-            "/api/v1/user/**",
-            "/api/v1/review/**",
-            "/api/v1/cart/**",
-
-//            list url with user role
+            "/api/v1/user/**", "/api/v1/review/**", "/api/v1/cart/**"
     };
+
     private static final String[] ADMIN_LIST_URL = {
-            "/api/v1/admin/**",
-//            list url with admin role
+            "/api/v1/admin/**", "/api/v1/publisher/**",
+            "/api/v1/category/**", "/api/v1/product/**",
+            "/api/v1/product/all"
     };
 
     @Bean
@@ -71,6 +73,7 @@ public class SecurityConfiguration {
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(WHITE_LIST_URL).permitAll()
+                        .requestMatchers(HttpMethod.GET, WHITE_LIST_GET_METHOD).permitAll()
                         .requestMatchers(ADMIN_LIST_URL).hasAnyRole(ADMIN.name())
                         .requestMatchers(USER_LIST_URL).hasAnyRole(USER.name())
                         .anyRequest().authenticated()

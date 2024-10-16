@@ -7,7 +7,7 @@ import style from './Product.module.scss';
 import ProductService from '../../service/ProductService';
 import { useQuery } from '@tanstack/react-query';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import SideBarComponent from '../../component/SideBarComponent/SideBarComponent';
 const cx = classNames.bind(style);
 
