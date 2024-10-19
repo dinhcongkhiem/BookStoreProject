@@ -28,7 +28,7 @@ public class ImageProductService {
     @Autowired
     private ProductRepository productRepository;
     @Autowired
-    private AmazonS3Service service;
+    private AmazonS3ServiceImpl service;
 
     public String uploadImage(MultipartFile images) {
         try {

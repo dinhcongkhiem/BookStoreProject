@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class Order {
     private Long id;
     private BigDecimal totalAmount;
     private BigDecimal shippingFee;
+    private BigDecimal totalDiscount;
     private BigDecimal finalAmount;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
@@ -31,7 +33,15 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "address_id")
     private Address address;
+    private LocalDateTime orderDate;
+    @PrePersist
+    public void prePersist() {
+        if (status == null) {
+            status = OrderStatus.PENDING;
+        }
+    }
+
 }

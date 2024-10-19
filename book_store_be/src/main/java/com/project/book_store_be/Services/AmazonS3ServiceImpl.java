@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Interface.AmazonS3Service;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -26,9 +26,7 @@ import java.util.zip.CRC32;
 
 
 @Service
-public class AmazonS3Service {
-
-
+public class AmazonS3ServiceImpl implements AmazonS3Service {
     @Value("${s3.accessKey}")
     private String accessKey;
     @Value("${s3.secretKey}")
@@ -36,6 +34,7 @@ public class AmazonS3Service {
     @Value("${s3.bucketName}")
     private String bucketName;
     private S3Client s3Client;
+    @Override
     @PostConstruct
     public void init() {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
@@ -44,6 +43,7 @@ public class AmazonS3Service {
                 .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                 .build();
     }
+    @Override
     public File convertToJpg(MultipartFile file) throws IOException {
         InputStream inputStream = file.getInputStream();
         BufferedImage bufferedImage = ImageIO.read(inputStream);
@@ -59,6 +59,7 @@ public class AmazonS3Service {
 
         return outputFile;
     }
+    @Override
     public String uploadFile(MultipartFile file) throws IOException {
         File convertedFile = convertToJpg(file);
 
@@ -73,7 +74,8 @@ public class AmazonS3Service {
         convertedFile.delete();
         return "https://" + bucketName + ".s3." + Region.AP_SOUTHEAST_1.id() + ".amazonaws.com/" + convertedFile.getName();
     }
-    private String hashFileName(String input) {
+    @Override
+    public String hashFileName(String input) {
         CRC32 crc32 = new CRC32();
         crc32.update(input.getBytes(StandardCharsets.UTF_8));
         return Long.toHexString(crc32.getValue());

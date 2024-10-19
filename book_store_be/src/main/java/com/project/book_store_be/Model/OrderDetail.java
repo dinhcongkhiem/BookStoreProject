@@ -19,12 +19,12 @@ public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Date orderDate;
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
-    private BigDecimal totalPrice;
+    private Integer quantity;
+    private BigDecimal discount;
 }

@@ -26,7 +26,6 @@ public class User implements UserDetails {
     private String email;
     private String phoneNum;
     private String password;
-
     @NaturalId(mutable = true)
     private String verifyKey;
     @NaturalId(mutable = true)
@@ -34,7 +33,6 @@ public class User implements UserDetails {
     private boolean isEnabled = false;
     @Enumerated(EnumType.STRING)
     private Role role;
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role.getAuthorities();

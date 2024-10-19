@@ -2,6 +2,7 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Exception.AuthorNotFoundException;
 import com.project.book_store_be.Exception.DuplicatePseudonymException;
+import com.project.book_store_be.Interface.AuthorService;
 import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Model.Category;
 import com.project.book_store_be.Repository.AuthorRepository;
@@ -13,29 +14,32 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class AuthorService {
+public class AuthorServiceImpl implements AuthorService {
 
     @Autowired
     private AuthorRepository repo;
 
-
+    @Override
     public List<Author> searchPublishersByName(String keyword) {
         return repo.findByNameContainingIgnoreCase(keyword);
     }
 
-    public List<Author> getAllAuthor(){
+    @Override
+    public List<Author> getAllAuthor() {
         return repo.findAll();
     }
 
-    public Optional<Author> getAuthorById(Long id){
+    @Override
+    public Optional<Author> getAuthorById(Long id) {
         return repo.findById(id);
     }
-
+    @Override
     public List<Author> getAuthors(List<Long> authorsId) {
         return repo.findAllById(authorsId);
     }
 
-    public Author saveAuthor(Author author){
+    @Override
+    public Author saveAuthor(Author author) {
 
 //        Optional<Author> existingAuthorByPseudonym = repo.findByPseudonym(author.getPseudonym());
 //        if( existingAuthorByPseudonym.isPresent()){
@@ -44,6 +48,7 @@ public class AuthorService {
         return repo.save(author);
     }
 
+    @Override
     public Author updateAuthor(Long id, Author authorDetails) {
 //        Author author = repo.findById(id).orElseThrow(() ->  new AuthorNotFoundException("Author not found"));
 //
@@ -59,13 +64,10 @@ public class AuthorService {
     }
 
 
-
-    public void  deleteAuthor(Long id){
+    @Override
+    public void deleteAuthor(Long id) {
         Author author = repo.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
         repo.deleteById(id);
     }
-
-
-
 
 }

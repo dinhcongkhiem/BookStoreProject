@@ -2,9 +2,9 @@ package com.project.book_store_be.Controller;
 
 
 import com.project.book_store_be.Exception.UserAlreadyExistsException;
+import com.project.book_store_be.Interface.AuthenticationService;
 import com.project.book_store_be.Request.*;
 import com.project.book_store_be.Response.AuthenticationResponse;
-import com.project.book_store_be.Services.AuthenticationService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Interface.AddressService;
 import com.project.book_store_be.Model.Address;
 import com.project.book_store_be.Repository.AddressRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,9 +10,10 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class AddressService {
+public class AddressServiceImpl implements AddressService {
     private final AddressRepository addressRepository;
 
+    @Override
     public Address createAddress (Address address) {
         Optional<Address> sameAddress = addressRepository.findTheSameAddress(
                 address.getProvince().getValue(),

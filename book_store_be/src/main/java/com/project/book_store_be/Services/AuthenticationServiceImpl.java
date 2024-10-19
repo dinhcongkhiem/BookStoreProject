@@ -1,6 +1,7 @@
 package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Exception.UserAlreadyExistsException;
+import com.project.book_store_be.Interface.AuthenticationService;
 import com.project.book_store_be.Model.Address;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.UserRepository;
@@ -10,23 +11,15 @@ import com.project.book_store_be.Request.LoginRequest;
 import com.project.book_store_be.Request.RegisterRequest;
 import com.project.book_store_be.Response.AuthenticationResponse;
 import com.project.book_store_be.Security.JwtService;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -34,11 +27,11 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationService {
+public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final AddressService addressService;
+    private final AddressServiceImpl addressService;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
     private final SendMailService sendMailService;
@@ -46,6 +39,7 @@ public class AuthenticationService {
     @Value("${client.url}")
     private String clientUrl;
 
+    @Override
     public void register(RegisterRequest request) {
         Optional<User> user = userRepository.findByEmail(request.getEmail());
         if (user.isPresent()) {
@@ -69,6 +63,7 @@ public class AuthenticationService {
                 "verifyAccountTemplate", Map.of("clientUrl", clientUrl));
     }
 
+    @Override
     public AuthenticationResponse login(LoginRequest request) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -87,6 +82,7 @@ public class AuthenticationService {
         }
     }
 
+    @Override
     public boolean verifyAccount(String verifyKey) {
         User user = userRepository.findByVerifyKey(verifyKey).orElseThrow();
         if (validVerifyKey(verifyKey)) {
@@ -105,6 +101,7 @@ public class AuthenticationService {
 
     }
 
+    @Override
     public AuthenticationResponse refreshAccessToken(String refreshToken) {
         User user = userRepository.findByRefreshToken(refreshToken).orElseThrow();
         String newRefreshToken = generateRefreshToken(user.getEmail());
@@ -118,6 +115,7 @@ public class AuthenticationService {
                 .build();
     }
 
+    @Override
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
         User user = userRepository.findByEmail(forgetPasswordRequest.getEmail())
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
@@ -125,6 +123,7 @@ public class AuthenticationService {
                 "forgetPasswordTemplate", Map.of("clientUrl", clientUrl));
     }
 
+    @Override
     public void setNewPassword(ChangePasswordRequest changePasswordRequest, String verifyKey) {
         User user = userRepository.findByVerifyKey(verifyKey)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
@@ -135,6 +134,7 @@ public class AuthenticationService {
         }
     }
 
+    @Override
     public boolean validVerifyKey(String activeKey) {
         try {
 
@@ -147,13 +147,13 @@ public class AuthenticationService {
         }
     }
 
-
+    @Override
     public String generateVerifyKey() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
         String expTime = sdf.format(new Date(System.currentTimeMillis() + 1000 * 60 * 60));
         return expTime + UUID.randomUUID();
     }
-
+    @Override
     public String generateRefreshToken(String email) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
         String current = sdf.format(new Date(System.currentTimeMillis()));
