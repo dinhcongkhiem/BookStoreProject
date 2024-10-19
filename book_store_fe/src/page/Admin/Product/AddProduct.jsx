@@ -235,9 +235,6 @@ function AddProduct() {
             };
         });
     }, [quillRef]);
-    useEffect(() => {
-        console.log(insertProductMutation.isPending);     
-    }, [,insertProductMutation]);
     const renderTextField = (name, label, type = 'text', required = false, key, sx) => {
         const isSizeField = name.startsWith('size.');
         const fieldKey = isSizeField ? name.split('.')[1] : name;
@@ -263,10 +260,6 @@ function AddProduct() {
         );
     };
 
-    useEffect(() => {
-        console.log(insertProductMutation);
-        
-    }, []);
     return (
         <Box className={cx('form')}>
             <Grid container spacing={3}>

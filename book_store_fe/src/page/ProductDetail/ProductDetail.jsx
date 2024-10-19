@@ -110,7 +110,6 @@ function ProductDetail() {
                                 <Gallery>
                                     {product?.images?.map((img, index) => (
                                         <Item
-                                            // content={<img h={img.urlImage} alt="hahah" />}
                                             key={index}
                                             original={img.urlImage}
                                             thumbnail={img.urlImage}
