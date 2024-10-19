@@ -84,7 +84,7 @@ public class ProductService {
         } catch (NumberFormatException e) {
             id = -1L;
         }
-        return productRepository.searchByNameContainingIgnoreCaseOrId(keyword,id,pageRequest)
+        return productRepository.searchByNameContainingIgnoreCaseOrId(keyword, id, pageRequest)
                 .map(this::convertToForManagerRes);
     }
 
@@ -102,16 +102,19 @@ public class ProductService {
                 .orElseThrow(() -> new NoSuchElementException("No product found with id: " + id)));
     }
 
-    public void addProduct(ProductRequest request, List<MultipartFile> images) {
+    public void addProduct(ProductRequest request, List<MultipartFile> images, Integer indexThumbnail) {
+        Map<String, Double> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
+
         Product product = Product.builder()
                 .name(request.getName())
                 .publisher(publisherService.getPublisherById(request.getPublisherId()).orElse(null))
-                .number_of_pages(request.getNumber_of_pages())
-                .year_of_publication(request.getYear_of_publication())
+                .number_of_pages(request.getNumberOfPages())
+                .year_of_publication(request.getYearOfPublication())
                 .cost(request.getCost())
-                .original_price(request.getOriginal_price())
-                .price(request.getOriginal_price())
-                .size(request.getSize())
+                .original_price(request.getOriginalPrice())
+                .price(request.getOriginalPrice())
+                .size(size)
+                .weight(request.getWeight())
                 .quantity(request.getQuantity())
                 .status(request.getStatus())
                 .coverType(request.getCoverType())
@@ -123,7 +126,7 @@ public class ProductService {
                 .updateDate(new Date())
                 .build();
         productRepository.save(product);
-        imageProductService.uploadMultipleImageProduct(images, product);
+        imageProductService.uploadMultipleImageProduct(images, product.getId(),indexThumbnail);
     }
 
     public void deleteProduct(Long id) {
@@ -132,7 +135,7 @@ public class ProductService {
 
     public Product updateProduct(Long id, ProductRequest request) {
         Product pr = productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Product not found"));
-        BigDecimal price = request.getOriginal_price();
+        BigDecimal price = request.getOriginalPrice();
         if (pr.getDiscount() != null && pr.getDiscount().getStatus() == DiscountStatus.ACTIVE) {
             BigDecimal discountAmount = pr.getOriginal_price()
                     .multiply(BigDecimal.valueOf(pr.getDiscount().getDiscountRate()))
@@ -140,13 +143,15 @@ public class ProductService {
 
             price = pr.getOriginal_price().subtract(discountAmount);
         }
-
+        Map<String, Double> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
         pr.setName(request.getName());
         pr.setPublisher(publisherService.getPublisherById(request.getPublisherId()).orElse(null));
-        pr.setNumber_of_pages(request.getNumber_of_pages());
+        pr.setNumber_of_pages(request.getNumberOfPages());
         pr.setCost(request.getCost());
-        pr.setOriginal_price(request.getOriginal_price());
-        pr.setSize(request.getSize());
+        pr.setOriginal_price(request.getOriginalPrice());
+        pr.setNumber_of_pages(request.getNumberOfPages());
+        pr.setSize(size);
+        pr.setWeight(request.getWeight());
         pr.setQuantity(request.getQuantity());
         pr.setStatus(request.getStatus());
         pr.setCoverType(request.getCoverType());
@@ -165,6 +170,7 @@ public class ProductService {
         BigDecimal maxPrice = result.get("max");
         return Map.of("min", minPrice, "max", maxPrice);
     }
+
     public List<Product> findAllByIds(List<Long> productIds) {
         return productRepository.findAllById(productIds);
     }
@@ -176,9 +182,10 @@ public class ProductService {
         attributes.put("publishers", publisherService.getAllPublisher());
         return attributes;
     }
+
     public ProductResponse convertToProductResponse(Product product) {
 
-        Map<String,?> discountValue = getDiscountValue(product);
+        Map<String, ?> discountValue = getDiscountValue(product);
 
         String thumbnailUrl = imageProductService.getThumbnailProduct(product.getId()) != null
                 ? imageProductService.getThumbnailProduct(product.getId()).getUrlImage() : null;
@@ -197,8 +204,7 @@ public class ProductService {
     }
 
     public ProductDetailResponse convertToProductDetailResponse(Product product) {
-        Map<String,?> discountValue = getDiscountValue(product);
-
+        Map<String, ?> discountValue = getDiscountValue(product);
         return ProductDetailResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -209,6 +215,7 @@ public class ProductService {
                 .quantity(product.getQuantity())
                 .coverType(product.getCoverType())
                 .size(product.getSize())
+                .weight(product.getWeight())
                 .translatorName(product.getTranslatorName())
                 .manufacturer(product.getManufacturer())
                 .authors(product.getAuthors())
@@ -227,7 +234,7 @@ public class ProductService {
     }
 
     private ProductsForManagerResponse convertToForManagerRes(Product product) {
-        Map<String,?> discountValue = getDiscountValue(product);
+        Map<String, ?> discountValue = getDiscountValue(product);
         String thumbnailUrl = imageProductService.getThumbnailProduct(product.getId()) != null
                 ? imageProductService.getThumbnailProduct(product.getId()).getUrlImage() : null;
         return ProductsForManagerResponse.builder()
@@ -241,7 +248,7 @@ public class ProductService {
                 .build();
     }
 
-    private Map<String,?> getDiscountValue(Product p) {
+    private Map<String, ?> getDiscountValue(Product p) {
         Integer discountRate = 0;
 
         if (p.getDiscount() != null) {
@@ -249,7 +256,7 @@ public class ProductService {
         }
         BigDecimal discountValue = p.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
                 .divide(ONE_HUNDRED, RoundingMode.HALF_UP);
-        return Map.of("discountRate",discountRate,"discountVal",discountValue);
+        return Map.of("discountRate", discountRate, "discountVal", discountValue);
     }
 
 }

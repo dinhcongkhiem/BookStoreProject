@@ -67,7 +67,9 @@ function Cart() {
             queryClient.setQueryData(['productsInCart'], (oldData) => {
                 return {
                     ...oldData,
-                    cart: oldData.cart.map((item) => (item.id === d.cartId ? { ...item, initialQuantity: d.qty } : item)),
+                    cart: oldData.cart.map((item) =>
+                        item.id === d.cartId ? { ...item, initialQuantity: d.qty } : item,
+                    ),
                 };
             });
         },
@@ -190,7 +192,7 @@ function Cart() {
                                                 alt="Banner"
                                                 style={{ width: '65px', marginRight: '10px' }}
                                             />
-                                            {item.productName}
+                                            <span className={cx('name-item')}>{item.productName}</span>
                                         </TableCell>
                                         <TableCell align="center">
                                             {item.price.toLocaleString()} <span>₫</span>

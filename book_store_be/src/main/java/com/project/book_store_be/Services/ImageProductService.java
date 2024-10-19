@@ -34,27 +34,29 @@ public class ImageProductService {
         try {
             return service.uploadFile(images);
         }catch (IOException e) {
-            System.out.println("Err when upload file img - ImgProductService - 38");
             return null;
         }
     }
-    public void uploadMultipleImageProduct(List<MultipartFile> images, Product product) {
+    public void uploadMultipleImageProduct(List<MultipartFile> images, Long productId, Integer indexThumbnail) {
         try {
             if (images != null && images.size() > 0) {
-                for (MultipartFile image : images) {
-                    this.uploadFileAsync(image, product.getId()).get();
+                for (int i = 0; i < images.size(); i++) {
+                    MultipartFile image = images.get(i);
+                    this.uploadFileAsync(image, productId, indexThumbnail == i).get();
                 }
+
             }
         } catch (IOException | ExecutionException | InterruptedException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
     @Async
-    public CompletableFuture<String> uploadFileAsync(MultipartFile file, Long productId) throws IOException {
-        String fileUrl = InsertProductImage(file, productId);
+    public CompletableFuture<String> uploadFileAsync(MultipartFile file, Long productId, Boolean isThumbnail) throws IOException {
+        String fileUrl = InsertProductImage(file, productId,isThumbnail);
         return CompletableFuture.completedFuture(fileUrl);
     }
-    public String InsertProductImage(MultipartFile file, Long productId) throws IOException {
+    public String InsertProductImage(MultipartFile file, Long productId, Boolean isThumbnail) throws IOException {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException("Invalid product ID:" + productId));
         if (file.isEmpty()) {
@@ -66,6 +68,7 @@ public class ImageProductService {
                 .nameImage(product.getName() + "_" + fileName)
                 .urlImage(fileUrl)
                 .product(product)
+                .isThumbnail(isThumbnail)
                 .build();
         repo.save(imageProduct);
         return fileUrl;

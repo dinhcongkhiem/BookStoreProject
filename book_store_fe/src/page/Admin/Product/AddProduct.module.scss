@@ -1,14 +1,15 @@
 .form {
     display: flex;
     flex-direction: column;
+    display: block;
     width: 100%;
     .paper {
         padding: 2.4rem;
         border-radius: 1rem;
-        height: calc(100% - 1rem);
         display: flex;
         flex-direction: column;
-        overflow: auto;
+        height: 60rem;
+        overflow: auto !important;
     }
 }
 
@@ -24,12 +25,13 @@
 
 .upload-label {
     display: inline-block;
+    height: 17rem;
     cursor: pointer;
 }
 
 .upload-box {
     width: 12rem;
-    height: 17rem;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -67,6 +69,12 @@
     &:hover .remove-button {
         opacity: 1;
         visibility: visible;
+    }
+    .thumbnail-icon {
+        position: absolute;
+        font-size: 2rem;
+        left: 0.5rem;
+        color: rgb(255 207 96);
     }
 }
 

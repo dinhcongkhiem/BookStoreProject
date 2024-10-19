@@ -110,6 +110,7 @@ function ProductDetail() {
                                 <Gallery>
                                     {product?.images?.map((img, index) => (
                                         <Item
+                                            // content={<img h={img.urlImage} alt="hahah" />}
                                             key={index}
                                             original={img.urlImage}
                                             thumbnail={img.urlImage}
@@ -165,16 +166,14 @@ function ProductDetail() {
                 <div className={cx('col-7', 'right')}>
                     <div className={cx('info', 'block')}>
                         <h4>{product?.name}</h4>
-                        <div className="row mb-2">
-                            <div className="col-6">
-                                <span>Tác giả:</span>
-                                {product?.authors.map((author, index) => (
-                                    <span key={index}>
-                                        <Link to={`/product/authors=${author.name}`}>{author.name}</Link>
-                                        {index < product?.authors.length - 1 && ', '}
-                                    </span>
-                                ))}
-                            </div>
+                        <div>
+                            <span>Tác giả:</span>
+                            {product?.authors.map((author, index) => (
+                                <span key={index}>
+                                    <Link to={`/product?q=${author.name}`}>{author.name}</Link>
+                                    {index < product?.authors.length - 1 && ', '}
+                                </span>
+                            ))}
                         </div>
                         <div className="d-flex">
                             <div className="d-flex align-items-center">
@@ -275,7 +274,11 @@ function ProductDetail() {
                             label={'Năm XB'}
                             value={product?.year_of_publication}
                         />
-                        <DetailInfoProductComponent isLink={false} label={'Kích thước'} value={product?.size} />
+                        <DetailInfoProductComponent
+                            isLink={false}
+                            label={'Kích thước'}
+                            value={product?.size ? `${product.size.x}, ${product.size.y}, ${product.size.z} cm` : null}
+                        />
                         <DetailInfoProductComponent
                             isLink={false}
                             label={'Số trang'}
@@ -286,6 +289,7 @@ function ProductDetail() {
                             label={'Loại bìa'}
                             value={product?.coverType === 'SOFTCOVER' ? 'Bìa mềm' : 'Bìa cứng'}
                         />
+                        <DetailInfoProductComponent isLink={false} label={'Dịch giả'} value={product?.translatorName} />
                     </div>
                     <div className={cx('description', 'block', 'm-0')}>
                         <h5 className={cx('title', 'mb-4')}>Mô tả sản phẩm</h5>

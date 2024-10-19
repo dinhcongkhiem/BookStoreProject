@@ -14,14 +14,14 @@ function DetailInfoItems({ isLink, label, value }) {
             <>
                 {value.map((val, index) => (
                     <span key={index}>
-                        <Link to={`/product/authors=${val}`}>{val}</Link>
+                        <Link to={`/product?q=${val}`}>{val}</Link>
                         {index < value.length - 1 && ', '}
                     </span>
                 ))}
             </>
         );
     } else if (isLink) {
-        valueElement = <Link to={`/product/authors=${value}`}>{value}</Link>;
+        valueElement = <Link to={`/product?q=${value}`}>{value}</Link>;
     }
     return (
         <div className="row">

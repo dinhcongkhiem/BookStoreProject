@@ -18,7 +18,7 @@ public class ImageProduct {
     private String nameImage;
     private String urlImage;
     private Boolean isThumbnail;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     private Product product;
 
 }

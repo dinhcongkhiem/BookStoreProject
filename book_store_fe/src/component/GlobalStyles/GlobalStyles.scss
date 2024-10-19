@@ -68,3 +68,10 @@ html *::-webkit-scrollbar-track {
 .MuiButtonBase-root.MuiListItemButton-root.MuiListItemButton-gutters.Mui-selected {
     background-color: var(--hover-background-lighter);
 }
+
+.pswp__img {
+    object-fit: contain !important;
+}
+.pswp__img--placeholder {
+    opacity: 0 !important;
+}

@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,9 +47,16 @@ public class AmazonS3Service {
     public File convertToJpg(MultipartFile file) throws IOException {
         InputStream inputStream = file.getInputStream();
         BufferedImage bufferedImage = ImageIO.read(inputStream);
-        File outputFile = File.createTempFile(hashFileName(Objects.requireNonNull(file.getOriginalFilename())),
-                ".jpg");
-        ImageIO.write(bufferedImage, "jpg", outputFile);
+        if (bufferedImage == null) {
+            throw new IOException("Could not read image from the provided file.");
+        }
+        BufferedImage jpgImage = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = jpgImage.createGraphics();
+        g2d.drawImage(bufferedImage, 0, 0, null);
+        g2d.dispose();
+        File outputFile = File.createTempFile(hashFileName(Objects.requireNonNull(file.getOriginalFilename())), ".jpg");
+        ImageIO.write(jpgImage, "jpg", outputFile);
+
         return outputFile;
     }
     public String uploadFile(MultipartFile file) throws IOException {

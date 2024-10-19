@@ -81,7 +81,7 @@ function DetailProduct() {
                                                 Giá nhập
                                             </Box>
                                         </TableCell>
-                                        <TableCell width="60%">{`${parseInt(productData.importPrice).toLocaleString()} đ`}</TableCell>
+                                        <TableCell width="60%">{`${parseInt(productData.importPrice)?.toLocaleString()} đ`}</TableCell>
                                     </TableRow>
                                     <TableRow>
                                         <TableCell component="th" scope="row" width="40%">
@@ -90,7 +90,7 @@ function DetailProduct() {
                                                 Giá bán
                                             </Box>
                                         </TableCell>
-                                        <TableCell width="60%">{`${parseInt(productData.sellingPrice).toLocaleString()} đ`}</TableCell>
+                                        <TableCell width="60%">{`${parseInt(productData.sellingPrice)?.toLocaleString()} đ`}</TableCell>
                                     </TableRow>
                                     <TableRow>
                                         <TableCell component="th" scope="row" width="40%">

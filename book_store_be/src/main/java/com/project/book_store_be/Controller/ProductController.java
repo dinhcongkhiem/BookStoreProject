@@ -1,5 +1,6 @@
 package com.project.book_store_be.Controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Request.ProductFilterRequest;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,17 +62,22 @@ public class ProductController {
     @PostMapping()
     public ResponseEntity<?> addProduct(
             @RequestParam("product") String productJson,
-            @RequestParam("images") List<MultipartFile> images) {
+            @RequestParam("images") List<MultipartFile> images,
+            @RequestParam("i_thumbnail") Integer indexThumbnail){
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             ProductRequest productRequest = objectMapper.readValue(productJson, ProductRequest.class);
+            if (productRequest == null || images.isEmpty()) {
+                return ResponseEntity.badRequest().body("Dữ liệu không hợp lệ");
+            }
+            productService.addProduct(productRequest, images,indexThumbnail);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Thành công");
 
-            productService.addProduct(productRequest, images);
-            return ResponseEntity.status(200).body("Thành công");
-
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Dữ liệu JSON không hợp lệ");
         } catch (Exception e) {
-            System.out.println(e);
-            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Có lỗi xảy ra");
         }
     }
 

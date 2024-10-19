@@ -6,16 +6,20 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class ProductRequest {
     private String name;
     private Long publisherId;
-    private Integer number_of_pages;
-    private Integer year_of_publication;
+    private Integer numberOfPages;
+    private Integer yearOfPublication;
     private BigDecimal cost;
-    private BigDecimal original_price;
-    private String size;
+    private BigDecimal originalPrice;
+    private Double height;
+    private Double length;
+    private Double width;
+    private Double weight;
     private Integer quantity;
     private ProductStatus status;
     private String translator;

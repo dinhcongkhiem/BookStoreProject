@@ -23,8 +23,8 @@
         display: flex;
         justify-content: center;
         img {
-            width: 85%;
-            height: 100%;
+            width: auto;
+            height: 21.1rem;
             object-fit: cover;
             transition: transform 0.5s ease;
         }
@@ -40,6 +40,11 @@
         h4 {
             font-weight: 500;
             font-size: 1.6rem;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         p {
             font-size: 1.5rem;

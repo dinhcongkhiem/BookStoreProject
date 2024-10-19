@@ -165,6 +165,7 @@
     }
     > img {
         width: 8rem;
+        text-wrap: nowrap;
     }
     > div {
         flex: 1;
@@ -172,7 +173,11 @@
         padding-top: 1rem;
         overflow: hidden;
         strong {
-            text-wrap: nowrap;
+            display: -webkit-box;
+            -webkit-box-orient: vertical; 
+            -webkit-line-clamp: 2; 
+            overflow: hidden;
+            text-overflow: ellipsis; 
         }
         p {
             font-size: 1.4rem;

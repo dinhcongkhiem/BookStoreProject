@@ -50,9 +50,7 @@ function Header() {
         }
     };
     useEffect(() => {
-        const handleKeyPress = (e) => {            
-            console.table({key: e.key, acttive: document.activeElement === searchInputRef.current, keyword: keyword.trim().length > 0});
-            
+        const handleKeyPress = (e) => {                        
             if (e.key === 'Enter' && document.activeElement === searchInputRef.current && keyword.trim().length > 0) {                
                 btnSearchRef.current.click();
             }

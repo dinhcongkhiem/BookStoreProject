@@ -38,19 +38,19 @@ import { Gallery, Item } from 'react-photoswipe-gallery';
 import 'photoswipe/dist/photoswipe.css';
 import { useQuery } from '@tanstack/react-query';
 import ProductService from '../../../service/ProductService';
-
+import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
+import useDebounce from '../../../hooks/useDebounce';
 const cx = classNames.bind(style);
 
 const Product = () => {
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [detailOpen, setDetailOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
+    const [page, setPage] = useState(1);
+    const [orderBy, setOrderBy] = useState('newest');
 
-    const navigate = useNavigate();
-
-    const [page, setPage] = useState(0);
-    const [orderBy, setOrderBy] = useState('id');
-    const [order, setOrder] = useState('asc');
+    const debouncedSearchValue = useDebounce(searchTerm, 800);
 
     const handleEdit = (product) => {
         navigate('/admin/product/edit', { state: { product } });
@@ -66,28 +66,43 @@ const Product = () => {
         setSelectedProduct(null);
     };
 
-    const handleRequestSort = (property) => {
-        const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(property);
+    const handleChangeSort = (prop) => {
+        console.log(prop);
+        if (prop === 'newest' && orderBy === prop) {
+            setOrderBy('oldest');
+        } else if (prop === 'newest') {
+            setOrderBy(prop);
+        } else if (orderBy.split('_')[0] !== prop) {
+            setOrderBy(`${prop}_asc`);
+        } else {
+            setOrderBy(`${prop}_${orderBy.split('_')[1] !== 'desc' ? 'desc' : 'asc'}`);
+        }
+        setPage(1);
     };
 
     const handleSearch = (event) => {
+        setPage(1);
         setSearchTerm(event.target.value);
     };
-
-    const { data: productRes, error, isLoading,} = useQuery({
-        queryKey: ['products'],
-        queryFn: () => ProductService.getListProduct().then((response) => response.data),
+ 
+    const {
+        data: productRes,
+        error,
+        isLoading,
+    } = useQuery({
+        queryKey: ['productsMng', orderBy, debouncedSearchValue, page],
+        queryFn: () =>
+            ProductService.getAllProductForMng({ page: page, sort: orderBy, keyword: debouncedSearchValue }).then(
+                (response) => response.data,
+            ),
         retry: 1,
     });
-
+    
     useEffect(() => {
         if(productRes) {
-            console.log(productRes);  
+            window.scrollTo({ top: 0, behavior: 'instant' });
         }
     }, [productRes]);
-
     return (
         <div className={cx('product-management')}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -125,79 +140,69 @@ const Product = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>
+                            <TableCell size="small" sx={{ paddingRight: '.5rem', width: '78px' }}>
                                 <TableSortLabel
-                                    active={orderBy === 'id'}
-                                    direction={orderBy === 'id' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('id')}
+                                    active={orderBy.split('_')[0] === 'id'}
+                                    direction={orderBy.split('_')[1]}
+                                    onClick={() => handleChangeSort('id')}
                                 >
                                     <b>ID</b>
                                 </TableSortLabel>
                             </TableCell>
-                            <TableCell>
+                            <TableCell
+                                size="small"
+                                sx={{
+                                    width: '589px',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                }}
+                            >
                                 <TableSortLabel
-                                    active={orderBy === 'name'}
-                                    direction={orderBy === 'name' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('name')}
+                                    active={orderBy.split('_')[0] === 'name'}
+                                    direction={orderBy.split('_')[1]}
+                                    onClick={() => handleChangeSort('name')}
                                 >
                                     <b>Tên sách</b>
                                 </TableSortLabel>
                             </TableCell>
-                            <TableCell>
+                            <TableCell size="small" sx={{ padding: '.5rem' }}>
                                 <TableSortLabel
-                                    active={orderBy === 'importPrice'}
-                                    direction={orderBy === 'importPrice' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('importPrice')}
-                                >
-                                    <b>Giá nhập</b>
-                                </TableSortLabel>
-                            </TableCell>
-                            <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'sellingPrice'}
-                                    direction={orderBy === 'sellingPrice' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('sellingPrice')}
+                                    active={orderBy.split('_')[0] === 'price'}
+                                    direction={orderBy.split('_')[1]}
+                                    onClick={() => handleChangeSort('price')}
                                 >
                                     <b>Giá bán</b>
                                 </TableSortLabel>
                             </TableCell>
-                            <TableCell>
+                            <TableCell size="small" sx={{ padding: '.5rem' }}>
                                 <TableSortLabel
-                                    active={orderBy === 'quantity'}
-                                    direction={orderBy === 'quantity' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('quantity')}
+                                    active={orderBy.split('_')[0] === 'qty'}
+                                    direction={orderBy.split('_')[1]}
+                                    onClick={() => handleChangeSort('qty')}
                                 >
                                     <b>Số lượng</b>
                                 </TableSortLabel>
                             </TableCell>
-                            <TableCell>
+                            <TableCell size="small" sx={{ padding: '.5rem' }}>
                                 <TableSortLabel
-                                    active={orderBy === 'status'}
-                                    direction={orderBy === 'status' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('status')}
+                                    active={orderBy.split('_')[0] === 'status'}
+                                    direction={orderBy.split('_')[1]}
+                                    onClick={() => handleChangeSort('status')}
                                 >
                                     <b>Trạng thái</b>
                                 </TableSortLabel>
                             </TableCell>
-                            <TableCell>
+                            <TableCell size="small" sx={{ padding: '.5rem' }}>
                                 <TableSortLabel
-                                    active={orderBy === 'category'}
-                                    direction={orderBy === 'category' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('category')}
-                                >
-                                    <b>Danh mục</b>
-                                </TableSortLabel>
-                            </TableCell>
-                            <TableCell>
-                                <TableSortLabel
-                                    active={orderBy === 'creationDate'}
-                                    direction={orderBy === 'creationDate' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('creationDate')}
+                                    active={orderBy === 'oldest' || orderBy === 'newest'}
+                                    direction={orderBy === 'oldest' ? 'desc' : 'asc'}
+                                    onClick={() => handleChangeSort('newest')}
                                 >
                                     <b>Ngày tạo</b>
                                 </TableSortLabel>
                             </TableCell>
-                            <TableCell>
+                            <TableCell size="small" sx={{ padding: '.5rem' }}>
                                 <b>Thao tác</b>
                             </TableCell>
                         </TableRow>
@@ -205,9 +210,19 @@ const Product = () => {
                     <TableBody>
                         {productRes?.content.map((product) => (
                             <TableRow key={product.id}>
-                                <TableCell>{product.id}</TableCell>
-                                <TableCell>
-                                    <Box display="flex" alignItems="center">
+                                <TableCell size="small" sx={{ paddingRight: '.5rem', width: '78px' }}>
+                                    {product.id}
+                                </TableCell>
+                                <TableCell
+                                    size="small"
+                                    sx={{
+                                        width: '589px',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'wrap',
+                                    }}
+                                >
+                                    <Box display="flex" alignItems="center" sx={{ fontWeight: '700' }}>
                                         <Avatar
                                             alt={product.name}
                                             src={product.thumbnail_url}
@@ -216,42 +231,46 @@ const Product = () => {
                                         {product.name}
                                     </Box>
                                 </TableCell>
-                                <TableCell>{product?.importPrice?.toLocaleString()}₫</TableCell>
-                                <TableCell>{product?.price.toLocaleString()}₫</TableCell>
-                                <TableCell>{product?.quantity}</TableCell>
-                                <TableCell>
+                                <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                    {product?.price.toLocaleString('vi-VN')} <strong>₫</strong>
+                                </TableCell>
+                                <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                    {product?.quantity}
+                                </TableCell>
+                                <TableCell size="small" sx={{ padding: '.5rem' }}>
                                     <span
                                         className={cx('status', {
-                                            'in-stock': product.status === 'Còn hàng',
+                                            'in-stock': product.status === 'AVAILABLE',
                                             'out-of-stock': product.status === 'Hết hàng',
                                         })}
                                     >
-                                        {product?.status}
+                                        {product?.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
                                     </span>
                                 </TableCell>
-                                <TableCell>{product?.category}</TableCell>
-                                <TableCell>{new Date(product?.creationDate).toLocaleDateString()}</TableCell>
-                                <TableCell>
+                                <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                    {new Date(product?.createDate).toLocaleDateString()}
+                                </TableCell>
+                                <TableCell size="small" sx={{ padding: '.5rem' }}>
                                     <IconButton
                                         onClick={() => handleView(product)}
                                         aria-label="view"
-                                        sx={{ color: 'blue' }}
+                                        sx={{ color: '#4791db' }}
                                     >
-                                        <VisibilityIcon />
+                                        <VisibilityIcon fontSize="small" />
                                     </IconButton>
                                     <IconButton
                                         onClick={() => handleEdit(product)}
                                         aria-label="edit"
                                         sx={{ color: 'green' }}
                                     >
-                                        <EditIcon />
+                                        <EditIcon fontSize="small" />
                                     </IconButton>
                                     <IconButton
                                         // onClick={() => handleDelete(product.id)}
                                         aria-label="delete"
                                         sx={{ color: 'red' }}
                                     >
-                                        <DeleteIcon />
+                                        <DeleteIcon fontSize="small" />
                                     </IconButton>
                                 </TableCell>
                             </TableRow>
@@ -260,7 +279,12 @@ const Product = () => {
                 </Table>
             </TableContainer>
             <div className="d-flex justify-content-center mt-5 mb-3">
-                <Pagination color="primary" variant="outlined" count={10} />
+                <Pagination
+                    color="primary"
+                    variant="outlined"
+                    count={productRes?.totalPages < 1 ? 1 : productRes?.totalPages}
+                    onChange={(e, v) => setPage(v)}
+                />
             </div>
             <Dialog
                 open={detailOpen}
@@ -304,14 +328,14 @@ const Product = () => {
                                             Giá nhập:
                                         </Typography>
                                         <Typography variant="body1">
-                                            {selectedProduct.importPrice.toLocaleString()}₫
+                                            {selectedProduct.importPrice?.toLocaleString()}₫
                                         </Typography>
 
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                             Giá bán:
                                         </Typography>
                                         <Typography variant="body1">
-                                            {selectedProduct.sellingPrice.toLocaleString()}₫
+                                            {selectedProduct.sellingPrice?.toLocaleString()}₫
                                         </Typography>
 
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
@@ -319,9 +343,6 @@ const Product = () => {
                                         </Typography>
                                         <Typography variant="body1">{selectedProduct.quantity}</Typography>
 
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                            Danh mục:
-                                        </Typography>
                                         <Typography variant="body1">{selectedProduct.category}</Typography>
 
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
@@ -348,7 +369,7 @@ const Product = () => {
                                     </Typography>
                                     <Gallery>
                                         <Box display="flex" flexWrap="wrap" gap={2}>
-                                            {selectedProduct.images.map((image, index) => (
+                                            {selectedProduct.images?.map((image, index) => (
                                                 <Item
                                                     key={index}
                                                     original={image}
@@ -398,6 +419,7 @@ const Product = () => {
                     </>
                 )}
             </Dialog>
+            <ModalLoading isLoading={isLoading} />
         </div>
     );
 };

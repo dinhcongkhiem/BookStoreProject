@@ -11,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 import java.time.Year;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @SuperBuilder
 @Getter
@@ -21,7 +22,8 @@ public class ProductDetailResponse extends ProductBaseResponse {
     private Integer review_count;
     private Integer quantity;
     private String description;
-    private String size;
+    private Map<?,?> size;
+    private Double weight;
     private String translatorName;
     private String manufacturer;
     private CoverType coverType;

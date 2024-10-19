@@ -16,7 +16,7 @@ class ProductServiceClass {
                 category: categoryId,
                 price,
                 publisher,
-                keyword:  keyword,
+                keyword: keyword,
                 sort,
             },
             withCredentials: true,
@@ -54,12 +54,14 @@ class ProductServiceClass {
         return httpRequest.request(config);
     };
 
-    insertProduct = (product, images) => {
-        const data = new FormData();
-        data.append(product);
-        images?.foreach((img) => {
-            data.append('images', img);
+    insertProduct = (product, images,indexThumbnail) => {
+        const data = new FormData();        
+        data.append("product", JSON.stringify(product));   
+        data.append("i_thumbnail", indexThumbnail)     
+        images?.forEach(img => {
+            data.append('images', img);      
         });
+        
 
         let config = {
             method: 'post',
@@ -86,7 +88,7 @@ class ProductServiceClass {
         return axios.request(config);
     };
 
-    getAllProductForMng = ({ page = 1, pageSize = 20, keyword, sort }) => {        
+    getAllProductForMng = ({ page = 1, pageSize = 20, keyword, sort }) => {
         let config = {
             method: 'get',
             url: PRODUCT_URL + '/all',
@@ -96,7 +98,7 @@ class ProductServiceClass {
             params: {
                 page: page - 1,
                 pageSize,
-                keyword:  keyword,
+                keyword: keyword,
                 sort,
             },
             withCredentials: true,
@@ -114,7 +116,7 @@ class ProductServiceClass {
             withCredentials: true,
         };
         return httpRequest.request(config);
-    }
+    };
 }
 const ProductService = new ProductServiceClass();
 export default ProductService;

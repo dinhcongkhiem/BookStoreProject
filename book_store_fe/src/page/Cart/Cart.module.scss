@@ -117,6 +117,12 @@
         color: #888;
     }
 }
+.name-item {
+    display: inline-block;
+    width: 85%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 .quantity-container {
     display: flex;

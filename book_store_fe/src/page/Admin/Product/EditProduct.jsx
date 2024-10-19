@@ -59,9 +59,9 @@ function EditProduct() {
             setFormData({
                 id: product.id,
                 name: product.name,
-                importPrice: product.importPrice.toString(),
-                sellingPrice: product.sellingPrice.toString(),
-                quantity: product.quantity.toString(),
+                importPrice: product.importPrice?.toString(),
+                sellingPrice: product.sellingPrice?.toString(),
+                quantity: product.quantity?.toString(),
                 status: product.status,
                 category: product.category,
             });
