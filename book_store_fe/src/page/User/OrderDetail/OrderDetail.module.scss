@@ -1,0 +1,100 @@
+.orderDetailContainer {
+    max-width: 920px;
+    margin: 0 auto;
+}
+
+.orderDetailHeader {
+    margin-bottom: 24px;
+    .orderTitle {
+        font-size: 2.5rem;
+        margin-bottom: 8px;
+    }
+    .orderStatus {
+        color: red;
+    }
+    .orderDate {
+        display: flex;
+        justify-content: end;
+    }
+}
+
+.infoSections {
+    margin-bottom: 8rem;
+}
+.brand {
+    color: #007bff;
+}
+
+.paymentFailed {
+    color: red;
+    margin-top: 8px;
+}
+
+.productTable {
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+
+.productInfo {
+    display: flex;
+    align-items: flex-start;
+}
+
+.productImageContainer {
+    width: 80px;
+    height: 80px;
+    margin-right: 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.productImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.productDetails {
+    flex: 1;
+}
+
+.productName {
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+}
+
+.orderSummary {
+    margin-top: 24px;
+    .summaryRow {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .summaryDivider {
+        margin: 16px 0;
+    }
+}
+
+.backButton {
+    text-transform: none;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 10px;
+}
+
+.priceCell {
+    min-width: 80px;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

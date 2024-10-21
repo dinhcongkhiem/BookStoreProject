@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faKey } from '@fortawesome/free-solid-svg-icons';
 import UserInfo from './Tab/UserInfo';
+import OrderInfo from './Order/Order';
+import OrderDetail from './OrderDetail/OrderDetail';
 import ChangePassword from './Tab/ChangePassword';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
 const cx = classNames.bind(style);
@@ -29,6 +31,20 @@ function User() {
                             Thông tin tài khoản
                         </li>
                         <li
+                            className={cx({ active: activeTab === 'orderInfo' })}
+                            onClick={() => handleTabChange('orderInfo')}
+                        >
+                            <FontAwesomeIcon icon={faUser} style={{ marginRight: '10px' }} />
+                            Quản lý đơn hàng
+                        </li>
+                        <li
+                            className={cx({ active: activeTab === 'orderDetail' })}
+                            onClick={() => handleTabChange('orderDetail')}
+                        >
+                            <FontAwesomeIcon icon={faUser} style={{ marginRight: '10px' }} />
+                            Chi tiết đơn hàng
+                        </li>
+                        <li
                             className={cx({ active: activeTab === 'changePassword' })}
                             onClick={() => handleTabChange('changePassword')}
                         >
@@ -40,6 +56,8 @@ function User() {
 
                 <div className={cx('content')}>
                     {activeTab === 'accountInfo' && <UserInfo setIsLoading={setIsLoading} />}
+                    {activeTab === 'orderInfo' && <OrderInfo setIsLoading={setIsLoading} />}
+                    {activeTab === 'orderDetail' && <OrderDetail setIsLoading={setIsLoading} />}
                     {activeTab === 'changePassword' && <ChangePassword setIsLoading={setIsLoading} />}
                 </div>
             </div>

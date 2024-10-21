@@ -1,0 +1,300 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.heading {
+    font-size: 28px;
+    margin-bottom: 30px;
+    color: #007bff;
+    font-size: 2.4rem;
+    margin-bottom: 2rem;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.tab {
+    padding: 12px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    color: #555;
+    border-bottom: 3px solid transparent;
+    transition:
+        border-color 0.3s,
+        color 0.3s;
+}
+
+.tab.active {
+    color: #007bff;
+    border-bottom: 3px solid #007bff;
+}
+.searchSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.searchInputContainer {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.searchInput {
+    flex: 1; /* Chiếm toàn bộ chiều rộng trong container */
+    padding: 10px;
+    border: none; /* Không có đường viền */
+    font-size: 14px;
+}
+
+.searchIcon {
+    color: #808089;
+    margin: 0 10px; /* Khoảng cách giữa icon và input */
+}
+
+.searchButton {
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: var(--primary);
+    border-top-right-radius: 4px;
+}
+
+.orderList {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.orderCard {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.orderHeader {
+    margin-bottom: 15px;
+}
+
+.orderStatus {
+    font-weight: bold;
+    color: #dc3545;
+}
+
+.orderDetails {
+    margin-bottom: 20px;
+}
+
+.productRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.productImage {
+    width: 80px;
+    height: 80px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    border-radius: 4px;
+}
+
+.productQuantity {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 2px 6px;
+    font-size: 12px;
+    border-radius: 3px;
+}
+
+.productInfo {
+    flex-grow: 1;
+    margin-left: 15px;
+}
+
+.productName {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.productStore {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.productPrice {
+    font-size: 16px;
+    font-weight: 700;
+    color: #28a745;
+}
+
+.orderFooter {
+    display: flex;
+    flex-direction: column; // Chuyển thành row để hai nút nằm ngang
+    align-items: flex-end; // Căn chỉnh các nút bên phải
+}
+
+.total {
+    display: flex;
+    justify-content: end;
+    align-items: baseline;
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.totalLabel {
+    font-size: 16px;
+    color: #6c757d;
+    margin-right: 10px;
+}
+
+.totalAmount {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ff424e;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.actionButton {
+    padding: 8px 16px;
+    font-size: 14px;
+    border: 1px solid #007bff;
+    background-color: #fff;
+    color: #007bff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition:
+        background-color 0.3s,
+        color 0.3s;
+}
+
+.actionButton:hover {
+    background-color: var(--hover-background-darker);
+    color: #fff;
+}
+.statusIcon {
+    opacity: 0.7;
+    margin-right: 8px;
+    margin-bottom: 0.5rem;
+    vertical-align: middle;
+}
+.orderStatus {
+    border-radius: 4px;
+
+    &.statusPending {
+        color: #ffa500; // Orange
+    }
+
+    &.statusProcessing {
+        color: #ffd700; // Yellow
+    }
+
+    &.statusShipping,
+    &.statusDelivered {
+        color: #008000; // Green
+    }
+
+    &.statusCancelled {
+        color: #ff0000; // Red
+    }
+}
+
+.actionButton {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    background-color: transparent;
+
+    &.payAgainButton {
+        color: #008000; // Green
+        border: 1px solid #008000;
+        &:hover {
+            background-color: #008000;
+            color: white;
+        }
+    }
+
+    &.receivedButton,
+    &.reviewButton {
+        color: #ffa500;
+        border: 1px solid #ffa500;
+        &:hover {
+            background-color: #ffa500;
+            color: white;
+        }
+    }
+
+    &:not(.payAgainButton):not(.receivedButton):not(.reviewButton) {
+        color: #007bff; // Blue
+        border: 1px solid #007bff;
+        &:hover {
+            background-color: var(--hover-background-darker);
+            color: white;
+        }
+    }
+}
+
+.actionButton {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    background-color: transparent;
+
+    &.payAgainButton {
+        color: #008000;
+        border: 1px solid #008000;
+        &:hover {
+            background-color: #008000;
+            color: white;
+        }
+    }
+
+    &.receivedButton,
+    &.reviewButton {
+        color: #ee4d2d;
+        border: 1px solid #ee4d2d;
+        &:hover {
+            background-color: #ee4d2d;
+            color: white;
+        }
+    }
+
+    &:not(.payAgainButton):not(.receivedButton):not(.reviewButton) {
+        color: #007bff;
+        border: 1px solid #007bff;
+        &:hover {
+            background-color: var(--hover-background-darker);
+            color: white;
+        }
+    }
+}
+
+.actions {
+    display: flex;
+    gap: 0.8rem;
+    padding-bottom: 1rem;
+}
