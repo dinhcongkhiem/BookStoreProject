@@ -1,11 +1,11 @@
 .container {
-    max-width: 1200px;
+    max-width: 120rem;
     margin: 0 auto;
 }
 
 .heading {
-    font-size: 28px;
-    margin-bottom: 30px;
+    font-size: 2.8rem;
+    margin-bottom: 3rem;
     color: #007bff;
     font-size: 2.4rem;
     margin-bottom: 2rem;
@@ -14,12 +14,12 @@
 .tabs {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 2rem;
 }
 
 .tab {
-    padding: 12px 20px;
-    font-size: 16px;
+    padding: 1.2rem 2rem;
+    font-size: 1.6rem;
     cursor: pointer;
     color: #555;
     border-bottom: 3px solid transparent;
@@ -37,7 +37,7 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    margin-bottom: 40px;
+    margin-bottom: 4rem;
 }
 
 .searchInputContainer {
@@ -50,21 +50,21 @@
 }
 
 .searchInput {
-    flex: 1; /* Chiếm toàn bộ chiều rộng trong container */
-    padding: 10px;
-    border: none; /* Không có đường viền */
-    font-size: 14px;
+    flex: 1;
+    padding: 1rem;
+    border: none;
+    font-size: 1.4rem;
 }
 
 .searchIcon {
     color: #808089;
-    margin: 0 10px; /* Khoảng cách giữa icon và input */
+    margin: 0 1rem;
 }
 
 .searchButton {
     color: #fff;
     border: none;
-    padding: 10px 20px;
+    padding: 1rem 2rem;
     cursor: pointer;
     background-color: var(--primary);
     border-top-right-radius: 4px;
@@ -80,12 +80,12 @@
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 6px;
-    padding: 20px;
+    padding: 2rem;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .orderHeader {
-    margin-bottom: 15px;
+    margin-bottom: 1.5rem;
 }
 
 .orderStatus {
@@ -94,19 +94,19 @@
 }
 
 .orderDetails {
-    margin-bottom: 20px;
+    margin-bottom: 2rem;
 }
 
 .productRow {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 1rem;
 }
 
 .productImage {
-    width: 80px;
-    height: 80px;
+    width: 8rem;
+    height: 8rem;
     background-size: cover;
     background-position: center;
     position: relative;
@@ -119,36 +119,36 @@
     right: 5px;
     background-color: rgba(0, 0, 0, 0.6);
     color: #fff;
-    padding: 2px 6px;
-    font-size: 12px;
-    border-radius: 3px;
+    padding: 0.2rem 0.6rem;
+    font-size: 1.2rem;
+    border-radius: 0.3rem;
 }
 
 .productInfo {
     flex-grow: 1;
-    margin-left: 15px;
+    margin-left: 1.5rem;
 }
 
 .productName {
-    font-size: 16px;
+    font-size: 1.6rem;
     font-weight: 500;
 }
 
 .productStore {
-    font-size: 14px;
+    font-size: 1.4rem;
     color: #6c757d;
 }
 
 .productPrice {
-    font-size: 16px;
+    font-size: 1.6rem;
     font-weight: 700;
     color: #28a745;
 }
 
 .orderFooter {
     display: flex;
-    flex-direction: column; // Chuyển thành row để hai nút nằm ngang
-    align-items: flex-end; // Căn chỉnh các nút bên phải
+    flex-direction: column;
+    align-items: flex-end;
 }
 
 .total {
@@ -156,17 +156,17 @@
     justify-content: end;
     align-items: baseline;
     width: 100%;
-    margin-bottom: 5px;
+    margin-bottom: 0.5rem;
 }
 
 .totalLabel {
-    font-size: 16px;
+    font-size: 1.6rem;
     color: #6c757d;
-    margin-right: 10px;
+    margin-right: 1rem;
 }
 
 .totalAmount {
-    font-size: 18px;
+    font-size: 1.8rem;
     font-weight: bold;
     color: #ff424e;
 }
@@ -178,8 +178,8 @@
 }
 
 .actionButton {
-    padding: 8px 16px;
-    font-size: 14px;
+    padding: 0.8rem 1.6rem;
+    font-size: 1.4rem;
     border: 1px solid #007bff;
     background-color: #fff;
     color: #007bff;
@@ -196,7 +196,7 @@
 }
 .statusIcon {
     opacity: 0.7;
-    margin-right: 8px;
+    margin-right: 0.8rem;
     margin-bottom: 0.5rem;
     vertical-align: middle;
 }
@@ -204,32 +204,32 @@
     border-radius: 4px;
 
     &.statusPending {
-        color: #ffa500; // Orange
+        color: #ffa500;
     }
 
     &.statusProcessing {
-        color: #ffd700; // Yellow
+        color: #ffd700;
     }
 
     &.statusShipping,
     &.statusDelivered {
-        color: #008000; // Green
+        color: #008000;
     }
 
     &.statusCancelled {
-        color: #ff0000; // Red
+        color: #ff0000;
     }
 }
 
 .actionButton {
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 0.8rem 1.6rem;
+    border-radius: 0.4rem;
     font-weight: bold;
     transition: all 0.3s ease;
     background-color: transparent;
 
     &.payAgainButton {
-        color: #008000; // Green
+        color: #008000;
         border: 1px solid #008000;
         &:hover {
             background-color: #008000;
@@ -248,7 +248,7 @@
     }
 
     &:not(.payAgainButton):not(.receivedButton):not(.reviewButton) {
-        color: #007bff; // Blue
+        color: #007bff;
         border: 1px solid #007bff;
         &:hover {
             background-color: var(--hover-background-darker);
@@ -258,7 +258,7 @@
 }
 
 .actionButton {
-    padding: 8px 16px;
+    padding: 0.8rem 1.6rem;
     border-radius: 4px;
     font-weight: bold;
     transition: all 0.3s ease;
