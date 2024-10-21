@@ -53,7 +53,8 @@ public class ProductController {
     @GetMapping()
     public ResponseEntity<?> getProduct(@RequestParam Long id) {
         try {
-            return ResponseEntity.ok(productService.findProductById(id));
+            Product product = productService.findProductById(id);
+            return ResponseEntity.ok(productService.findProductById(product));
         } catch (NoSuchElementException e) {
             return ResponseEntity.badRequest().body("No product found with id: " + id);
         }

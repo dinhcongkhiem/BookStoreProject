@@ -96,9 +96,8 @@ public class ProductService {
                 .stream().map(this::convertToProductResponse).toList();
     }
 
-    public ProductDetailResponse findProductById(Long id) {
-        return this.convertToProductDetailResponse(productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No product found with id: " + id)));
+    public ProductDetailResponse findProductById(Product product) {
+        return this.convertToProductDetailResponse(product);
     }
 
     public void addProduct(ProductRequest request, List<MultipartFile> images, Integer indexThumbnail) {
@@ -247,7 +246,7 @@ public class ProductService {
                 .build();
     }
 
-    private Map<String, ?> getDiscountValue(Product p) {
+    public Map<String, ?> getDiscountValue(Product p) {
         Integer discountRate = 0;
 
         if (p.getDiscount() != null) {
@@ -256,6 +255,11 @@ public class ProductService {
         BigDecimal discountValue = p.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
                 .divide(ONE_HUNDRED, RoundingMode.HALF_UP);
         return Map.of("discountRate", discountRate, "discountVal", discountValue);
+    }
+
+    public Product findProductById(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("No product found with id: " + id));
     }
 
 }

@@ -1,6 +1,7 @@
 package com.project.book_store_be.Model;
 
 import com.project.book_store_be.Enum.OrderStatus;
+import com.project.book_store_be.Enum.PaymentType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,12 +23,11 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private BigDecimal totalAmount;
     private BigDecimal shippingFee;
-    private BigDecimal totalDiscount;
-    private BigDecimal finalAmount;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;
     @ManyToOne
@@ -37,11 +37,6 @@ public class Order {
     @JoinColumn(name = "address_id")
     private Address address;
     private LocalDateTime orderDate;
-    @PrePersist
-    public void prePersist() {
-        if (status == null) {
-            status = OrderStatus.PENDING;
-        }
-    }
+
 
 }

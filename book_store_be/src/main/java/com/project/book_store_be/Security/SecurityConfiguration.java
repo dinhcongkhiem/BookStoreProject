@@ -55,13 +55,14 @@ public class SecurityConfiguration {
     };
 
     private static final String[] USER_LIST_URL = {
-            "/api/v1/user/**", "/api/v1/review/**", "/api/v1/cart/**"
+            "/api/v1/user/**", "/api/v1/review/**", "/api/v1/cart/**",
+            "/api/v1/order/**"
     };
 
     private static final String[] ADMIN_LIST_URL = {
             "/api/v1/admin/**", "/api/v1/publisher/**",
             "/api/v1/category/**", "/api/v1/product/**",
-            "/api/v1/product/all"
+            "/api/v1/product/all"," /api/v1/order/**"
     };
 
     @Bean
