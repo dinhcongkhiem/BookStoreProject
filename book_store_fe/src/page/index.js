@@ -7,19 +7,9 @@ import Contact from './Contact/Contact';
 import Product from './Product/Product';
 import User from './User/User';
 import Cart from './Cart/Cart';
+import Order from './User/Order/Order';
+import OrderDetail from './User/OrderDetail/OrderDetail';
 import ProductDetail from './ProductDetail/ProductDetail';
 
-export {
-    Home,
-    Profile,
-    Login,
-    Register,
-    About,
-    Contact,
-    User,
-    ProductDetail,
-    Product,
-    Cart,
-
-};
+export { Home, Profile, Login, Register, About, Contact, User, ProductDetail, Product, Cart, Order, OrderDetail };
 export * from './Admin';
