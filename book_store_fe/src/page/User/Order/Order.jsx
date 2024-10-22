@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Search, Clock, Package, Truck, CheckCircle, XOctagon } from 'lucide-react';
+import SearchIcon from '@mui/icons-material/Search';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 import classNames from 'classnames/bind';
 import style from './Order.module.scss';
 
@@ -114,15 +119,15 @@ function Order() {
     const getStatusIcon = (status) => {
         switch (status) {
             case 'Chờ thanh toán':
-                return <Clock className={cx('statusIcon', 'statusIconPending')} />;
+                return <AccessTimeIcon className={cx('statusIcon', 'statusIconPending')} />;
             case 'Đang xử lý':
-                return <Package className={cx('statusIcon', 'statusIconProcessing')} />;
+                return <InventoryIcon className={cx('statusIcon', 'statusIconProcessing')} />;
             case 'Đang vận chuyển':
-                return <Truck className={cx('statusIcon', 'statusIconShipping')} />;
+                return <LocalShippingIcon className={cx('statusIcon', 'statusIconShipping')} />;
             case 'Đã giao':
-                return <CheckCircle className={cx('statusIcon', 'statusIconDelivered')} />;
+                return <CheckCircleIcon className={cx('statusIcon', 'statusIconDelivered')} />;
             case 'Đã hủy':
-                return <XOctagon className={cx('statusIcon', 'statusIconCancelled')} />;
+                return <CancelIcon className={cx('statusIcon', 'statusIconCancelled')} />;
             default:
                 return null;
         }
@@ -173,7 +178,7 @@ function Order() {
 
             <div className={cx('searchSection')}>
                 <div className={cx('searchInputContainer')}>
-                    <Search className={cx('searchIcon')} />
+                    <SearchIcon className={cx('searchIcon')} />
                     <input
                         name="search"
                         placeholder="Tìm đơn hàng theo Mã đơn hàng, Nhà bán hoặc Tên sản phẩm"

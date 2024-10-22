@@ -186,7 +186,7 @@ function Cart() {
                                                 onChange={() => handleSelectItem(item.productId)}
                                             />
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell sx={{display: 'flex'}}>
                                             <img
                                                 src={item.thumbnail_url}
                                                 alt="Banner"

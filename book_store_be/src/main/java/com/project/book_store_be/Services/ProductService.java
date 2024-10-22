@@ -73,8 +73,8 @@ public class ProductService {
             case QTY_DESC -> Sort.by(Sort.Direction.DESC, "quantity");
             case STATUS_ASC -> Sort.by(Sort.Direction.ASC, "status");
             case STATUS_DESC -> Sort.by(Sort.Direction.DESC, "status");
-            case OLDEST -> Sort.by(Sort.Direction.DESC, "createDate");
-            default -> Sort.by(Sort.Direction.ASC, "createDate");
+            case OLDEST -> Sort.by(Sort.Direction.ASC, "createDate");
+            default -> Sort.by(Sort.Direction.DESC, "createDate");
         };
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize, sortValue);
         Long id;
