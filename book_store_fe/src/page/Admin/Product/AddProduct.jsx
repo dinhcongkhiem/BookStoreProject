@@ -58,8 +58,8 @@ function AddProduct() {
             .required('Vui lòng nhập khối lượng.')
             .min(0, 'Phải lớn hơn 0')
             .max(2000, 'Tối đa 2000 gam'),
-        quantity: Yup.number().required('Vui lòng nhập số lượng.'),
-        numberOfPages: Yup.number().required('Vui lòng nhập số trang.'),
+        quantity: Yup.number().required('Vui lòng nhập số lượng.').min(0, 'Phải lớn hơn 0'),
+        numberOfPages: Yup.number().required('Vui lòng nhập số trang.').min(0, 'Phải lớn hơn 0'),
         cost: Yup.number().required('Vui lòng nhập giá nhập.'),
         originalPrice: Yup.number().required('Vui lòng nhập giá bán.'),
         publisherId: Yup.string().required('Vui lòng chọn nhà phát hành.'),
@@ -87,6 +87,10 @@ function AddProduct() {
         onError: (error) => {
             console.log(error);
         },
+        onSuccess: () => {
+            toast.success("Thành công!")
+            navigate("/admin/product");
+        }
     });
     const formik = useFormik({
         initialValues: {
@@ -111,7 +115,7 @@ function AddProduct() {
         },
         validationSchema: validationSchema,
         onSubmit: (values) => {
-            console.log('Form data:', values);            
+            console.log('Form data:', values);
             insertProductMutation.mutate(values);
         },
         validateOnBlur: false,
@@ -307,16 +311,15 @@ function AddProduct() {
                                 options={yearOfPublicationData.map((year) => ({ label: year, code: year }))}
                                 value={
                                     yearOfPublicationData.find(
-                                        (option) => option.code === formik.values.yearOfPublication,
-                                    ) || null
+                                        (option) => option?.code === formik.values.yearOfPublication,
+                                    )
                                 }
-                                getOptionLabel={(option) => (option.label ? option.label.toString() : '')}
                                 renderInput={(params) => <TextField {...params} label="Năm xuất bản" />}
                                 size="small"
-                                onChange={(event, newValue) => {
+                                onChange={(event, newValue) => {                                    
                                     formik.setFieldValue('yearOfPublication', newValue ? newValue.code : '');
                                 }}
-                                isOptionEqualToValue={(option, value) => option.code === value}
+                                isOptionEqualToValue={(option, value) => option.code === value.code}
                                 sx={{ flex: '1', margin: '0', padding: '0' }}
                             />
                         </div>
@@ -409,13 +412,12 @@ function AddProduct() {
                                     attibutes?.publishers.find((pub) => pub.id === formik.values.publisherId) || null
                                 }
                                 onChange={(event, newValue) => {
-                                    formik.setFieldValue('publisherId', newValue ? newValue.id : null); 
+                                    formik.setFieldValue('publisherId', newValue ? newValue.id : null);
                                     const newPub = newValue.name.startsWith('Thêm');
                                     if (newPub) {
                                         navigate('/admin/attributes');
                                     }
                                 }}
-
                                 filterOptions={(options, params) => {
                                     const filtered = filter(options, params);
                                     const { inputValue } = params;
@@ -653,7 +655,9 @@ function AddProduct() {
                 onClose={() => setOpenSnackbar(false)}
                 message="Chỉ được chọn tối đa 4 ảnh"
             />
-            <ModalLoading isLoading={uploadImgInDesc.isPending || loadingFetchAttributes || insertProductMutation.isPending} />
+            <ModalLoading
+                isLoading={uploadImgInDesc.isPending || loadingFetchAttributes || insertProductMutation.isPending}
+            />
         </Box>
     );
 }

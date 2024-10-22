@@ -67,7 +67,6 @@ const Product = () => {
     };
 
     const handleChangeSort = (prop) => {
-        console.log(prop);
         if (prop === 'newest' && orderBy === prop) {
             setOrderBy('oldest');
         } else if (prop === 'newest') {
@@ -196,7 +195,7 @@ const Product = () => {
                             <TableCell size="small" sx={{ padding: '.5rem' }}>
                                 <TableSortLabel
                                     active={orderBy === 'oldest' || orderBy === 'newest'}
-                                    direction={orderBy === 'oldest' ? 'desc' : 'asc'}
+                                    direction={orderBy === 'oldest' ? 'asc' : 'desc'}
                                     onClick={() => handleChangeSort('newest')}
                                 >
                                     <b>Ngày tạo</b>
