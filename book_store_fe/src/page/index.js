@@ -28,4 +28,4 @@ export {
     OrderDetail,
 };
 
-export * from './Admin ';
+export * from './Admin';

@@ -19,7 +19,7 @@ function Order() {
         { id: 'processing', label: 'Đang xử lý' },
         { id: 'shipping', label: 'Đang vận chuyển' },
         { id: 'delivered', label: 'Đã giao' },
-        { id: 'cancelled', label: 'Đã huỷ' },
+        { id: 'cancelled', label: 'Đã huỷ ' },
     ];
 
     const orders = [
