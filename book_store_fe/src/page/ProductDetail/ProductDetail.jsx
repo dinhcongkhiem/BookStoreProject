@@ -276,7 +276,7 @@ function ProductDetail() {
                         <DetailInfoProductComponent
                             isLink={false}
                             label={'Kích thước'}
-                            value={product?.size ? `${product.size.x}, ${product.size.y}, ${product.size.z} cm` : null}
+                            value={product?.size ? `${product.size.x} x ${product.size.y} x ${product.size.z} cm` : null}
                         />
                         <DetailInfoProductComponent
                             isLink={false}

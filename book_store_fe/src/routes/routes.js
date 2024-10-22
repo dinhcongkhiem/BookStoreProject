@@ -14,8 +14,8 @@ const publicRoutes = [
     { path: '/cart', component: Pages.Cart },
     { path: '/oauth2/redirect', component: OAuth2Redirect, layout: null },
     { path: '/verify/redirect', component: ActiveAccountRedirect, layout: null },
+    { path: '/payment', component: Pages.Payment },
 ];
-
 
 const userRoutes = [
     { path: '/profile/info', component: Pages.Profile },
@@ -35,8 +35,6 @@ const adminRoutes = [
     { path: '/admin/discount/add', component: Pages.AddDiscount },
     { path: '/admin/discount/edit', component: Pages.EditDiscount },
     { path: '/admin/attributes', component: Pages.Attributes, label: 'Thuộc tính' },
-
 ];
-
 
 export { publicRoutes, userRoutes, adminRoutes };

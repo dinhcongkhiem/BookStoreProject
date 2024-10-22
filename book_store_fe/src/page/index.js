@@ -8,7 +8,7 @@ import Product from './Product/Product';
 import User from './User/User';
 import Cart from './Cart/Cart';
 import ProductDetail from './ProductDetail/ProductDetail';
-
+import Payment from './Payment/Payment'
 export {
     Home,
     Profile,
@@ -20,6 +20,7 @@ export {
     ProductDetail,
     Product,
     Cart,
+    Payment
 
 };
 export * from './Admin';

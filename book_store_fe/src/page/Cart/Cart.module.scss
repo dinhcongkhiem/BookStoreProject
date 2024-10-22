@@ -118,10 +118,14 @@
     }
 }
 .name-item {
-    display: inline-block;
-    width: 85%;
-    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: normal;
+    height: 4rem;
+    max-width: 43.5rem;
 }
 
 .quantity-container {
