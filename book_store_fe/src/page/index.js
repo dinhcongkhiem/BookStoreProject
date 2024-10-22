@@ -7,8 +7,12 @@ import Contact from './Contact/Contact';
 import Product from './Product/Product';
 import User from './User/User';
 import Cart from './Cart/Cart';
+import Order from './User/Order/Order';
+import OrderDetail from './User/OrderDetail/OrderDetail';
 import ProductDetail from './ProductDetail/ProductDetail';
 import Payment from './Payment/Payment'
+
+
 export {
     Home,
     Profile,
@@ -20,7 +24,10 @@ export {
     ProductDetail,
     Product,
     Cart,
-    Payment
+    Payment,
+    Order,
+    OrderDetail 
 
 };
+
 export * from './Admin';

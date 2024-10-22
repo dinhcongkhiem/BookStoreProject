@@ -12,6 +12,8 @@ const publicRoutes = [
     { path: '/product', component: Pages.Product },
     { path: '/product/detail', component: Pages.ProductDetail },
     { path: '/cart', component: Pages.Cart },
+    { path: '/order ', component: Pages.Order },
+    { path: '/orderDetail ', component: Pages.OrderDetail },
     { path: '/oauth2/redirect', component: OAuth2Redirect, layout: null },
     { path: '/verify/redirect', component: ActiveAccountRedirect, layout: null },
     { path: '/payment', component: Pages.Payment },
