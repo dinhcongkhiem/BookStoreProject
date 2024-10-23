@@ -83,7 +83,7 @@ const Product = () => {
         setPage(1);
         setSearchTerm(event.target.value);
     };
- 
+
     const {
         data: productRes,
         error,
@@ -96,9 +96,9 @@ const Product = () => {
             ),
         retry: 1,
     });
-    
+
     useEffect(() => {
-        if(productRes) {
+        if (productRes) {
             window.scrollTo({ top: 0, behavior: 'instant' });
         }
     }, [productRes]);
@@ -207,73 +207,81 @@ const Product = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {productRes?.content.map((product) => (
-                            <TableRow key={product.id}>
-                                <TableCell size="small" sx={{ paddingRight: '.5rem', width: '78px' }}>
-                                    {product.id}
-                                </TableCell>
-                                <TableCell
-                                    size="small"
-                                    sx={{
-                                        width: '589px',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'wrap',
-                                    }}
-                                >
-                                    <Box display="flex" alignItems="center" sx={{ fontWeight: '700' }}>
-                                        <Avatar
-                                            alt={product.name}
-                                            src={product.thumbnail_url}
-                                            sx={{ width: 50, height: 80, mr: 2, borderRadius: 0 }}
-                                        />
-                                        {product.name}
-                                    </Box>
-                                </TableCell>
-                                <TableCell size="small" sx={{ padding: '.5rem' }}>
-                                    {product?.price.toLocaleString('vi-VN')} <strong>₫</strong>
-                                </TableCell>
-                                <TableCell size="small" sx={{ padding: '.5rem' }}>
-                                    {product?.quantity}
-                                </TableCell>
-                                <TableCell size="small" sx={{ padding: '.5rem' }}>
-                                    <span
-                                        className={cx('status', {
-                                            'in-stock': product.status === 'AVAILABLE',
-                                            'out-of-stock': product.status === 'Hết hàng',
-                                        })}
+                        {productRes?.content.length !== 0 ? (
+                            productRes?.content.map((product) => (
+                                <TableRow key={product.id}>
+                                    <TableCell size="small" sx={{ paddingRight: '.5rem', width: '78px' }}>
+                                        {product.id}
+                                    </TableCell>
+                                    <TableCell
+                                        size="small"
+                                        sx={{
+                                            width: '589px',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'wrap',
+                                        }}
                                     >
-                                        {product?.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
-                                    </span>
-                                </TableCell>
-                                <TableCell size="small" sx={{ padding: '.5rem' }}>
-                                    {new Date(product?.createDate).toLocaleDateString()}
-                                </TableCell>
-                                <TableCell size="small" sx={{ padding: '.5rem' }}>
-                                    <IconButton
-                                        onClick={() => handleView(product)}
-                                        aria-label="view"
-                                        sx={{ color: '#4791db' }}
-                                    >
-                                        <VisibilityIcon fontSize="small" />
-                                    </IconButton>
-                                    <IconButton
-                                        onClick={() => handleEdit(product)}
-                                        aria-label="edit"
-                                        sx={{ color: 'green' }}
-                                    >
-                                        <EditIcon fontSize="small" />
-                                    </IconButton>
-                                    <IconButton
-                                        // onClick={() => handleDelete(product.id)}
-                                        aria-label="delete"
-                                        sx={{ color: 'red' }}
-                                    >
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                </TableCell>
+                                        <Box display="flex" alignItems="center" sx={{ fontWeight: '700' }}>
+                                            <Avatar
+                                                alt={product.name}
+                                                src={product.thumbnail_url}
+                                                sx={{ width: 50, height: 80, mr: 2, borderRadius: 0 }}
+                                            />
+                                            {product.name}
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                        {product?.price.toLocaleString('vi-VN')} <strong>₫</strong>
+                                    </TableCell>
+                                    <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                        {product?.quantity}
+                                    </TableCell>
+                                    <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                        <span
+                                            className={cx('status', {
+                                                'in-stock': product.status === 'AVAILABLE',
+                                                'out-of-stock': product.status === 'Hết hàng',
+                                            })}
+                                        >
+                                            {product?.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                        {new Date(product?.createDate).toLocaleDateString()}
+                                    </TableCell>
+                                    <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                        <IconButton
+                                            onClick={() => handleView(product)}
+                                            aria-label="view"
+                                            sx={{ color: '#4791db' }}
+                                        >
+                                            <VisibilityIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton
+                                            onClick={() => handleEdit(product)}
+                                            aria-label="edit"
+                                            sx={{ color: 'green' }}
+                                        >
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton
+                                            // onClick={() => handleDelete(product.id)}
+                                            aria-label="delete"
+                                            sx={{ color: 'red' }}
+                                        >
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={8} sx={{textAlign: 'center', fontSize: '2rem', fontWeight: '700'}}>
+                                    Không tìm thấy sản phẩm.
+                                    </TableCell>
                             </TableRow>
-                        ))}
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>

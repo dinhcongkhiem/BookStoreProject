@@ -1,18 +1,5 @@
-import React, { memo, useContext, useState } from 'react';
-import {
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Button,
-    RadioGroup,
-    FormControlLabel,
-    Radio,
-    TextField,
-    FormControl,
-    FormHelperText,
-    Popper,
-} from '@mui/material';
+import React, { memo, useState } from 'react';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import {
     getProvinceByCode,
@@ -22,42 +9,80 @@ import {
     getDistrictByCode,
     getWardByCode,
 } from 'vn-provinces';
-import { AuthenticationContext } from '../../../context/AuthenticationProvider';
-const UpdateAddressModal = ({ open, onClose, onConfirm }) => {
-    const [selectedOption, setSelectedOption] = useState('savedAddress');
-    const { authentication } = useContext(AuthenticationContext);
-    const [selectedProvince, setSelectedProvince] = useState('');
-    const [selectedDistrict, setSelectedDistrict] = useState('');
-    const [selectedCommune, setSelectedCommune] = useState('');
-    const [addressDetail, setAddressDetail] = useState('');
-
-    const [provinces, setProvince] = useState(getProvinces());
+import * as Yup from 'yup';
+import { useFormik } from 'formik';
+const UpdateAddressModal = ({ open, onClose, setValue }) => {
+    const [provinces] = useState(getProvinces());
     const [districts, setDistricts] = useState();
     const [communes, setCommunes] = useState();
 
-    const [listErr, setListErr] = useState({
-        province: false,
-        district: false,
-        commune: false,
-        addressDetail: false,
+    const validationSchema = Yup.object({
+        name: Yup.string().required('Vui lòng nhập tên người nhận hàng.'),
+        phoneNum: Yup.string().required('Vui lòng nhập số điện thoại.').length(10, 'Số điện thoại phải có 10 chữ số.'),
+        selectedProvince: Yup.object()
+            .nullable()
+            .required('Vui lòng chọn tỉnh.')
+            .test('is-valid', 'Vui lòng chọn tỉnh.', (value) => value && value.code),
+        selectedDistrict: Yup.object()
+            .nullable()
+            .required('Vui lòng chọn huyện.')
+            .test('is-valid', 'Vui lòng chọn huyện.', (value) => value && value.code),
+        selectedCommune: Yup.object()
+            .nullable()
+            .required('Vui lòng chọn xã.')
+            .test('is-valid', 'Vui lòng chọn xã.', (value) => value && value.code),
+        addressDetail: Yup.string().required('Vui lòng nhập địa chỉ cụ thể.'),
     });
 
-    const handleOptionChange = (event) => {
-        setSelectedOption(event.target.value);
-    };
+    const formik = useFormik({
+        initialValues: {
+            name: '',
+            phoneNum: '',
+            selectedProvince: '',
+            selectedDistrict: '',
+            selectedCommune: '',
+            addressDetail: '',
+        },
+        validationSchema: validationSchema,
+        onSubmit: (values) => {
+            const data = {
+                fullName: values.name,
+                phoneNum: values.phoneNum,
+                address: {
+                    province: {value: values.selectedProvince.code, label: values.selectedProvince.name},
+                    district:{value: values.selectedDistrict.code, label: values.selectedDistrict.name},
+                    commune:{value: values.selectedCommune.code, label: values.selectedCommune.name},
+                    addressDetail: values.addressDetail
+                },
+            };
+            setValue(data);
+            onClose()
+        },
+        validateOnBlur: false,
+        validateOnChange: false,
+    });
 
     const handleChangeAddress = (type, value) => {
         if (type === 1) {
-            setSelectedProvince(getProvinceByCode(value));
+            formik.setValues((prev) => ({
+                ...prev,
+                selectedProvince: getProvinceByCode(value),
+                selectedDistrict: '',
+                selectedCommune: '',
+            }));
             setDistricts(getDistrictsByProvinceCode(value));
-            setSelectedDistrict('');
-            setSelectedCommune('');
         } else if (type === 2) {
-            setSelectedDistrict(getDistrictByCode(value));
             setCommunes(getWardsByDistrictCode(value));
-            setSelectedCommune('');
+            formik.setValues((prev) => ({
+                ...prev,
+                selectedDistrict: getDistrictByCode(value),
+                selectedCommune: '',
+            }));
         } else {
-            setSelectedCommune(getWardByCode(value));
+            formik.setValues((prev) => ({
+                ...prev,
+                selectedCommune: getWardByCode(value),
+            }));
         }
     };
     return (
@@ -66,96 +91,225 @@ const UpdateAddressModal = ({ open, onClose, onConfirm }) => {
             onClose={onClose}
             aria-labelledby="confirm-dialog-title"
             aria-describedby="confirm-dialog-description"
-            maxWidth="lg"
+            maxWidth="sm"
+            PaperProps={{
+                style: { maxHeight: 'none' },
+            }}
         >
-            <DialogTitle id="confirm-dialog-title" sx={{ textAlign: 'center' }}>
-                {'Địa chỉ giao hàng'}
-            </DialogTitle>
-            <DialogContent dividers>
-                <RadioGroup value={selectedOption} onChange={handleOptionChange}>
-                    <FormControlLabel
-                        value="savedAddress"
-                        control={<Radio />}
-                        label={`Giao hàng đến: 
-                            ${authentication?.user?.address?.addressDetail},
-                            ${authentication?.user?.address?.commune.label},
-                            ${authentication?.user?.address?.district.label},
-                            ${authentication?.user?.address?.province.label}`}
-                    />
-                    <FormControlLabel value="newAddress" control={<Radio />} label="Giao hàng đến địa chỉ khác" />
-                </RadioGroup>
+            <form>
+                <DialogTitle id="confirm-dialog-title" sx={{ textAlign: 'center' }}>
+                    {'Địa chỉ giao hàng'}
+                </DialogTitle>
+                <DialogContent dividers>
+                    <div className="d-flex flex-wrap gap-3 ">
+                        <div style={{ width: '100%' }} className="d-flex align-items-center mb-3">
+                            <label
+                                htmlFor="province"
+                                style={{
+                                    width: '32%',
+                                    marginBottom: formik.touched.name && Boolean(formik.errors.name) ? '2rem' : '0',
+                                }}
+                            >
+                                Họ và tên người nhận
+                            </label>
+                            <TextField
+                                label=""
+                                variant="outlined"
+                                name="name"
+                                value={formik.values.name}
+                                onChange={formik.handleChange}
+                                margin="normal"
+                                size="small"
+                                sx={{ flex: 1, margin: 0 }}
+                                error={formik.touched.name && Boolean(formik.errors.name)}
+                                helperText={formik.touched.name && formik.errors.name}
+                            />
+                        </div>
+                        <div style={{ width: '100%' }} className="d-flex align-items-center mb-3">
+                            <label
+                                htmlFor="province"
+                                style={{
+                                    width: '32%',
+                                    marginBottom:
+                                        formik.touched.phoneNum && Boolean(formik.errors.phoneNum) ? '2rem' : '0',
+                                }}
+                            >
+                                Số điện thoại
+                            </label>
+                            <TextField
+                                label=""
+                                variant="outlined"
+                                name="phoneNum"
+                                value={formik.values.phoneNum}
+                                onChange={formik.handleChange}
+                                margin="normal"
+                                size="small"
+                                sx={{ flex: 1, margin: 0 }}
+                                error={formik.touched.phoneNum && Boolean(formik.errors.phoneNum)}
+                                helperText={formik.touched.phoneNum && formik.errors.phoneNum}
+                            />
+                        </div>
+                        <div style={{ width: '100%' }} className="d-flex align-items-center mb-3">
+                            <label
+                                htmlFor="province"
+                                style={{
+                                    width: '32%',
+                                    marginBottom:
+                                        formik.touched.selectedProvince && Boolean(formik.errors.selectedProvince)
+                                            ? '2rem'
+                                            : '0',
+                                }}
+                            >
+                                Tỉnh thành
+                            </label>
+                            <Autocomplete
+                                name="province"
+                                disableClearable
+                                options={provinces.map((prov) => ({ label: prov.name, code: prov.code }))}
+                                value={
+                                    formik.values.selectedProvince
+                                        ? {
+                                              label: formik.values.selectedProvince.name,
+                                              code: formik.values.selectedProvince.code,
+                                          }
+                                        : null
+                                }
+                                isOptionEqualToValue={(option, value) => option.code === value.code}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        error={
+                                            formik.touched.selectedProvince && Boolean(formik.errors.selectedProvince)
+                                        }
+                                        helperText={formik.touched.selectedProvince && formik.errors.selectedProvince}
+                                    />
+                                )}
+                                size="small"
+                                onChange={(e, value) => handleChangeAddress(1, value.code)}
+                                sx={{ m: 0, flex: 1 }}
+                            />
+                        </div>
+                        <div style={{ width: '100%' }} className="d-flex align-items-center mb-3">
+                            <label
+                                htmlFor="province"
+                                style={{
+                                    width: '32%',
+                                    marginBottom:
+                                        formik.touched.selectedDistrict && Boolean(formik.errors.selectedDistrict)
+                                            ? '2rem'
+                                            : '0',
+                                }}
+                            >
+                                Quận/Huyện
+                            </label>
+                            <Autocomplete
+                                disableClearable
+                                className="m-0"
+                                options={
+                                    districts ? districts.map((prov) => ({ label: prov.name, code: prov.code })) : []
+                                }
+                                value={
+                                    formik.values.selectedDistrict
+                                        ? {
+                                              label: formik.values.selectedDistrict.name,
+                                              code: formik.values.selectedDistrict.code,
+                                          }
+                                        : null
+                                }
+                                sx={{ m: 0, flex: 1 }}
+                                isOptionEqualToValue={(option, value) => option.code === value.code}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        error={
+                                            formik.touched.selectedDistrict && Boolean(formik.errors.selectedDistrict)
+                                        }
+                                        helperText={formik.touched.selectedDistrict && formik.errors.selectedDistrict}
+                                    />
+                                )}
+                                size="small"
+                                onChange={(e, value) => handleChangeAddress(2, value.code)}
+                            />
+                        </div>
 
-                <div className="d-flex flex-wrap justify-content-center">
-                    <FormControl
-                        required
-                        // error={listErr?.province}
-                        size="small"
-                        sx={{ my: 1, minWidth: '60%' }}
-                    >
-                        <Autocomplete
-                            disableClearable
-                            options={provinces.map((prov) => ({ label: prov.name, code: prov.code }))}
-                            value={
-                                selectedProvince ? { label: selectedProvince.name, code: selectedProvince.code } : null
-                            }
-                            isOptionEqualToValue={(option, value) => option.code === value.code}
-                            renderInput={(params) => <TextField {...params} label="Tỉnh/Thành Phố" />}
-                            size="small"
-                            onChange={(e, value) => handleChangeAddress(1, value.code)}
-                            sx={{ my: 1, minWidth: '60%' }}
-                        />
-                        <FormHelperText>{listErr.province ? 'Vui lòng chọn tỉnh/thành phố' : ''}</FormHelperText>
-                    </FormControl>
-                    <FormControl required error={listErr.district} size="small" sx={{ my: 1, minWidth: '60%' }}>
-                        <Autocomplete
-                            disableClearable
-                            className="m-0"
-                            options={districts ? districts.map((prov) => ({ label: prov.name, code: prov.code })) : []}
-                            value={
-                                selectedDistrict ? { label: selectedDistrict.name, code: selectedDistrict.code } : null
-                            }
-                            sx={{ my: 1, minWidth: '60%' }}
-                            isOptionEqualToValue={(option, value) => option.code === value.code}
-                            renderInput={(params) => <TextField {...params} label="Quận/Huyện" />}
-                            size="small"
-                            onChange={(e, value) => handleChangeAddress(2, value.code)}
-                        />
-                        <FormHelperText>{listErr.district ? 'Vui lòng chọn quận/huyện' : ''}</FormHelperText>
-                    </FormControl>
-                    <FormControl required error={listErr.commune} size="small" sx={{ my: 1, minWidth: '60%' }}>
-                        <Autocomplete
-                            disableClearable
-                            className="m-0"
-                            options={communes ? communes.map((prov) => ({ label: prov.name, code: prov.code })) : []}
-                            value={selectedCommune ? { label: selectedCommune.name, code: selectedCommune.code } : null}
-                            sx={{ my: 1, minWidth: '60%' }}
-                            renderInput={(params) => <TextField {...params} label="Xã/Phường" />}
-                            isOptionEqualToValue={(option, value) => option.code === value.code}
-                            size="small"
-                            onChange={(e, value) => handleChangeAddress(3, value.code)}
-                        />
-                        <FormHelperText>{listErr.commune ? 'Vui lòng chọn xã/phường' : ''}</FormHelperText>
-                    </FormControl>
-                    <TextField
-                        label="Địa chỉ cụ thể"
-                        variant="outlined"
-                        value={addressDetail}
-                        onChange={(e) => setAddressDetail(e.target.value)}
-                        margin="normal"
-                        size="small"
-                        sx={{ my: 1, minWidth: '60%' }}
-                    />
-                </div>
-            </DialogContent>
+                        <div style={{ width: '100%' }} className="d-flex align-items-center mb-3">
+                            <label
+                                htmlFor="province"
+                                style={{
+                                    width: '32%',
+                                    marginBottom:
+                                        formik.touched.selectedCommune && Boolean(formik.errors.selectedCommune)
+                                            ? '2rem'
+                                            : '0',
+                                }}
+                            >
+                                Xã/Phường
+                            </label>
+                            <Autocomplete
+                                disableClearable
+                                className="m-0"
+                                options={
+                                    communes ? communes.map((prov) => ({ label: prov.name, code: prov.code })) : []
+                                }
+                                value={
+                                    formik.values.selectedCommune
+                                        ? {
+                                              label: formik.values.selectedCommune.name,
+                                              code: formik.values.selectedCommune.code,
+                                          }
+                                        : null
+                                }
+                                sx={{ m: 0, flex: 1 }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        error={formik.touched.selectedCommune && Boolean(formik.errors.selectedCommune)}
+                                        helperText={formik.touched.selectedCommune && formik.errors.selectedCommune}
+                                    />
+                                )}
+                                isOptionEqualToValue={(option, value) => option.code === value.code}
+                                size="small"
+                                onChange={(e, value) => handleChangeAddress(3, value.code)}
+                            />
+                        </div>
+                        <div style={{ width: '100%' }} className="d-flex align-items-center mb-3">
+                            <label
+                                htmlFor="province"
+                                style={{
+                                    width: '32%',
+                                    marginBottom:
+                                        formik.touched.addressDetail && Boolean(formik.errors.addressDetail)
+                                            ? '2rem'
+                                            : '0',
+                                }}
+                            >
+                                Địa chỉ cụ thể
+                            </label>
+                            <TextField
+                                label=""
+                                variant="outlined"
+                                name="addressDetail"
+                                value={formik.values.addressDetail}
+                                onChange={formik.handleChange}
+                                margin="normal"
+                                size="small"
+                                sx={{ flex: 1, margin: 0 }}
+                                error={formik.touched.addressDetail && Boolean(formik.errors.addressDetail)}
+                                helperText={formik.touched.addressDetail && formik.errors.addressDetail}
+                            />
+                        </div>
+                    </div>
+                </DialogContent>
 
-            <DialogActions>
-                <Button onClick={onClose} color="primary">
-                    Hủy
-                </Button>
-                <Button onClick={onConfirm} color="primary" variant="contained" autoFocus>
-                    Xác nhận
-                </Button>
-            </DialogActions>
+                <DialogActions>
+                    <Button onClick={onClose} color="primary">
+                        Hủy
+                    </Button>
+                    <Button type="submit" color="primary" variant="contained" onClick={formik.handleSubmit}>
+                        Xác nhận
+                    </Button>
+                </DialogActions>
+            </form>
         </Dialog>
     );
 };

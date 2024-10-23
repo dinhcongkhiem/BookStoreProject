@@ -38,6 +38,11 @@ public class CartService {
         return convertToCartResponse(cartPage);
     }
 
+    public List<Cart> getCartsById(List<Long> ids) {
+        User currentUser = userService.getCurrentUser();
+        return cartRepository.findAllByIdInAndUser(ids, currentUser);
+    }
+
     public void addToCart(CartRequest cartRequest) {
         User currentUser = userService.getCurrentUser();
         Product product = productRepository.findById(cartRequest.getProductId())
@@ -98,9 +103,6 @@ public class CartService {
     private ProductCartResponse convertToProductCartResponse(Cart cart) {
         Product product = cart.getProduct();
         BigDecimal discountValue = calculateDiscount(product);
-        String thumbnailUrl = imageProductService.getThumbnailProduct(product.getId()) != null
-                ? imageProductService.getThumbnailProduct(product.getId()).getUrlImage()
-                : null;
         return ProductCartResponse.builder()
                 .id(cart.getId())
                 .productId(product.getId())
@@ -110,7 +112,7 @@ public class CartService {
                 .original_price(product.getOriginal_price())
                 .discount(discountValue)
                 .price(product.getOriginal_price().subtract(discountValue))
-                .thumbnail_url(thumbnailUrl)
+                .thumbnail_url(imageProductService.getThumbnailProduct(product.getId()))
                 .build();
     }
 

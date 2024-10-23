@@ -184,15 +184,12 @@ public class ProductService {
     public ProductResponse convertToProductResponse(Product product) {
 
         Map<String, ?> discountValue = getDiscountValue(product);
-
-        String thumbnailUrl = imageProductService.getThumbnailProduct(product.getId()) != null
-                ? imageProductService.getThumbnailProduct(product.getId()).getUrlImage() : null;
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
                 .original_price(product.getOriginal_price())
                 .authors(product.getAuthors())
-                .thumbnail_url(thumbnailUrl)
+                .thumbnail_url(imageProductService.getThumbnailProduct(product.getId()))
                 .discount((BigDecimal) discountValue.get("discountVal"))
                 .discount_rate((Integer) discountValue.get("discountRate"))
                 .price(product.getPrice())
@@ -233,8 +230,6 @@ public class ProductService {
 
     private ProductsForManagerResponse convertToForManagerRes(Product product) {
         Map<String, ?> discountValue = getDiscountValue(product);
-        String thumbnailUrl = imageProductService.getThumbnailProduct(product.getId()) != null
-                ? imageProductService.getThumbnailProduct(product.getId()).getUrlImage() : null;
         return ProductsForManagerResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -242,7 +237,7 @@ public class ProductService {
                 .quantity(product.getQuantity())
                 .status(product.getStatus())
                 .createDate(product.getCreateDate())
-                .thumbnail_url(thumbnailUrl)
+                .thumbnail_url(imageProductService.getThumbnailProduct(product.getId()))
                 .build();
     }
 
