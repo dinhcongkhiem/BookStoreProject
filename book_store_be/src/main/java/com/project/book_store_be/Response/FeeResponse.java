@@ -5,12 +5,21 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class FeeResponse {
 
-    private FeeDetails fee;
+
+
+
+    private BigDecimal fee;
+
+
+
+
 }
 
 
