@@ -12,7 +12,6 @@ import OrderDetail from './User/OrderDetail/OrderDetail';
 import ProductDetail from './ProductDetail/ProductDetail';
 import Payment from './Payment/Payment'
 
-
 export {
     Home,
     Profile,
@@ -26,8 +25,7 @@ export {
     Cart,
     Payment,
     Order,
-    OrderDetail 
-
+    OrderDetail,
 };
 
 export * from './Admin';
