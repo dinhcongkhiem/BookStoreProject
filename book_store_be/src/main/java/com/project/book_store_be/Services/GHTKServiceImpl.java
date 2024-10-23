@@ -4,26 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.book_store_be.Interface.GHTKService;
 import com.project.book_store_be.Response.FeeResponse;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import org.springframework.web.client.RestTemplate;
-
-
 import java.math.BigDecimal;
-
-
-
 
 @Service
 public class GHTKServiceImpl implements GHTKService {
     private final RestTemplate restTemplate;
-
     @Value("${ghtk.api.url}")
     private String ghtkApiUrl;
 
@@ -45,7 +37,6 @@ public class GHTKServiceImpl implements GHTKService {
     public GHTKServiceImpl(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
-
     @Override
     public FeeResponse calculateShippingFee(String province, String district,String ward,String address, int weight, int value, String deliverOption) {
         try {
@@ -66,24 +57,13 @@ public class GHTKServiceImpl implements GHTKService {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Token", apiToken);
             HttpEntity<String> entity = new HttpEntity<>(headers);
-
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-
-
             ObjectMapper objectMapper = new ObjectMapper();
-
-
             JsonNode jsonResponse = objectMapper.readTree(response.getBody());
-
-
             JsonNode feeObject = jsonResponse.get("fee");
             BigDecimal fee = new BigDecimal(feeObject.get("fee").asText());
-
-
             return new FeeResponse(fee);
-
         } catch (Exception e) {
-
             throw new RuntimeException("Error calculating shipping fee", e);
         }
     }

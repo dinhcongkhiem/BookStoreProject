@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 @RequestMapping("/api/ghtk")
 public class ShippingController {
     private final GHTKService ghtkService;
-
     @Autowired
     public ShippingController(GHTKService ghtkService) {
         this.ghtkService = ghtkService;
@@ -34,6 +33,4 @@ public class ShippingController {
         );
         return ResponseEntity.ok(feeResponse);
     }
-
-
 }
