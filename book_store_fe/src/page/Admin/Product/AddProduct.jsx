@@ -56,10 +56,10 @@ function AddProduct() {
         }),
         weight: Yup.number()
             .required('Vui lòng nhập khối lượng.')
-            .min(0, 'Phải lớn hơn 0')
+            .min(1, 'Phải lớn hơn 0')
             .max(2000, 'Tối đa 2000 gam'),
-        quantity: Yup.number().required('Vui lòng nhập số lượng.').min(0, 'Phải lớn hơn 0'),
-        numberOfPages: Yup.number().required('Vui lòng nhập số trang.').min(0, 'Phải lớn hơn 0'),
+        quantity: Yup.number().required('Vui lòng nhập số lượng.').min(1, 'Phải lớn hơn 0'),
+        numberOfPages: Yup.number().required('Vui lòng nhập số trang.').min(1, 'Phải lớn hơn 0'),
         cost: Yup.number().required('Vui lòng nhập giá nhập.'),
         originalPrice: Yup.number().required('Vui lòng nhập giá bán.'),
         publisherId: Yup.string().required('Vui lòng chọn nhà phát hành.'),
