@@ -17,6 +17,10 @@ public class ShippingController {
 
     @GetMapping("/calculate-fee")
     public ResponseEntity<FeeResponse> calculateShippingFee(
+            @RequestParam String province,
+            @RequestParam String district,
+            @RequestParam String ward,
+            @RequestParam String address,
             @RequestParam int weight,
             @RequestParam(required = false, defaultValue = "0") int value,
             @RequestParam String deliverOption
