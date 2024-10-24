@@ -66,3 +66,7 @@ information:
     nameShop: Book Bazaar
     emailShop: admin@khiemcongdinh.id.vn
     ccGmailShop: phamthihue3340@gmail.com
+PAYOS:
+  CLIENT_ID:
+  API_KEY:
+  CHECKSUM_KEY:
