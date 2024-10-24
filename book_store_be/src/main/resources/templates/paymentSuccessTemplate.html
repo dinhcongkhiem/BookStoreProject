@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác nhận thanh toán thành công</title>
+</head>
+<body style="width: 70%; margin: 0 auto">
+<h1>Thanh toán thành công</h1>
+<h4>Xin chào: <span th:text="${user.fullName}"></span></h4>
+<p>Chúng tôi xin xác nhận rằng bạn đã thanh toán thành công cho đơn hàng với mã <strong th:text="${orderCode}"></strong>.</p>
+<p>Số tiền thanh toán: <strong th:text="${amount}"></strong></p>
+<p>Trạng thái: <strong>Thanh toán thành công</strong></p>
+<p><a href="">Xem chi tiết đơn hàng</a></p>
+<b>Xin cảm ơn</b>
+<h2 style="text-align: right">Book Bazaar</h2>
+</body>
+</html>
