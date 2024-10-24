@@ -1,21 +1,18 @@
 package com.project.book_store_be.Controller;
 
-import com.project.book_store_be.Interface.GHTKService;
+import com.project.book_store_be.Interface.ShippingService;
 import com.project.book_store_be.Response.FeeResponse;
-import com.project.book_store_be.Services.GHTKServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-
 @RestController
 @RequestMapping("/api/ghtk")
 public class ShippingController {
-    private final GHTKService ghtkService;
+    private final ShippingService shippingService;
     @Autowired
-    public ShippingController(GHTKService ghtkService) {
-        this.ghtkService = ghtkService;
+    public ShippingController(ShippingService shippingService) {
+        this.shippingService = shippingService;
     }
 
     @GetMapping("/calculate-fee")
@@ -28,9 +25,7 @@ public class ShippingController {
             @RequestParam(required = false, defaultValue = "0") int value,
             @RequestParam String deliverOption
     ) {
-        FeeResponse feeResponse = ghtkService.calculateShippingFee(
-                province, district,ward,address, weight, value, deliverOption
-        );
+        FeeResponse feeResponse = shippingService.calculateShippingFee(weight, value, deliverOption);
         return ResponseEntity.ok(feeResponse);
     }
 }
