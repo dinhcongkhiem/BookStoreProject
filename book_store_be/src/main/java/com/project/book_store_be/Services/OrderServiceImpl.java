@@ -82,9 +82,6 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal[] totalPrice = {BigDecimal.ZERO};
         List<OrderItemsResponse> orderItemsRes = orderItems.stream().map(o -> {
             Product product = o.getProduct();
-            ImageProduct thumbnail = imageProductService.getThumbnailProduct(product.getId());
-            String thumbnailUrl = thumbnail != null ? thumbnail.getUrlImage() : null;
-
             BigDecimal discount = o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO;
             totalPrice[0] = totalPrice[0].add(product.getOriginal_price().subtract(discount).multiply(BigDecimal.valueOf(o.getQuantity())));
 
@@ -92,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
                     .productName(product.getName())
                     .originalPrice(product.getOriginal_price())
                     .quantity(o.getQuantity())
-                    .thumbnail_url(thumbnailUrl)
+                    .thumbnail_url(imageProductService.getThumbnailProduct(product.getId()))
                     .build();
         }).toList();
 

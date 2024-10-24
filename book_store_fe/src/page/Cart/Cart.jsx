@@ -22,9 +22,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
-import image1 from '../../assets/image/sp.jpg';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { Table } from 'react-bootstrap';
 import CartService from '../../service/CartService';
@@ -186,7 +184,7 @@ function Cart() {
                                                 onChange={() => handleSelectItem(item.productId)}
                                             />
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell sx={{display: 'flex'}}>
                                             <img
                                                 src={item.thumbnail_url}
                                                 alt="Banner"

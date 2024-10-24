@@ -8,12 +8,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 
 @Repository
 public interface CartRepository extends JpaRepository<Cart,Long> {
-    Optional<Cart> findByUser(User user);
+    List<Cart> findAllByIdInAndUser(List<Long> ids, User user);
     Optional<Cart> findByUserAndProduct(User user, Product product);
     Page<Cart> findByUserOrderById(User user, Pageable pageable);
     long countByUser(User user);

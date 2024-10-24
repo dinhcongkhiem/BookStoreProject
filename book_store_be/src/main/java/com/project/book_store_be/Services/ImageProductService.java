@@ -77,8 +77,9 @@ public class ImageProductService {
         return repo.findByProductIdOrderByIsThumbnailDesc(productId).stream().map(this::convertToResponse).toList();
     }
 
-    public ImageProduct getThumbnailProduct(Long productId) {
-        return repo.findThumbnailByProductId(productId).orElse(null);
+    public String getThumbnailProduct(Long productId) {
+        Optional<ImageProduct> optional =  repo.findThumbnailByProductId(productId);
+        return optional.map(ImageProduct::getUrlImage).orElse(null);
     }
 
     private ImageProductResponse convertToResponse(ImageProduct imageProduct) {
