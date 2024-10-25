@@ -24,11 +24,11 @@ import java.util.*;
 public class PaymentServiceImpl implements PaymentService {
     private final SendMailService sendMailService;
     private final OrderRepository orderRepository;
+    private final PayOS payOS;
     private final UserService userService;
-    PayOS payOS = new PayOS("70a18b0d-a6ca-4669-90ad-428219735d7e",
-            "3f638a32-7058-4150-8209-3e3a0d3c3e37", "b1f4e005bf78ce32e52e0c685d468441e2e0949c60c1969866131c27e85b0e2c");
     private static final String CANCEL_URL = "http://localhost:3000/profile";
     private static final String RETURN_URL = "http://localhost:3000/cart";
+    private Set<Long> sentEmailOrderCodes = new HashSet<>();
 
     @Scheduled(fixedRate = 60000)
     public void checkPendingOrders() {
@@ -89,23 +89,30 @@ public class PaymentServiceImpl implements PaymentService {
             if (data.getCode().equalsIgnoreCase("00")) {
                 order.setStatus(OrderStatus.PROCESSING);
                 orderRepository.save(order);
+                if (!sentEmailOrderCodes.contains(orderCode)) {
+                    Map<String, Object> variables = new HashMap<>();
+                    variables.put("orderCode", order.getId());
+                    variables.put("amount", order.getOrderDetails().stream()
+                            .map(detail -> BigDecimal.valueOf(detail.getProduct().getPrice().doubleValue())
+                                    .multiply(BigDecimal.valueOf(detail.getQuantity())))
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
 
-                Map<String, Object> variables = new HashMap<>();
-                variables.put("orderCode", order.getId());
-                variables.put("amount", order.getOrderDetails().stream()
-                        .map(detail -> BigDecimal.valueOf(detail.getProduct().getPrice().doubleValue())
-                                .multiply(BigDecimal.valueOf(detail.getQuantity())))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add));
-
-                if (user != null) {
-                    try {
-                        sendMailService.sendEmail(user, "Xác nhận thanh toán thành công", "paymentSuccessTemplate", variables);
-                        System.out.println("Email đã được gửi đến: " + user.getEmail());
-                    } catch (Exception e) {
-                        System.out.println("Có lỗi xảy ra khi gửi email: " + e.getMessage());
+                    if (user != null) {
+                        try {
+                            sendMailService.sendEmail(user, "Xác nhận thanh toán thành công", "paymentSuccessTemplate", variables);
+                            User shopUser = new User();
+                            shopUser.setEmail("admin@khiemcongdinh.id.vn");
+                            sendMailService.sendEmail(shopUser, "Xác nhận thanh toán từ đơn hàng " + orderCode, "paymentAdminSuccessTemplate", variables);
+                            System.out.println("Email đã được gửi đến: " + user.getEmail());
+                            sentEmailOrderCodes.add(orderCode);
+                        } catch (Exception e) {
+                            System.out.println("Có lỗi xảy ra khi gửi email: " + e.getMessage());
+                        }
+                    } else {
+                        System.out.println("User không được tìm thấy cho đơn hàng: " + orderCode);
                     }
                 } else {
-                    System.out.println("User không được tìm thấy cho đơn hàng: " + orderCode);
+                    System.out.println("Email đã được gửi trước đó cho đơn hàng: " + orderCode);
                 }
             } else {
                 order.setStatus(OrderStatus.CANCELED);
@@ -120,17 +127,22 @@ public class PaymentServiceImpl implements PaymentService {
         return webhook.getCode();
     }
 
-
-
     @Override
     public String cancelPayment(Long orderCode) throws Exception {
         Order order = orderRepository.findById(orderCode)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+
         if (order.getStatus() != OrderStatus.AWAITING_PAYMENT) {
             throw new IllegalArgumentException("Cannot cancel. The order is not in 'awaiting payment' status.");
         }
-        order.setStatus(OrderStatus.CANCELED);
-        orderRepository.save(order);
-        return "Order " + orderCode + " has been canceled.";
+        try {
+            payOS.cancelPaymentLink(orderCode, "Customer requested cancellation");
+            order.setStatus(OrderStatus.CANCELED);
+            orderRepository.save(order);
+            return "Order " + orderCode + " has been canceled on both system and third-party.";
+        } catch (Exception e) {
+            throw new Exception("Failed to cancel payment with third-party: " + e.getMessage());
+        }
     }
+
 }
