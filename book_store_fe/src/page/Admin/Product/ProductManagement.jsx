@@ -144,9 +144,11 @@ const Product = () => {
     });
     useEffect(() => {
         if (productRes) {
+        if (productRes) {
             window.scrollTo({ top: 0, behavior: 'instant' });
         }
     }, [productRes]);
+
     return (
         <div className={cx('product-management')}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>

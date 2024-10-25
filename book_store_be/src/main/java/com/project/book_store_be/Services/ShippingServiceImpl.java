@@ -2,7 +2,8 @@ package com.project.book_store_be.Services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.book_store_be.Interface.GHTKService;
+import com.project.book_store_be.Interface.ShippingService;
+import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Response.FeeResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -14,8 +15,9 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 
 @Service
-public class GHTKServiceImpl implements GHTKService {
+public class ShippingServiceImpl implements ShippingService {
     private final RestTemplate restTemplate;
+    private final UserService userService;
     @Value("${ghtk.api.url}")
     private String ghtkApiUrl;
 
@@ -34,12 +36,25 @@ public class GHTKServiceImpl implements GHTKService {
     @Value("${ghtk.pickup.address}")
     private String pickAddress;
 
-    public GHTKServiceImpl(RestTemplate restTemplate) {
+
+
+    public ShippingServiceImpl(RestTemplate restTemplate, UserService userService) {
         this.restTemplate = restTemplate;
+        this.userService = userService;
     }
     @Override
-    public FeeResponse calculateShippingFee(String province, String district,String ward,String address, int weight, int value, String deliverOption) {
+    public FeeResponse calculateShippingFee(int weight, int value, String deliverOption) {
         try {
+            User currentUser = userService.getCurrentUser();
+            String province = String.valueOf(currentUser.getAddress().getProvince().getLabel());
+            String district = String.valueOf(currentUser.getAddress().getDistrict().getLabel());
+            String ward = currentUser.getAddress().getCommune().getLabel();
+            String address = currentUser.getAddress().getAddressDetail();
+            System.out.println("Province: " + province);
+            System.out.println("District: " + district);
+            System.out.println("Ward: " + ward);
+            System.out.println("Address: " + address);
+
             String url = ghtkApiUrl + "/services/shipment/fee?" +
                     "pick_province=" + pickProvince +
                     "&pick_district=" + pickDistrict +
@@ -48,11 +63,12 @@ public class GHTKServiceImpl implements GHTKService {
                     "&pick_district=" + pickDistrict +
                     "&province=" + province +
                     "&district=" + district +
-                    "&district=" + ward +
-                    "&district=" + address +
+                    "&ward=" + ward +
+                    "&address=" + address +
                     "&weight=" + weight +
                     "&value=" + value +
                     "&deliver_option=" + deliverOption;
+
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("Token", apiToken);
