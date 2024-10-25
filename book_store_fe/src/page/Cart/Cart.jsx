@@ -29,18 +29,27 @@ import CartService from '../../service/CartService';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import useDebounce from '../../hooks/useDebounce';
 import ConfirmModal from '../../component/Modal/ConfirmModal/ConfirmModal';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 const cx = classNames.bind(style);
 
 function Cart() {
+    const navigate = useNavigate();
     const [selectedItems, setSelectedItems] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
     const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCount, setSelectedCount] = useState(0);
+    const [totalAmount, setTotalAmout] = useState(0);
     const queryClient = useQueryClient();
     useEffect(() => {
         setSelectedCount(selectedItems.length);
+        const totalAmount = productsInCart?.cart?.reduce(
+            (acc, item) => acc + (selectedItems.includes(item.id) ? item.price * item.quantity : 0),
+            0,
+        );        
+        setTotalAmout(totalAmount);
     }, [selectedItems]);
 
     const { data: productsInCart } = useQuery({
@@ -125,7 +134,7 @@ function Cart() {
     });
 
     const handleSelectAll = (event) => {
-        setSelectedItems(event.target.checked ? productsInCart.cart.map((item) => item.productId) : []);
+        setSelectedItems(event.target.checked ? productsInCart.cart.map((item) => item.id) : []);
     };
 
     const handleSelectItem = (id) => {
@@ -134,10 +143,17 @@ function Cart() {
         );
     };
 
-    const totalAmount = productsInCart?.cart?.reduce(
-        (acc, item) => acc + (selectedItems.includes(item.productId) ? item.price * item.quantity : 0),
-        0,
-    );
+  
+
+    const handleSubmit = () => {
+        if(selectedItems.length <= 0) {
+            toast.info("Bạn chưa chọn sản phẩm nào để mua.")
+            return;
+        }
+        localStorage.setItem('cartIdsForPayment', JSON.stringify(selectedItems));
+        localStorage.removeItem('productForPayment')
+        navigate('/payment', { state: { cartIds: selectedItems } });
+    }
 
     return (
         <div className={cx('cart-container')}>
@@ -180,8 +196,8 @@ function Cart() {
                                     >
                                         <TableCell padding="checkbox">
                                             <Checkbox
-                                                checked={selectedItems.includes(item.productId)}
-                                                onChange={() => handleSelectItem(item.productId)}
+                                                checked={selectedItems.includes(item.id)}
+                                                onChange={() => handleSelectItem(item.id)}
                                             />
                                         </TableCell>
                                         <TableCell sx={{display: 'flex'}}>
@@ -302,7 +318,7 @@ function Cart() {
                             </strong>
                         </p>
                     </div>
-                    <Button variant="outlined" color="primary" className={cx('checkout-button')}>
+                    <Button variant="outlined" color="primary" className={cx('checkout-button')} onClick={handleSubmit}>
                         Mua hàng ({selectedCount})
                     </Button>
                 </div>
