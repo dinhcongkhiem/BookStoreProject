@@ -24,6 +24,9 @@ import {
     Grid,
     Chip,
     Pagination,
+    DialogContentText,
+    Snackbar,
+    Alert,
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -36,10 +39,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { Gallery, Item } from 'react-photoswipe-gallery';
 import 'photoswipe/dist/photoswipe.css';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ProductService from '../../../service/ProductService';
 import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 import useDebounce from '../../../hooks/useDebounce';
+import { toast } from 'react-toastify';
 const cx = classNames.bind(style);
 
 const Product = () => {
@@ -49,9 +53,13 @@ const Product = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [page, setPage] = useState(1);
     const [orderBy, setOrderBy] = useState('newest');
-
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState(null);
+    const [toastOpen, setToastOpen] = useState(false);
+    const [toastMessage] = useState('');
+    const [toastSeverity] = useState('success');
     const debouncedSearchValue = useDebounce(searchTerm, 800);
-
+    const queryClient = useQueryClient();
     const handleEdit = (product) => {
         navigate('/admin/product/edit', { state: { product } });
     };
@@ -83,7 +91,35 @@ const Product = () => {
         setPage(1);
         setSearchTerm(event.target.value);
     };
- 
+    const handleDeleteClick = (product) => {
+        setProductToDelete(product);
+        setDeleteConfirmOpen(true);
+    };
+    const handleDeleteConfirm = () => {
+        if (productToDelete) {
+            deleteMutation.mutate(productToDelete.id);
+        }
+        setDeleteConfirmOpen(false);
+        setProductToDelete(null);
+    };
+    const handleDeleteCancel = () => {
+        setDeleteConfirmOpen(false);
+        setProductToDelete(null);
+    };
+    const handleToastClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setToastOpen(false);
+    };
+
+    const { data: productDetailRes, isLoading: isLoadingDetail } = useQuery({
+        queryKey: ['productDetailMng', selectedProduct],
+        queryFn: () => ProductService.getProductDetail(selectedProduct.id).then((response) => response.data),
+        retry: 1,
+        enabled: !!selectedProduct,
+    });
+
     const {
         data: productRes,
         error,
@@ -96,9 +132,18 @@ const Product = () => {
             ),
         retry: 1,
     });
-    
+    const deleteMutation = useMutation({
+        mutationFn: (productId) => ProductService.deleteProduct(productId),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['productsMng']);
+            toast.success('Sản phẩm đã được xóa thành công');
+        },
+        onError: (error) => {
+            toast.error('Có lỗi xảy ra khi xóa sản phẩm');
+        },
+    });
     useEffect(() => {
-        if(productRes) {
+        if (productRes) {
             window.scrollTo({ top: 0, behavior: 'instant' });
         }
     }, [productRes]);
@@ -237,14 +282,15 @@ const Product = () => {
                                     {product?.quantity}
                                 </TableCell>
                                 <TableCell size="small" sx={{ padding: '.5rem' }}>
-                                    <span
+                                    <Chip
+                                        label={product?.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
+                                        color={product?.status === 'AVAILABLE' ? 'success' : 'error'}
+                                        size="small"
                                         className={cx('status', {
                                             'in-stock': product.status === 'AVAILABLE',
-                                            'out-of-stock': product.status === 'Hết hàng',
+                                            'out-of-stock': product.status !== 'AVAILABLE',
                                         })}
-                                    >
-                                        {product?.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
-                                    </span>
+                                    />
                                 </TableCell>
                                 <TableCell size="small" sx={{ padding: '.5rem' }}>
                                     {new Date(product?.createDate).toLocaleDateString()}
@@ -265,7 +311,7 @@ const Product = () => {
                                         <EditIcon fontSize="small" />
                                     </IconButton>
                                     <IconButton
-                                        // onClick={() => handleDelete(product.id)}
+                                        onClick={() => handleDeleteClick(product)}
                                         aria-label="delete"
                                         sx={{ color: 'red' }}
                                     >
@@ -290,14 +336,14 @@ const Product = () => {
                 onClose={handleCloseDetail}
                 maxWidth="md"
                 fullWidth
-                classes={{ paper: cx('dialog-paper') }}
                 PaperProps={{
                     style: {
-                        overflowY: 'visible',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
                     },
                 }}
             >
-                {selectedProduct && (
+                {selectedProduct && productDetailRes && (
                     <>
                         <DialogTitle>
                             <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -307,7 +353,7 @@ const Product = () => {
                                 </IconButton>
                             </Box>
                         </DialogTitle>
-                        <DialogContent dividers style={{ overflowY: 'scroll' }}>
+                        <DialogContent dividers>
                             <Grid container spacing={3}>
                                 <Grid item xs={12} md={6}>
                                     <Box
@@ -315,50 +361,111 @@ const Product = () => {
                                             display: 'grid',
                                             gridTemplateColumns: 'auto 1fr',
                                             gap: 2,
-                                            alignItems: 'center',
+                                            alignItems: 'start',
                                         }}
                                     >
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                             ID:
                                         </Typography>
                                         <Typography variant="body1">{selectedProduct.id}</Typography>
-
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                            Giá nhập:
+                                            Tên sách:
                                         </Typography>
-                                        <Typography variant="body1">
-                                            {selectedProduct.importPrice?.toLocaleString()}₫
-                                        </Typography>
-
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                            Giá bán:
-                                        </Typography>
-                                        <Typography variant="body1">
-                                            {selectedProduct.sellingPrice?.toLocaleString()}₫
-                                        </Typography>
-
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                            Số lượng:
-                                        </Typography>
-                                        <Typography variant="body1">{selectedProduct.quantity}</Typography>
-
-                                        <Typography variant="body1">{selectedProduct.category}</Typography>
-
+                                        <Typography variant="body1">{selectedProduct.name}</Typography>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                             Trạng thái:
                                         </Typography>
                                         <Chip
-                                            sx={{ width: '10rem' }}
-                                            label={selectedProduct.status}
-                                            color={selectedProduct.status === 'Còn hàng' ? 'success' : 'error'}
+                                            label={selectedProduct.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
+                                            color={selectedProduct.status === 'AVAILABLE' ? 'success' : 'error'}
                                             size="small"
                                         />
-
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Loại bìa:
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {productDetailRes?.coverType === 'SOFTCOVER' ? 'Bìa cứng' : 'Bìa mềm'}
+                                        </Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Năm xuất bản:
+                                        </Typography>
+                                        <Typography variant="body1">{productDetailRes?.year_of_publication}</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Kích thước:
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {productDetailRes.size?.x} x {productDetailRes.size?.y} x{' '}
+                                            {productDetailRes.size?.z} cm
+                                        </Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Trọng lượng:
+                                        </Typography>
+                                        <Typography variant="body1">{productDetailRes?.weight} gram</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Số lượng:
+                                        </Typography>
+                                        <Typography variant="body1">{productDetailRes?.quantity}</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Số trang:
+                                        </Typography>
+                                        <Typography variant="body1">{productDetailRes?.number_of_pages}</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Giá nhập:
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {productDetailRes?.importPrice?.toLocaleString('vi-VN')}₫
+                                        </Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Giá bán:
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {productDetailRes?.price.toLocaleString('vi-VN')} ₫
+                                        </Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Nhà phát hành:
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {productDetailRes.publisher?.name || 'Không có'}
+                                        </Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            NXB:
+                                        </Typography>
+                                        <Typography variant="body1">{productDetailRes?.manufacturer}</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Thể loại:
+                                        </Typography>
+                                        <Box>
+                                            {productDetailRes.categories?.map((category, index) => (
+                                                <Chip
+                                                    key={index}
+                                                    label={category.name}
+                                                    size="small"
+                                                    sx={{ mr: 1, mb: 1 }}
+                                                />
+                                            ))}
+                                        </Box>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Tác giả:
+                                        </Typography>
+                                        <Box>
+                                            {productDetailRes.authors?.map((author, index) => (
+                                                <Chip
+                                                    key={index}
+                                                    label={author.name}
+                                                    size="small"
+                                                    sx={{ mr: 1, mb: 1 }}
+                                                />
+                                            ))}
+                                        </Box>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Dịch giả:
+                                        </Typography>
+                                        <Typography variant="body1">{productDetailRes.translatorName}</Typography>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                             Ngày tạo:
                                         </Typography>
                                         <Typography variant="body1">
-                                            {new Date(selectedProduct.creationDate).toLocaleDateString()}
+                                            {new Date(selectedProduct.createDate).toLocaleDateString('vi-VN')}
                                         </Typography>
                                     </Box>
                                 </Grid>
@@ -368,23 +475,22 @@ const Product = () => {
                                     </Typography>
                                     <Gallery>
                                         <Box display="flex" flexWrap="wrap" gap={2}>
-                                            {selectedProduct.images?.map((image, index) => (
+                                            {productDetailRes?.images?.map((image, index) => (
                                                 <Item
-                                                    key={index}
-                                                    original={image}
-                                                    thumbnail={image}
-                                                    width="800"
+                                                    original={image.urlImage}
+                                                    thumbnail={image.urlImage}
+                                                    width="1024"
                                                     height="768"
                                                 >
                                                     {({ ref, open }) => (
                                                         <img
                                                             ref={ref}
                                                             onClick={open}
-                                                            src={image}
-                                                            alt={`Hình ảnh sản phẩm ${index + 1}`}
+                                                            src={image.urlImage}
+                                                            alt={image.nameImage}
                                                             style={{
-                                                                width: '10rem',
-                                                                height: '15rem',
+                                                                width: '100px',
+                                                                height: '150px',
                                                                 objectFit: 'cover',
                                                                 cursor: 'pointer',
                                                             }}
@@ -397,18 +503,14 @@ const Product = () => {
                                 </Grid>
                                 <Grid item xs={12}>
                                     <Typography variant="h6" gutterBottom>
-                                        <b>Mô tả sản phẩm</b>
+                                        Mô tả sản phẩm
                                     </Typography>
-                                    <div className={cx('description-container')}>
-                                        <Typography variant="body1" className={cx('description-text')}>
-                                            {selectedProduct.description}
-                                        </Typography>
-                                    </div>
+                                    <div dangerouslySetInnerHTML={{ __html: productDetailRes?.description }} />
                                 </Grid>
                             </Grid>
                         </DialogContent>
                         <DialogActions>
-                            <Button variant="outlined" onClick={handleCloseDetail} color="primary">
+                            <Button onClick={handleCloseDetail} color="primary">
                                 Đóng
                             </Button>
                             <Button onClick={() => handleEdit(selectedProduct)} color="primary" variant="contained">
@@ -418,7 +520,57 @@ const Product = () => {
                     </>
                 )}
             </Dialog>
-            <ModalLoading isLoading={isLoading} />
+            <Dialog
+                open={deleteConfirmOpen}
+                onClose={handleDeleteCancel}
+                PaperProps={{
+                    style: {
+                        borderRadius: 15,
+                        padding: '20px',
+                    },
+                }}
+            >
+                <DialogTitle sx={{ textAlign: 'center', fontSize: '1.5rem', fontWeight: 'bold', color: 'error.main' }}>
+                    Xác nhận xóa sản phẩm
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description" sx={{ textAlign: 'center', fontSize: '1.1rem' }}>
+                        Bạn có chắc chắn muốn xóa sản phẩm
+                        <br />
+                        <strong>"{productToDelete?.name}"</strong> không?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', mt: 2 }}>
+                    <Button
+                        onClick={handleDeleteCancel}
+                        variant="outlined"
+                        color="primary"
+                        sx={{ minWidth: 100, borderRadius: 20 }}
+                    >
+                        Hủy
+                    </Button>
+                    <Button
+                        onClick={handleDeleteConfirm}
+                        variant="contained"
+                        color="error"
+                        autoFocus
+                        sx={{ minWidth: 100, borderRadius: 20 }}
+                    >
+                        Xác nhận
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Snackbar
+                open={toastOpen}
+                autoHideDuration={3000}
+                onClose={handleToastClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert onClose={handleToastClose} severity={toastSeverity} sx={{ width: '100%' }} variant="filled">
+                    {toastMessage}
+                </Alert>
+            </Snackbar>
+            <ModalLoading isLoading={isLoading || deleteMutation.isLoading} />
         </div>
     );
 };
