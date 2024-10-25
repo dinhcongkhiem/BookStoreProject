@@ -56,8 +56,9 @@ function AddProduct() {
         }),
         weight: Yup.number()
             .required('Vui lòng nhập khối lượng.')
-            .min(1, 'Phải lớn hơn 0')
+            .min(0, 'Phải lớn hơn 0')
             .max(2000, 'Tối đa 2000 gam'),
+<<<<<<< HEAD
         quantity: Yup.number().required('Vui lòng nhập số lượng.').min(1, 'Phải lớn hơn 0'),
         numberOfPages: Yup.number().required('Vui lòng nhập số trang.').min(1, 'Phải lớn hơn 0'),
         cost: Yup.number().required('Vui lòng nhập giá nhập.').min(1, 'Phải lớn hơn 0'),
@@ -72,6 +73,12 @@ function AddProduct() {
                         return value > cost;
                     }),
             }),
+=======
+        quantity: Yup.number().required('Vui lòng nhập số lượng.').min(0, 'Phải lớn hơn 0'),
+        numberOfPages: Yup.number().required('Vui lòng nhập số trang.').min(0, 'Phải lớn hơn 0'),
+        cost: Yup.number().required('Vui lòng nhập giá nhập.'),
+        originalPrice: Yup.number().required('Vui lòng nhập giá bán.'),
+>>>>>>> 4e3aea3ed497a383e7171beacae31d8b6b1bfdce
         publisherId: Yup.string().required('Vui lòng chọn nhà phát hành.'),
         manufacturer: Yup.string().required('Vui lòng nhập NXB.'),
         categoriesId: Yup.array().of(Yup.string()).min(1, 'Vui lòng chọn ít nhất 1 thể loại.'),

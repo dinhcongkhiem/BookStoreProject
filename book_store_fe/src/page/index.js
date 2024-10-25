@@ -10,7 +10,7 @@ import Cart from './Cart/Cart';
 import Order from './User/Order/Order';
 import OrderDetail from './User/OrderDetail/OrderDetail';
 import ProductDetail from './ProductDetail/ProductDetail';
-import Payment from './Payment/Payment'
+import Payment from './Payment/Payment';
 
 export {
     Home,
