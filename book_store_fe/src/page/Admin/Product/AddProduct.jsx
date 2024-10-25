@@ -50,9 +50,9 @@ function AddProduct() {
     const validationSchema = Yup.object({
         name: Yup.string().required('Vui lòng nhập tên sách.'),
         size: Yup.object({
-            x: Yup.number().required('x is required').min(0, 'min is 200').max(200, 'max is 200'),
-            y: Yup.number().required('y is required').min(0, 'min is 200').max(200, 'max is 200'),
-            z: Yup.number().required('z is required').min(0, 'min is 200').max(200, 'max is 200'),
+            x: Yup.number().required('x is required').min(1, 'min is 200'),
+            y: Yup.number().required('y is required').min(1, 'min is 200'),
+            z: Yup.number().required('z is required').min(1, 'min is 200'),
         }),
         weight: Yup.number()
             .required('Vui lòng nhập khối lượng.')
@@ -60,8 +60,18 @@ function AddProduct() {
             .max(2000, 'Tối đa 2000 gam'),
         quantity: Yup.number().required('Vui lòng nhập số lượng.').min(1, 'Phải lớn hơn 0'),
         numberOfPages: Yup.number().required('Vui lòng nhập số trang.').min(1, 'Phải lớn hơn 0'),
-        cost: Yup.number().required('Vui lòng nhập giá nhập.'),
-        originalPrice: Yup.number().required('Vui lòng nhập giá bán.'),
+        cost: Yup.number().required('Vui lòng nhập giá nhập.').min(1, 'Phải lớn hơn 0'),
+        originalPrice: Yup.number()
+            .required('Vui lòng nhập giá bán.')
+            .min(1, 'Phải lớn hơn 0')
+            .when('cost', {
+                is: (cost) => cost !== undefined && cost >= 0, 
+                then: (schema) =>
+                    schema.test('is-greater-than-cost', 'Giá bán phải lớn hơn giá nhập.', function (value) {
+                        const { cost } = this.parent;
+                        return value > cost;
+                    }),
+            }),
         publisherId: Yup.string().required('Vui lòng chọn nhà phát hành.'),
         manufacturer: Yup.string().required('Vui lòng nhập NXB.'),
         categoriesId: Yup.array().of(Yup.string()).min(1, 'Vui lòng chọn ít nhất 1 thể loại.'),
@@ -88,9 +98,9 @@ function AddProduct() {
             console.log(error);
         },
         onSuccess: () => {
-            toast.success("Thành công!")
-            navigate("/admin/product");
-        }
+            toast.success('Thành công!');
+            navigate('/admin/product');
+        },
     });
     const formik = useFormik({
         initialValues: {
@@ -309,14 +319,12 @@ function AddProduct() {
                             <Autocomplete
                                 disableClearable
                                 options={yearOfPublicationData.map((year) => ({ label: year, code: year }))}
-                                value={
-                                    yearOfPublicationData.find(
-                                        (option) => option?.code === formik.values.yearOfPublication,
-                                    )
-                                }
+                                value={yearOfPublicationData.find(
+                                    (option) => option?.code === formik.values.yearOfPublication,
+                                )}
                                 renderInput={(params) => <TextField {...params} label="Năm xuất bản" />}
                                 size="small"
-                                onChange={(event, newValue) => {                                    
+                                onChange={(event, newValue) => {
                                     formik.setFieldValue('yearOfPublication', newValue ? newValue.code : '');
                                 }}
                                 isOptionEqualToValue={(option, value) => option.code === value.code}
@@ -337,9 +345,7 @@ function AddProduct() {
                                 )}
 
                                 <FormHelperText sx={{ color: '#d32f2f' }}>
-                                    {formik.errors.size
-                                        ? `Size ${Object.keys(formik.errors.size).join(', ')} is required and must be ≤ 200`
-                                        : ''}
+                                    {formik.errors.size ? `Kích thước là bắt buộc và phải lớn hơn 0` : ''}
                                 </FormHelperText>
                             </div>
                             {renderTextField('weight', 'KL(gram)', 'number', true, null, {
