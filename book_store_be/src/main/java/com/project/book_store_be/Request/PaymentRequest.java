@@ -17,7 +17,5 @@ public class PaymentRequest {
     private Long orderCode;
     private BigDecimal amount;
     private String description;
-    private List<PaymentItem> items;
-
 }
 

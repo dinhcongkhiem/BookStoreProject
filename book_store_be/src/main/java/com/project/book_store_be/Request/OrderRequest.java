@@ -14,7 +14,7 @@ public class OrderRequest {
     private Address address;
     private BigDecimal shippingFee;
     private PaymentType paymentType;
-    List<OrderDetailRequest> items;
+    private List<OrderDetailRequest> items;
 
     @Data
     @Builder

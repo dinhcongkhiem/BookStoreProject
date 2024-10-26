@@ -17,9 +17,7 @@ public class OrderController {
     @PostMapping()
     public ResponseEntity<?> createOrder(@RequestBody OrderRequest request) {
         try {
-            orderService.createOrder(request);
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-
+            return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(request));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");

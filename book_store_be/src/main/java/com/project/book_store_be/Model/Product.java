@@ -33,8 +33,8 @@ public class Product {
     private ProductStatus status;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private Map<String, Double> size;
-    private Double weight;
+    private Map<String, Integer> size;
+    private Integer weight;
     private String translatorName;
     private CoverType coverType;
     @Column(columnDefinition = "TEXT")

@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping("/api/ghtk")
 public class ShippingController {
@@ -22,10 +24,9 @@ public class ShippingController {
             @RequestParam String ward,
             @RequestParam String address,
             @RequestParam int weight,
-            @RequestParam(required = false, defaultValue = "0") int value,
-            @RequestParam String deliverOption
+            @RequestParam(required = false, defaultValue = "0") BigDecimal value
     ) {
-        FeeResponse feeResponse = shippingService.calculateShippingFee(weight, value, deliverOption);
+        FeeResponse feeResponse = shippingService.calculateShippingFee(weight, value);
         return ResponseEntity.ok(feeResponse);
     }
 }

@@ -17,6 +17,9 @@ import vn.payos.type.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -25,55 +28,41 @@ public class PaymentServiceImpl implements PaymentService {
     private final SendMailService sendMailService;
     private final OrderRepository orderRepository;
     private final PayOS payOS;
-    private final UserService userService;
     private static final String CANCEL_URL = "http://localhost:3000/profile";
     private static final String RETURN_URL = "http://localhost:3000/cart";
     private Set<Long> sentEmailOrderCodes = new HashSet<>();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    @Scheduled(fixedRate = 60000)
-    public void checkPendingOrders() {
-        List<Order> pendingOrders = orderRepository.findByStatus(OrderStatus.AWAITING_PAYMENT);
-        pendingOrders.forEach(order -> {
-            LocalDateTime orderDate = order.getOrderDate();
-            LocalDateTime now = LocalDateTime.now();
-            if (orderDate.isBefore(now.minusMinutes(5))) {
-                order.setStatus(OrderStatus.CANCELED);
-                orderRepository.save(order);
-            }
-        });
-    }
 
     @Override
     public PaymentResponse PaymentRequest(PaymentRequest request) throws Exception {
-        List<ItemData> listItems = new ArrayList<>();
-        request.getItems().forEach(item -> {
-            listItems.add(ItemData.builder().name(item.getName())
-                    .quantity(item.getQuantity())
-                    .price(item.getPrice().intValue()).build());
-        });
         PaymentData paymentData = PaymentData.builder()
                 .orderCode(request.getOrderCode())
                 .amount(request.getAmount().intValue())
                 .description(request.getDescription())
                 .returnUrl(CANCEL_URL)
                 .cancelUrl(RETURN_URL)
-                .items(listItems)
                 .build();
         CheckoutResponseData result = payOS.createPaymentLink(paymentData);
-        Order order = new Order();
-        order.setStatus(OrderStatus.AWAITING_PAYMENT);
-        order.setOrderDate(LocalDateTime.now());
-        User currentUser = userService.getCurrentUser();
-        order.setUser(currentUser);
-        orderRepository.save(order);
+        String QRCodeURL = String.format("https://api.vietqr.io/image/970422-%s-bXU1iBq.jpg?addInfo=%s&amount=%s",
+                result.getAccountNumber(),request.getDescription(), request.getAmount());
+
+        scheduler.schedule(() -> {
+            String orderCodeStr = request.getOrderCode().toString();
+            Long orderCode = Long.valueOf(orderCodeStr.substring(0, orderCodeStr.length() - 6));
+            Order order = orderRepository.findById(orderCode).orElse(null);
+            if (order != null && order.getOrderDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
+                order.setStatus(OrderStatus.CANCELED);
+                orderRepository.save(order);
+            }
+        },5, TimeUnit.MINUTES);
         return PaymentResponse.builder()
                 .expiredAt(5)
                 .amount(BigDecimal.valueOf(result.getAmount()))
                 .description(result.getDescription())
                 .orderCode(result.getOrderCode())
                 .status(result.getStatus())
-                .checkoutUrl(result.getCheckoutUrl())
-                .QRcode(result.getQrCode())
+                .QRCodeURL(QRCodeURL)
                 .build();
     }
 

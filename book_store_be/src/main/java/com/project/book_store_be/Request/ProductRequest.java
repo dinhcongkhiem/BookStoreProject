@@ -16,10 +16,10 @@ public class ProductRequest {
     private Integer yearOfPublication;
     private BigDecimal cost;
     private BigDecimal originalPrice;
-    private Double height;
-    private Double length;
-    private Double width;
-    private Double weight;
+    private Integer height;
+    private Integer length;
+    private Integer width;
+    private Integer weight;
     private Integer quantity;
     private ProductStatus status;
     private String translator;

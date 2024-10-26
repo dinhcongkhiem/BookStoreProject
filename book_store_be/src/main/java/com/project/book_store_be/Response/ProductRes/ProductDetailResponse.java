@@ -23,7 +23,7 @@ public class ProductDetailResponse extends ProductBaseResponse {
     private Integer quantity;
     private String description;
     private Map<?,?> size;
-    private Double weight;
+    private Integer weight;
     private String translatorName;
     private String manufacturer;
     private CoverType coverType;

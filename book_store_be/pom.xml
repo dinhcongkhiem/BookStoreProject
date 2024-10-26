@@ -43,7 +43,6 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
 		</dependency>
-sta
 		<dependency>
 			<groupId>vn.payos</groupId>
 			<artifactId>payos-java</artifactId>

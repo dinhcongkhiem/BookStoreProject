@@ -18,6 +18,10 @@ spring:
 
         database: postgresql
         database-platform: org.hibernate.dialect.PostgreSQLDialect
+    servlet:
+        multipart:
+            max-file-size: 10MB
+            max-request-size: 20MB
     security:
         oauth2:
             client:
@@ -57,8 +61,6 @@ application:
         jwt:
             secret-key: 36d40671a0dfd75dc62f1e0b7e72f73a11b418e51cc62adc7d06febce98c01ef
             expiration: 86400000 # a day
-            refresh-token:
-                expiration: 604800000 # 7 days
 client:
     url: http://localhost:3000
 
@@ -66,6 +68,16 @@ information:
     nameShop: Book Bazaar
     emailShop: admin@khiemcongdinh.id.vn
     ccGmailShop: phamthihue3340@gmail.com
+ghtk:
+    api:
+        url: 
+        urlProduction: 
+        token: 
+    pickup:
+        province: "
+        district:
+        ward:
+        address:
 PAYOS:
   CLIENT_ID:
   API_KEY:

@@ -101,7 +101,7 @@ public class ProductService {
     }
 
     public void addProduct(ProductRequest request, List<MultipartFile> images, Integer indexThumbnail) {
-        Map<String, Double> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
+        Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
 
         Product product = Product.builder()
                 .name(request.getName())
@@ -141,7 +141,7 @@ public class ProductService {
 
             price = pr.getOriginal_price().subtract(discountAmount);
         }
-        Map<String, Double> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
+        Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
         pr.setName(request.getName());
         pr.setPublisher(publisherService.getPublisherById(request.getPublisherId()).orElse(null));
         pr.setNumber_of_pages(request.getNumberOfPages());

@@ -13,6 +13,5 @@ public class PaymentResponse {
     private String description;
     private Long orderCode;
     private String status;
-    private String checkoutUrl;
-    private String QRcode;
+    private String QRCodeURL;
 }
