@@ -12,9 +12,9 @@ import {
     getDistrictByCode,
     getWardByCode,
 } from 'vn-provinces';
-import style from '../User.module.scss';
-import { AuthenticationContext } from '../../../context/AuthenticationProvider';
-import UserService from '../../../service/UserService';
+import style from './User.module.scss';
+import { AuthenticationContext } from '../../context/AuthenticationProvider';
+import UserService from '../../service/UserService';
 import { toast } from 'react-toastify';
 const cx = classNames.bind(style);
 

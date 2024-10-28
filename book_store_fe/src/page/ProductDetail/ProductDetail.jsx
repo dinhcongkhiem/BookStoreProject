@@ -68,7 +68,12 @@ function ProductDetail() {
             toast.success('Đã thêm sản phẩm vào giỏ hàng!');
         },
     });
-
+    const handleBuyNow = () => {
+        const data = { pid: product.id, qty: quantityProduct };
+        localStorage.setItem('productForPayment', JSON.stringify({ pid: product.id, qty: quantityProduct }));
+        localStorage.removeItem('cartIdsForPayment')
+        navigate('/payment', { state: { product: data } });
+    };
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'instant' });
     }, [product]);
@@ -155,6 +160,7 @@ function ProductDetail() {
                                 variant="contained"
                                 fullWidth
                                 size="large"
+                                onClick={handleBuyNow}
                                 sx={{ textTransform: 'none', fontWeight: 600 }}
                             >
                                 Mua ngay
@@ -276,7 +282,9 @@ function ProductDetail() {
                         <DetailInfoProductComponent
                             isLink={false}
                             label={'Kích thước'}
-                            value={product?.size ? `${product.size.x} x ${product.size.y} x ${product.size.z} cm` : null}
+                            value={
+                                product?.size ? `${product.size.x} x ${product.size.y} x ${product.size.z} cm` : null
+                            }
                         />
                         <DetailInfoProductComponent
                             isLink={false}

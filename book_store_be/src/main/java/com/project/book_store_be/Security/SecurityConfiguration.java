@@ -45,7 +45,8 @@ public class SecurityConfiguration {
             "/api/v1/auth/**",
             "/api-docs/**",
             "/swagger-ui/**",
-            "/api/v1/product/detail"
+            "/api/v1/product/detail",
+            "/api/v1/payment/webhook/status"
     };
 
     private static final String[] WHITE_LIST_GET_METHOD = {

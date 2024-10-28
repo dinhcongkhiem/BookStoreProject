@@ -2,6 +2,7 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Enum.PaymentType;
+import com.project.book_store_be.Interface.AddressService;
 import com.project.book_store_be.Interface.OrderService;
 import com.project.book_store_be.Interface.PaymentService;
 import com.project.book_store_be.Model.*;
@@ -38,6 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserService userService;
     private final ImageProductService imageProductService;
     private final PaymentService paymentService;
+    private final AddressService addressService;
 
     @Override
     public OrderResponse getAllOrders() {
@@ -56,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderDetail> orderDetailList = new ArrayList<>();
         User u = userService.getCurrentUser();
         BigDecimal[] totalPrice = {BigDecimal.ZERO};
-
+        Address addresss = request.getAddress() != null ? addressService.createAddress(request.getAddress()) : u.getAddress();
         Order order = Order.builder()
                 .paymentType(request.getPaymentType())
                 .shippingFee(request.getShippingFee())
@@ -64,7 +66,7 @@ public class OrderServiceImpl implements OrderService {
                         ? OrderStatus.PROCESSING : OrderStatus.AWAITING_PAYMENT)
                 .orderDate(LocalDateTime.now())
                 .user(u)
-                .address(request.getAddress() != null ? request.getAddress() : u.getAddress())
+                .address(addresss)
                 .buyerName(request.getBuyerName() != null ? request.getBuyerName() : u.getFullName())
                 .buyerPhoneNum(request.getBuyerPhoneNum() != null ? request.getBuyerPhoneNum() : u.getPhoneNum())
                 .build();
@@ -115,10 +117,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderStatus checkStatus(Long id) {
+    public OrderStatus checkStatus(Long orderCode) {
+        String orderCodeString = orderCode.toString();
         return orderRepository
-                .findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Khong co order voi id la: " + id))
+                .findById(Long.valueOf(orderCodeString.substring(0, orderCodeString.length() - 6)))
+                .orElseThrow(() -> new NoSuchElementException("Khong co order voi id la: " + orderCode))
                 .getStatus();
     }
 

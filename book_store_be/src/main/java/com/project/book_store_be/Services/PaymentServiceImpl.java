@@ -30,7 +30,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PayOS payOS;
     private static final String CANCEL_URL = "http://localhost:3000/profile";
     private static final String RETURN_URL = "http://localhost:3000/cart";
-    private Set<Long> sentEmailOrderCodes = new HashSet<>();
+    private Set<String> sentEmailOrderCodes = new HashSet<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
@@ -45,7 +45,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
         CheckoutResponseData result = payOS.createPaymentLink(paymentData);
         String QRCodeURL = String.format("https://api.vietqr.io/image/970422-%s-bXU1iBq.jpg?addInfo=%s&amount=%s",
-                result.getAccountNumber(),request.getDescription(), request.getAmount());
+                result.getAccountNumber(), request.getDescription(), request.getAmount());
 
         scheduler.schedule(() -> {
             String orderCodeStr = request.getOrderCode().toString();
@@ -69,13 +69,12 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public String UpdateStatus(Webhook webhook) {
         WebhookData data = webhook.getData();
-        Long orderCode = data.getOrderCode();
         try {
-            Order order = orderRepository.findById(orderCode)
-                    .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderCode));
-            User user = order.getUser();
-
             if (data.getCode().equalsIgnoreCase("00")) {
+                String orderCode = String.valueOf(data.getOrderCode());
+                Order order = orderRepository.findById(Long.valueOf(orderCode.substring(0, orderCode.length() - 6)))
+                        .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderCode));
+                User user = order.getUser();
                 order.setStatus(OrderStatus.PROCESSING);
                 orderRepository.save(order);
                 if (!sentEmailOrderCodes.contains(orderCode)) {
@@ -88,11 +87,10 @@ public class PaymentServiceImpl implements PaymentService {
 
                     if (user != null) {
                         try {
-                            sendMailService.sendEmail(user, "Xác nhận thanh toán thành công", "paymentSuccessTemplate", variables);
+                            sendMailService.sendEmail(user, "Thanh toán thành công", "paymentSuccessTemplate", variables);
                             User shopUser = new User();
                             shopUser.setEmail("admin@khiemcongdinh.id.vn");
-                            sendMailService.sendEmail(shopUser, "Xác nhận thanh toán từ đơn hàng " + orderCode, "paymentAdminSuccessTemplate", variables);
-                            System.out.println("Email đã được gửi đến: " + user.getEmail());
+                            sendMailService.sendEmail(shopUser, "Thông báo đơn hàng mới" + orderCode, "paymentAdminSuccessTemplate", variables);
                             sentEmailOrderCodes.add(orderCode);
                         } catch (Exception e) {
                             System.out.println("Có lỗi xảy ra khi gửi email: " + e.getMessage());
@@ -103,9 +101,6 @@ public class PaymentServiceImpl implements PaymentService {
                 } else {
                     System.out.println("Email đã được gửi trước đó cho đơn hàng: " + orderCode);
                 }
-            } else {
-                order.setStatus(OrderStatus.CANCELED);
-                orderRepository.save(order);
             }
 
         } catch (NoSuchElementException e) {

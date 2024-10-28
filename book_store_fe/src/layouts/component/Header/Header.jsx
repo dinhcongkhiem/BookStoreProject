@@ -176,7 +176,7 @@ function Header() {
                                 sx={{ marginTop: '1rem' }}
                             >
                                 <MenuItem onClick={() => setAnchorEl(null)}>
-                                    <Link to="/user" className="d-flex align-items-center">
+                                    <Link to="/user/info" className="d-flex align-items-center">
                                         <ListItemIcon>
                                             <ManageAccounts fontSize="small" />
                                         </ListItemIcon>

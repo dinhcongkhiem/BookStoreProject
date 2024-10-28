@@ -144,7 +144,6 @@ const Product = () => {
     });
     useEffect(() => {
         if (productRes) {
-        if (productRes) {
             window.scrollTo({ top: 0, behavior: 'instant' });
         }
     }, [productRes]);

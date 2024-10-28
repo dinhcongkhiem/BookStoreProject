@@ -133,7 +133,7 @@ function Footer() {
                             <div className={cx('colFull')}>
                                 <div className={cx('footerCopyRight')}>
                                     &copy; 2024 All rights reserved | This template is made with{' '}
-                                    <i className="fa fa-heart" aria-hidden="true"></i> by <a href="#">Book Bazaar</a>
+                                    <i className="fa fa-heart" aria-hidden="true"></i> by <Link to="/">Book Bazaar</Link>
                                 </div>
                             </div>
                         </div>

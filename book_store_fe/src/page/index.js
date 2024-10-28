@@ -5,13 +5,13 @@ import Register from './Authen/Register/Register';
 import About from './About/About';
 import Contact from './Contact/Contact';
 import Product from './Product/Product';
-import User from './User/User';
 import Cart from './Cart/Cart';
-import Order from './User/Order/Order';
-import OrderDetail from './User/OrderDetail/OrderDetail';
+import Order from './Order/Order';
+import OrderDetail from './OrderDetail/OrderDetail';
 import ProductDetail from './ProductDetail/ProductDetail';
 import Payment from './Payment/Payment';
-
+import ChangePassword from './User/ChangePassword';
+import UserInfo from './User/UserInfo';
 export {
     Home,
     Profile,
@@ -19,13 +19,14 @@ export {
     Register,
     About,
     Contact,
-    User,
     ProductDetail,
     Product,
     Cart,
     Payment,
     Order,
     OrderDetail,
+    ChangePassword,
+    UserInfo,
 };
 
 export * from './Admin';

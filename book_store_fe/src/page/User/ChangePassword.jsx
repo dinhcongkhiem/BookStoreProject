@@ -4,7 +4,6 @@ import classNames from 'classnames/bind';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import {
-    TextField,
     Button,
     FormControl,
     InputLabel,
@@ -14,9 +13,9 @@ import {
     FormHelperText,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import style from '../User.module.scss';
-import UserService from '../../../service/UserService';
-import { validateInputChangePass } from '../../../utills/ValidateInputs';
+import style from './User.module.scss';
+import UserService from '../../service/UserService';
+import { validateInputChangePass } from '../../utills/ValidateInputs';
 
 const cx = classNames.bind(style);
 

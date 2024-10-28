@@ -27,9 +27,9 @@ public class OrderController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<?> checkStatusOrder(@RequestBody Long id) {
+    public ResponseEntity<?> checkStatusOrder(@RequestParam Long orderCode) {
         try {
-            return ResponseEntity.ok(orderService.checkStatus(id));
+            return ResponseEntity.ok(orderService.checkStatus(orderCode));
         }catch (NoSuchElementException e){
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");

@@ -11,17 +11,17 @@ const publicRoutes = [
     { path: '/contact', component: Pages.Contact },
     { path: '/product', component: Pages.Product },
     { path: '/product/detail', component: Pages.ProductDetail },
-    { path: '/cart', component: Pages.Cart },
-    { path: '/order ', component: Pages.Order },
-    { path: '/orderDetail ', component: Pages.OrderDetail },
     { path: '/oauth2/redirect', component: OAuth2Redirect, layout: null },
     { path: '/verify/redirect', component: ActiveAccountRedirect, layout: null },
-    { path: '/payment', component: Pages.Payment },
 ];
 
 const userRoutes = [
-    { path: '/profile/info', component: Pages.Profile },
-    { path: '/user', component: Pages.User },
+    { path: '/user/change-pass', component: Pages.ChangePassword },
+    { path: '/user/info', component: Pages.UserInfo },
+    { path: '/order', component: Pages.Order },
+    { path: '/order/detail', component: Pages.OrderDetail },
+    { path: '/cart', component: Pages.Cart, layout: null },
+    { path: '/payment', component: Pages.Payment, layout: null },
 ];
 
 const adminRoutes = [
