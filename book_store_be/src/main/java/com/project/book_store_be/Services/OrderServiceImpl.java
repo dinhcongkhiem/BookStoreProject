@@ -40,6 +40,7 @@ public class OrderServiceImpl implements OrderService {
     private final ImageProductService imageProductService;
     private final PaymentService paymentService;
     private final AddressService addressService;
+    private final CartService cartService;
 
     @Override
     public OrderResponse getAllOrders() {
@@ -107,6 +108,13 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderDetails(orderDetailList);
         orderRepository.save(order);
+
+        request.getItems().forEach(item -> {
+            Long cartId = item.getCartId();
+            if (cartId != null) {
+                cartService.removeCartItem(cartId);
+            }
+        });
         return CreateOrderResponse.builder()
                 .finalPrice(totalPrice[0].add(order.getShippingFee()))
                 .orderCode(orderCode)

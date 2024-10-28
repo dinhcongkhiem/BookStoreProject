@@ -21,6 +21,7 @@ public class OrderRequest {
     @Data
     @Builder
     public static class OrderDetailRequest {
+        private Long cartId;
         private Long productId;
         private Integer qty;
     }
