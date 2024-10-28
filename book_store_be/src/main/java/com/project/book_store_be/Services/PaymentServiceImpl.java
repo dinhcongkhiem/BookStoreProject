@@ -118,16 +118,11 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public String cancelPayment(Long orderCode) throws Exception {
-        Order order = orderRepository.findById(orderCode)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
-
-        if (order.getStatus() != OrderStatus.AWAITING_PAYMENT) {
-            throw new IllegalArgumentException("Cannot cancel. The order is not in 'awaiting payment' status.");
-        }
         try {
             payOS.cancelPaymentLink(orderCode, "Customer requested cancellation");
-            order.setStatus(OrderStatus.CANCELED);
-            orderRepository.save(order);
+
+//          HỦY THANK TOÁN (SEND MAIL Ở ĐÂY NHA)
+
             return "Order " + orderCode + " has been canceled on both system and third-party.";
         } catch (Exception e) {
             throw new Exception("Failed to cancel payment with third-party: " + e.getMessage());

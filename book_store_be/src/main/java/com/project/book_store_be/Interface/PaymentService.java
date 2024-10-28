@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 
 public interface PaymentService {
     PaymentResponse PaymentRequest(PaymentRequest request) throws Exception;
-
     String UpdateStatus(Webhook webhook);
     String cancelPayment(Long orderCode) throws Exception;
 }

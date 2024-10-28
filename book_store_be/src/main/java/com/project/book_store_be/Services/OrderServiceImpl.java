@@ -27,6 +27,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
+
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -63,6 +65,8 @@ public class OrderServiceImpl implements OrderService {
                 .orderDate(LocalDateTime.now())
                 .user(u)
                 .address(request.getAddress() != null ? request.getAddress() : u.getAddress())
+                .buyerName(request.getBuyerName() != null ? request.getBuyerName() : u.getFullName())
+                .buyerPhoneNum(request.getBuyerPhoneNum() != null ? request.getBuyerPhoneNum() : u.getPhoneNum())
                 .build();
         orderRepository.save(order);
 
@@ -80,17 +84,17 @@ public class OrderServiceImpl implements OrderService {
             orderDetailList.add(orderDetail);
         });
         PaymentResponse paymentResponse = null;
-
-        if(order.getPaymentType() == PaymentType.bank_transfer) {
+        Long orderCode = 0L;
+        if (order.getPaymentType() == PaymentType.bank_transfer) {
             try {
 
                 String currentTimeString = String.valueOf(new Date().getTime());
                 Long time = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
-                Long orderCode = Long.parseLong(order.getId() + String.valueOf(time));
+                orderCode = Long.parseLong(order.getId() + String.valueOf(time));
                 paymentResponse = paymentService.PaymentRequest(PaymentRequest.builder()
-                                .orderCode(orderCode)
-                                .amount(totalPrice[0].add(order.getShippingFee()))
-                                .description("BB-" + currentTimeString.substring(currentTimeString.length() - 4))
+                        .orderCode(orderCode)
+                        .amount(totalPrice[0].add(order.getShippingFee()))
+                        .description("BB-" + currentTimeString.substring(currentTimeString.length() - 4))
                         .build()
 
                 );
@@ -102,10 +106,20 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderDetails(orderDetailList);
         orderRepository.save(order);
         return CreateOrderResponse.builder()
+                .finalPrice(totalPrice[0].add(order.getShippingFee()))
+                .orderCode(orderCode)
                 .orderStatus(order.getStatus())
                 .paymentType(order.getPaymentType())
                 .QRCodeURL(paymentResponse != null ? paymentResponse.getQRCodeURL() : "")
                 .build();
+    }
+
+    @Override
+    public OrderStatus checkStatus(Long id) {
+        return orderRepository
+                .findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Khong co order voi id la: " + id))
+                .getStatus();
     }
 
     private OrderResponse convertOrderResponse(Order order) {

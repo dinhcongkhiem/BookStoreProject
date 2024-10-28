@@ -14,6 +14,8 @@ public class OrderRequest {
     private Address address;
     private BigDecimal shippingFee;
     private PaymentType paymentType;
+    private String buyerName;
+    private String buyerPhoneNum;
     private List<OrderDetailRequest> items;
 
     @Data

@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.NoSuchElementException;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/order")
@@ -24,6 +26,15 @@ public class OrderController {
         }
     }
 
+    @GetMapping("/status")
+    public ResponseEntity<?> checkStatusOrder(@RequestBody Long id) {
+        try {
+            return ResponseEntity.ok(orderService.checkStatus(id));
+        }catch (NoSuchElementException e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+        }
+    }
     @GetMapping()
     public ResponseEntity<?> getOrderByUser(
             @RequestParam(defaultValue = "0") Integer page,

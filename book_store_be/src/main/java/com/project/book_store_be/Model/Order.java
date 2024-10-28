@@ -36,6 +36,9 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "address_id")
     private Address address;
+    private String buyerName;
+    @Column(length = 11)
+    private String buyerPhoneNum;
     private LocalDateTime orderDate;
 
 

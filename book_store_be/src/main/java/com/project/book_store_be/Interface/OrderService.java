@@ -11,4 +11,5 @@ public interface OrderService {
     OrderResponse getAllOrders();
     Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword);
     CreateOrderResponse createOrder(OrderRequest request);
+    OrderStatus checkStatus(Long id);
 }
