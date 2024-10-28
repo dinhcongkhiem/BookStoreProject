@@ -11,9 +11,7 @@ import com.project.book_store_be.Repository.OrderRepository;
 import com.project.book_store_be.Repository.Specification.OrderSpecification;
 import com.project.book_store_be.Request.OrderRequest;
 import com.project.book_store_be.Request.PaymentRequest;
-import com.project.book_store_be.Response.OrderRes.CreateOrderResponse;
-import com.project.book_store_be.Response.OrderRes.OrderItemsResponse;
-import com.project.book_store_be.Response.OrderRes.OrderResponse;
+import com.project.book_store_be.Response.OrderRes.*;
 import com.project.book_store_be.Response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -50,7 +48,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword) {
         Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, keyword);
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.ASC, "orderDate"));
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
 
@@ -133,6 +131,44 @@ public class OrderServiceImpl implements OrderService {
                 .getStatus();
     }
 
+
+
+
+    @Override
+    public OrderDetailResponse getOrderDetailById(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Order not found with ID: " + id));
+
+        List<OrderItemsDetailResponse> itemDetails = order.getOrderDetails().stream()
+                .map(detail -> {
+                    Product product = detail.getProduct();
+                    BigDecimal discount = detail.getDiscount() != null ? detail.getDiscount() : BigDecimal.ZERO;
+                    return OrderItemsDetailResponse.builder()
+                            .productName(product.getName())
+                            .originalPrice(product.getOriginal_price())
+                            .discount(discount)
+                            .quantity(detail.getQuantity())
+                            .thumbnailUrl(imageProductService.getThumbnailProduct(product.getId()))
+                            .build();
+                })
+                .toList();
+
+        BigDecimal totalPrice = itemDetails.stream()
+                .map(item -> item.getOriginalPrice().subtract(item.getDiscount()).multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
+
+        return OrderDetailResponse.builder()
+                .orderId(order.getId())
+                .status(order.getStatus())
+                .finalPrice(totalPrice)
+                .fullname(order.getBuyerName())
+                .phoneNum(order.getBuyerPhoneNum())
+                .address(order.getAddress())
+                .items(itemDetails)
+                .build();
+    }
+
     private OrderResponse convertOrderResponse(Order order) {
         List<OrderDetail> orderItems = order.getOrderDetails();
 
@@ -158,4 +194,5 @@ public class OrderServiceImpl implements OrderService {
                 .orderResponseList(orderItemsRes)
                 .build();
     }
+
 }
