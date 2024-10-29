@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import InventoryIcon from '@mui/icons-material/Inventory';
@@ -7,126 +7,65 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import classNames from 'classnames/bind';
 import style from './Order.module.scss';
-
+import { useQuery } from '@tanstack/react-query';
+import OrderService from '../../service/OrderService';
+import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
 const cx = classNames.bind(style);
 
 function Order() {
+    const [ordersList, setOrdersList] = useState([]);
+    const [page, setPage] = useState(1);
     const [activeTab, setActiveTab] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
+    const observer = useRef();
 
+    const {
+        data: orders,
+        error,
+        isLoading,
+        refetch
+    } = useQuery({
+        queryKey: ['orderByUser', page, activeTab],
+        queryFn: () => OrderService.getOrderByUser({ page, status: activeTab, keyword: searchTerm }).then((res) => res.data),
+        retry: 1,
+    });
+
+    const handleSearchOrder = () => {
+        refetch({ queryKey: ['orderByUser', 1, activeTab, searchTerm] });
+    };
+    
+    const lastItemRef = useCallback(
+        (node) => {
+            if (observer.current) observer.current.disconnect();
+            observer.current = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting && page < orders?.totalPages) {
+                    setPage((prevPage) => prevPage + 1);
+                }
+            });
+            if (node) observer.current.observe(node);
+        },
+        [orders],
+    );
     const tabs = [
         { id: 'all', label: 'Tất cả đơn' },
-        { id: 'pending', label: 'Chờ thanh toán' },
-        { id: 'processing', label: 'Đang xử lý' },
-        { id: 'shipping', label: 'Đang vận chuyển' },
-        { id: 'delivered', label: 'Đã giao' },
-        { id: 'cancelled', label: 'Đã huỷ ' },
-    ];
-
-    const orders = [
-        {
-            id: 1,
-            status: 'Đã hủy',
-            products: [
-                {
-                    name: 'Set 20 khay bạc lót nồi chiên không dầu, khay giấy bạc nướng đa năng',
-                    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzAD3fE4gimUcLKMThvONgIwrdzkTf9bwzWQ&s',
-                    quantity: 1,
-                    price: '39.000 ₫',
-                    store: 'So Easy Homecare',
-                },
-            ],
-            total: '72.000 ₫',
-        },
-        {
-            id: 2,
-            status: 'Đã hủy',
-            products: [
-                {
-                    name: 'Ốp lưng cho iP mềm trong suốt dẻo có ngăn đựng thẻ',
-                    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzAD3fE4gimUcLKMThvONgIwrdzkTf9bwzWQ&s',
-                    quantity: 1,
-                    price: '32.000 ₫',
-                    store: 'Shalla',
-                },
-            ],
-            total: '64.700 ₫',
-        },
-        {
-            id: 3,
-            status: 'Chờ thanh toán',
-            products: [
-                {
-                    name: 'Bộ quần áo thể thao nam',
-                    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzAD3fE4gimUcLKMThvONgIwrdzkTf9bwzWQ&s',
-                    quantity: 2,
-                    price: '150.000 ₫',
-                    store: 'SportyStyle',
-                },
-            ],
-            total: '300.000 ₫',
-        },
-        {
-            id: 4,
-            status: 'Đang xử lý',
-            products: [
-                {
-                    name: 'Tai nghe Bluetooth không dây',
-                    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzAD3fE4gimUcLKMThvONgIwrdzkTf9bwzWQ&s',
-                    quantity: 1,
-                    price: '500.000 ₫',
-                    store: 'ElectroHub',
-                },
-            ],
-            total: '500.000 ₫',
-        },
-        {
-            id: 5,
-            status: 'Đang vận chuyển',
-            products: [
-                {
-                    name: 'Sách "Đắc Nhân Tâm"',
-                    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzAD3fE4gimUcLKMThvONgIwrdzkTf9bwzWQ&s',
-                    quantity: 1,
-                    price: '80.000 ₫',
-                    store: 'BookWorm',
-                },
-                {
-                    name: 'Bút bi cao cấp',
-                    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzAD3fE4gimUcLKMThvONgIwrdzkTf9bwzWQ&s',
-                    quantity: 3,
-                    price: '20.000 ₫',
-                    store: 'BookWorm',
-                },
-            ],
-            total: '140.000 ₫',
-        },
-        {
-            id: 6,
-            status: 'Đã giao',
-            products: [
-                {
-                    name: 'Kem dưỡng da mặt',
-                    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzAD3fE4gimUcLKMThvONgIwrdzkTf9bwzWQ&s',
-                    quantity: 1,
-                    price: '250.000 ₫',
-                    store: 'BeautyZone',
-                },
-            ],
-            total: '250.000 ₫',
-        },
+        { id: 'AWAITING_PAYMENT', label: 'Chờ thanh toán' },
+        { id: 'PROCESSING', label: 'Đang xử lý' },
+        { id: 'SHIPPING', label: 'Đang vận chuyển' },
+        { id: 'COMPLETED', label: 'Đã giao' },
+        { id: 'CANCELED', label: 'Đã huỷ ' },
     ];
 
     const getStatusIcon = (status) => {
         switch (status) {
-            case 'Chờ thanh toán':
+            case 'AWAITING_PAYMENT':
                 return <AccessTimeIcon className={cx('statusIcon', 'statusIconPending')} />;
-            case 'Đang xử lý':
+            case 'PROCESSING':
                 return <InventoryIcon className={cx('statusIcon', 'statusIconProcessing')} />;
-            case 'Đang vận chuyển':
+            case 'SHIPPING':
                 return <LocalShippingIcon className={cx('statusIcon', 'statusIconShipping')} />;
-            case 'Đã giao':
+            case 'COMPLETED':
                 return <CheckCircleIcon className={cx('statusIcon', 'statusIconDelivered')} />;
-            case 'Đã hủy':
+            case 'CANCELED':
                 return <CancelIcon className={cx('statusIcon', 'statusIconCancelled')} />;
             default:
                 return null;
@@ -135,30 +74,28 @@ function Order() {
 
     const getStatusClass = (status) => {
         switch (status) {
-            case 'Chờ thanh toán':
+            case 'AWAITING_PAYMENT':
                 return 'statusPending';
-            case 'Đang xử lý':
+            case 'PROCESSING':
                 return 'statusProcessing';
-            case 'Đang vận chuyển':
+            case 'SHIPPING':
                 return 'statusShipping';
-            case 'Đã giao':
+            case 'COMPLETED':
                 return 'statusDelivered';
-            case 'Đã hủy':
+            case 'CANCELED':
                 return 'statusCancelled';
             default:
                 return '';
         }
     };
 
-    const filteredOrders = orders.filter((order) => {
-        if (activeTab === 'all') return true;
-        if (activeTab === 'pending' && order.status === 'Chờ thanh toán') return true;
-        if (activeTab === 'processing' && order.status === 'Đang xử lý') return true;
-        if (activeTab === 'shipping' && order.status === 'Đang vận chuyển') return true;
-        if (activeTab === 'delivered' && order.status === 'Đã giao') return true;
-        if (activeTab === 'cancelled' && order.status === 'Đã hủy') return true;
-        return false;
-    });
+    useEffect(() => {
+        if (orders && page === 1) {
+            setOrdersList(orders.content);
+        } else if (orders && page > 1) {
+            setOrdersList((prevOrders) => [...prevOrders, ...orders.content]);
+        }
+    }, [orders]);
 
     return (
         <div className={cx('container')}>
@@ -169,7 +106,11 @@ function Order() {
                     <div
                         key={tab.id}
                         className={cx('tab', { active: activeTab === tab.id })}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => {
+                            setOrdersList(undefined)
+                            setActiveTab(tab.id);
+                            setPage(1)
+                        }}
                     >
                         {tab.label}
                     </div>
@@ -180,36 +121,43 @@ function Order() {
                 <div className={cx('searchInputContainer')}>
                     <SearchIcon className={cx('searchIcon')} />
                     <input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                         name="search"
-                        placeholder="Tìm đơn hàng theo Mã đơn hàng, Nhà bán hoặc Tên sản phẩm"
+                        placeholder="Tìm đơn hàng theo Mã đơn hàng hoặc Tên sản phẩm"
                         type="search"
                         className={cx('searchInput')}
                     />
-                    <button className={cx('searchButton')}>Tìm đơn hàng</button>
+                    <button className={cx('searchButton')} onClick={handleSearchOrder}>Tìm đơn hàng</button>
                 </div>
             </div>
 
             <div className={cx('orderList')}>
-                {filteredOrders.map((order) => (
-                    <div key={order.id} className={cx('orderCard')}>
+                {ordersList?.map((order, index) => (
+                    <div
+                        key={index}
+                        className={cx('orderCard')}
+                        ref={index === ordersList.length - 1 ? lastItemRef : null}
+                    >
                         <div className={cx('orderHeader')}>
                             {getStatusIcon(order.status)}
                             <span className={cx('orderStatus', getStatusClass(order.status))}>{order.status}</span>
                         </div>
                         <div className={cx('orderDetails')}>
-                            {order.products.map((product, index) => (
+                            {order.orderResponseList.map((product, index) => (
                                 <div key={index} className={cx('productRow')}>
                                     <div
                                         className={cx('productImage')}
-                                        style={{ backgroundImage: `url(${product.image})` }}
+                                        style={{ backgroundImage: `url(${product.thumbnail_url})` }}
                                     >
                                         <span className={cx('productQuantity')}>x{product.quantity}</span>
                                     </div>
                                     <div className={cx('productInfo')}>
-                                        <p className={cx('productName')}>{product.name}</p>
-                                        <p className={cx('productStore')}>Cửa hàng: {product.store}</p>
+                                        <p className={cx('productName')}>{product.productName}</p>
                                     </div>
-                                    <div className={cx('productPrice')}>{product.price}</div>
+                                    <div className={cx('productPrice')}>
+                                        {product.originalPrice.toLocaleString('vi-VN')}₫
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -217,28 +165,28 @@ function Order() {
                         <div className={cx('orderFooter')}>
                             <div className={cx('total')}>
                                 <span className={cx('totalLabel')}>Tổng tiền:</span>
-                                <span className={cx('totalAmount')}>{order.total}</span>
+                                <span className={cx('totalAmount')}>{order.finalPrice.toLocaleString('vi-VN')}₫</span>
                             </div>
                             <div className={cx('actions')}>
-                                {order.status === 'Chờ thanh toán' && (
+                                {order.status === 'AWAITING_PAYMENT' && (
                                     <>
                                         <button className={cx('actionButton', 'payAgainButton')}>Thanh toán lại</button>
                                         <button className={cx('actionButton')}>Xem chi tiết</button>
                                     </>
                                 )}
-                                {order.status === 'Đang xử lý' && (
+                                {order.status === 'PROCESSING' && (
                                     <button className={cx('actionButton')}>Xem chi tiết</button>
                                 )}
-                                {order.status === 'Đang vận chuyển' && (
+                                {order.status === 'SHIPPING' && (
                                     <button className={cx('actionButton', 'receivedButton')}>Đã nhận được hàng</button>
                                 )}
-                                {order.status === 'Đã giao' && (
+                                {order.status === 'COMPLETED' && (
                                     <>
                                         <button className={cx('actionButton', 'reviewButton')}>Đánh giá</button>
                                         <button className={cx('actionButton')}>Xem chi tiết</button>
                                     </>
                                 )}
-                                {order.status === 'Đã hủy' && (
+                                {order.status === 'CANCELED' && (
                                     <>
                                         <button className={cx('actionButton')}>Mua lại</button>
                                         <button className={cx('actionButton')}>Xem chi tiết hủy đơn</button>
@@ -249,6 +197,7 @@ function Order() {
                     </div>
                 ))}
             </div>
+            <ModalLoading isLoading={isLoading} />
         </div>
     );
 }

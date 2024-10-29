@@ -54,6 +54,7 @@
     padding: 1rem;
     border: none;
     font-size: 1.4rem;
+    outline: none;
 }
 
 .searchIcon {
@@ -68,6 +69,12 @@
     cursor: pointer;
     background-color: var(--primary);
     border-top-right-radius: 4px;
+    &:hover {
+        background-color: var(--hover-background-darker);
+    }
+    &:active {
+        opacity: .8;
+    }
 }
 
 .orderList {

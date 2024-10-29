@@ -56,7 +56,7 @@ const UpdateAddressModal = ({ open, onClose, setValue }) => {
                 },
             };
             setValue(data);
-            onClose()
+            onClose(true)
         },
         validateOnBlur: false,
         validateOnChange: false,
@@ -302,7 +302,7 @@ const UpdateAddressModal = ({ open, onClose, setValue }) => {
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={onClose} color="primary">
+                    <Button onClick={() => onClose(false)} color="primary">
                         Hủy
                     </Button>
                     <Button type="submit" color="primary" variant="contained" onClick={formik.handleSubmit}>
