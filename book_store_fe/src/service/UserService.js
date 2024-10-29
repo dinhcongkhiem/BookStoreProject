@@ -27,6 +27,19 @@ class UserServiceClass {
 
         return httpRequest.request(config);
     };
+
+    changePassword = (data) => {
+        let config = {
+            method: 'patch',
+            url: USER_URL + '/change-password',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+            data: data,
+        };
+        return httpRequest.request(config);
+    };
 }
 const UserService = new UserServiceClass();
 export default UserService;
