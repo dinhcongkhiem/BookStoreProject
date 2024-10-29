@@ -16,9 +16,10 @@ import style from './User.module.scss';
 import { AuthenticationContext } from '../../context/AuthenticationProvider';
 import UserService from '../../service/UserService';
 import { toast } from 'react-toastify';
+import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
 const cx = classNames.bind(style);
 
-function UserInfo({ setIsLoading }) {
+function UserInfo() {
     const { authentication } = useContext(AuthenticationContext);
 
     const [username, setUsername] = useState('');
@@ -33,6 +34,7 @@ function UserInfo({ setIsLoading }) {
     const [districts, setDistricts] = useState();
     const [communes, setCommunes] = useState();
 
+    const [isLoading, setIsLoading] = useState(false);
     const [listErr, setListErr] = useState({
         email: false,
         emailFormat: false,
@@ -274,6 +276,7 @@ function UserInfo({ setIsLoading }) {
                     <span className="fw-semibold">Lưu thay đổi</span>
                 </Button>
             </div>
+            <ModalLoading isLoading={isLoading} />
         </div>
     );
 }
