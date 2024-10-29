@@ -17,102 +17,133 @@ import { AuthenticationContext } from '../../context/AuthenticationProvider';
 import UserService from '../../service/UserService';
 import { toast } from 'react-toastify';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
+import * as Yup from 'yup';
+import { useFormik } from 'formik';
 const cx = classNames.bind(style);
 
 function UserInfo() {
     const { authentication } = useContext(AuthenticationContext);
-
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [phoneNum, setPhoneNum] = useState('');
-    const [selectedProvince, setSelectedProvince] = useState('');
-    const [selectedDistrict, setSelectedDistrict] = useState('');
-    const [selectedCommune, setSelectedCommune] = useState('');
-    const [addressDetail, setAddressDetail] = useState('');
-
     const [provinces, setProvince] = useState(getProvinces());
     const [districts, setDistricts] = useState();
     const [communes, setCommunes] = useState();
 
     const [isLoading, setIsLoading] = useState(false);
-    const [listErr, setListErr] = useState({
-        email: false,
-        emailFormat: false,
-        password: false,
-        fullname: false,
-        confirmPassword: {
-            required: false,
-            match: false,
-        },
-        province: false,
-        district: false,
-        commune: false,
-        addressDetail: false,
+    const validationSchema = Yup.object({
+        name: Yup.string().required('Vui lòng nhập họ và tên'),
+        email: Yup.string().required('Vui lòng nhập email').email('Email không hợp lệ'),
+        phoneNum: Yup.string().required('Vui lòng nhập số điện thoại.').length(10, 'Số điện thoại phải có 10 chữ số.'),
+        selectedProvince: Yup.object()
+            .nullable()
+            .required('Vui lòng chọn tỉnh.')
+            .test('is-valid', 'Vui lòng chọn tỉnh.', (value) => value && value.code),
+        selectedDistrict: Yup.object()
+            .nullable()
+            .required('Vui lòng chọn huyện.')
+            .test('is-valid', 'Vui lòng chọn huyện.', (value) => value && value.code),
+        selectedCommune: Yup.object()
+            .nullable()
+            .required('Vui lòng chọn xã.')
+            .test('is-valid', 'Vui lòng chọn xã.', (value) => value && value.code),
+        addressDetail: Yup.string().required('Vui lòng nhập địa chỉ cụ thể.'),
     });
 
-    const handleUpdateInfo = (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        const data = {
-            fullName: username,
-            email: email,
-            phoneNum: phoneNum,
-            address: {
-                province: {
-                    label: selectedProvince.name,
-                    value: selectedProvince.code,
+    const formik = useFormik({
+        initialValues: {
+            name: '',
+            email: '',
+            phoneNum: '',
+            selectedProvince: '',
+            selectedDistrict: '',
+            selectedCommune: '',
+            addressDetail: '',
+        },
+        validationSchema: validationSchema,
+        onSubmit: (values) => {
+            const data = {
+                fullName: values.name,
+                email: values.email,
+                phoneNum: values.phoneNum,
+                address: {
+                    province: { value: values.selectedProvince.code, label: values.selectedProvince.name },
+                    district: { value: values.selectedDistrict.code, label: values.selectedDistrict.name },
+                    commune: { value: values.selectedCommune.code, label: values.selectedCommune.name },
+                    addressDetail: values.addressDetail,
                 },
-                district: {
-                    label: selectedDistrict.name,
-                    value: selectedDistrict.code,
-                },
-                commune: {
-                    label: selectedCommune.name,
-                    value: selectedCommune.code,
-                },
-                addressDetail: addressDetail,
-            },
-        };
-
-        UserService.updateUser(data)
-            .then((response) => {
-                if (response.status === 200) {
-                    toast.success('Cập nhật thông tin cá nhân thành công!');
-                    authentication.isRemember
-                        ? localStorage.setItem('user', JSON.stringify(data))
-                        : sessionStorage.setItem('user', JSON.stringify(data));
-                }
-            })
-            .catch((error) => {
-                toast.error('Có lỗi xảy ra vui lòng thử lại');
-                console.log(error);
-            })
-            .finally(() => setIsLoading(false));
-    };
+            };
+            setIsLoading(true);
+            UserService.updateUser(data)
+                .then((response) => {
+                    if (response.status === 200) {
+                        toast.success('Cập nhật thông tin cá nhân thành công!');
+                        authentication.isRemember
+                            ? localStorage.setItem('user', JSON.stringify({ ...data, role: 'USER' }))
+                            : sessionStorage.setItem('user', JSON.stringify({ ...data, role: 'USER' }));
+                    }
+                })
+                .catch((error) => {
+                    toast.error(error.response.data);
+                    console.log();
+                })
+                .finally(() => setIsLoading(false));
+        },
+        validateOnBlur: false,
+        validateOnChange: false,
+    });
 
     const handleChangeAddress = (type, value) => {
         if (type === 1) {
-            setSelectedProvince(getProvinceByCode(value));
+            formik.setValues((prev) => ({
+                ...prev,
+                selectedProvince: getProvinceByCode(value),
+                selectedDistrict: '',
+                selectedCommune: '',
+            }));
             setDistricts(getDistrictsByProvinceCode(value));
-            setSelectedDistrict('');
-            setSelectedCommune('');
         } else if (type === 2) {
-            setSelectedDistrict(getDistrictByCode(value));
             setCommunes(getWardsByDistrictCode(value));
-            setSelectedCommune('');
+            formik.setValues((prev) => ({
+                ...prev,
+                selectedDistrict: getDistrictByCode(value),
+                selectedCommune: '',
+            }));
         } else {
-            setSelectedCommune(getWardByCode(value));
+            formik.setValues((prev) => ({
+                ...prev,
+                selectedCommune: getWardByCode(value),
+            }));
         }
     };
     const updateData = (user) => {
-        setUsername(user?.fullName);
-        setEmail(user?.email);
-        setPhoneNum(user?.phoneNum);
-        if (user.address !== null) {
-            setAddressDetail(user?.address?.addressDetail);
-            handleChangeAddress(1, user?.address?.province.value);
-            handleChangeAddress(2, user?.address?.district.value);
-            handleChangeAddress(3, user?.address?.commune.value);
+        const value = {
+            name: user?.fullName || '',
+            email: user?.email || '',
+            phoneNum: user?.phoneNum || '',
+            selectedProvince: user?.address?.province
+                ? {
+                      name: user?.address?.province.label,
+                      code: user?.address?.province.value,
+                  }
+                : '',
+            selectedDistrict: user?.address?.district
+                ? {
+                      name: user?.address?.district.label,
+                      code: user?.address?.district.value,
+                  }
+                : '',
+            selectedCommune: user?.address?.commune
+                ? {
+                      name: user?.address?.commune.label,
+                      code: user?.address?.commune.value,
+                  }
+                : '',
+            addressDetail: user?.address?.addressDetail || '',
+        };
+        formik.setValues(value);
+        if (user?.address?.province) {
+            setDistricts(getDistrictsByProvinceCode(user.address.province.value));
+        }
+        if (user?.address?.district) {
+            setCommunes(getWardsByDistrictCode(user.address.district.value));
         }
     };
     const fetchUserData = () => {
@@ -141,34 +172,43 @@ function UserInfo() {
     return (
         <div className={cx('section')}>
             <h2>Thông tin tài khoản</h2>
-            <div className={cx('form-wrapper')} style={{ margin: '0 10rem' }}>
+            <form className={cx('form-wrapper')} style={{ margin: '0 10rem' }}>
                 <TextField
+                    name="name"
                     label="Họ và Tên"
                     variant="outlined"
                     fullWidth
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={formik.values.name}
+                    onChange={formik.handleChange}
                     margin="normal"
                     size="small"
+                    error={formik.touched.name && Boolean(formik.errors.name)}
+                    helperText={formik.touched.name && formik.errors.name}
                 />
                 <div className="d-flex gap-3">
                     <TextField
+                        name="email"
                         label="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={formik.values.email}
+                        onChange={formik.handleChange}
                         variant="outlined"
                         fullWidth
                         margin="normal"
                         size="small"
+                        error={formik.touched.email && Boolean(formik.errors.email)}
+                        helperText={formik.touched.email && formik.errors.email}
                     />
                     <TextField
+                        name="phoneNum"
                         label="Số điện thoại"
-                        value={phoneNum}
-                        onChange={(e) => setPhoneNum(e.target.value)}
+                        value={formik.values.phoneNum}
+                        onChange={formik.handleChange}
                         variant="outlined"
                         fullWidth
                         margin="normal"
                         size="small"
+                        error={formik.touched.phoneNum && Boolean(formik.errors.phoneNum)}
+                        helperText={formik.touched.phoneNum && formik.errors.phoneNum}
                     />
                 </div>
 
@@ -177,18 +217,22 @@ function UserInfo() {
                         <FormControl
                             fullWidth
                             required
-                            error={listErr?.province}
+                            error={formik.touched.name && Boolean(formik.errors.name)}
                             size="small"
                             sx={{ my: 1, minWidth: 120 }}
                         >
                             <Autocomplete
+                                name="province"
                                 disablePortal
                                 disableClearable
                                 className="m-0"
                                 options={provinces.map((prov) => ({ label: prov.name, code: prov.code }))}
                                 value={
-                                    selectedProvince
-                                        ? { label: selectedProvince.name, code: selectedProvince.code }
+                                    formik.values.selectedProvince
+                                        ? {
+                                              label: formik.values.selectedProvince.name,
+                                              code: formik.values.selectedProvince.code,
+                                          }
                                         : null
                                 }
                                 isOptionEqualToValue={(option, value) => option.code === value.code}
@@ -197,12 +241,14 @@ function UserInfo() {
                                 size="small"
                                 onChange={(e, value) => handleChangeAddress(1, value.code)}
                             />
-                            <FormHelperText>{listErr.province ? 'Vui lòng chọn tỉnh/thành phố' : ''}</FormHelperText>
+                            <FormHelperText>
+                                {formik.touched.selectedProvince && formik.errors.selectedProvince}
+                            </FormHelperText>
                         </FormControl>
                         <FormControl
                             fullWidth
                             required
-                            error={listErr.district}
+                            error={formik.touched.selectedDistrict && Boolean(formik.errors.selectedDistrict)}
                             size="small"
                             sx={{ my: 1, minWidth: 120 }}
                         >
@@ -214,8 +260,11 @@ function UserInfo() {
                                     districts ? districts.map((prov) => ({ label: prov.name, code: prov.code })) : []
                                 }
                                 value={
-                                    selectedDistrict
-                                        ? { label: selectedDistrict.name, code: selectedDistrict.code }
+                                    formik.values.selectedDistrict
+                                        ? {
+                                              label: formik.values.selectedDistrict.name,
+                                              code: formik.values.selectedDistrict.code,
+                                          }
                                         : null
                                 }
                                 sx={{ my: 1, minWidth: 120 }}
@@ -224,12 +273,14 @@ function UserInfo() {
                                 size="small"
                                 onChange={(e, value) => handleChangeAddress(2, value.code)}
                             />
-                            <FormHelperText>{listErr.district ? 'Vui lòng chọn quận/huyện' : ''}</FormHelperText>
+                            <FormHelperText>
+                                {formik.touched.selectedDistrict && formik.errors.selectedDistrict}
+                            </FormHelperText>
                         </FormControl>
                         <FormControl
                             fullWidth
                             required
-                            error={listErr.commune}
+                            error={formik.touched.selectedCommune && Boolean(formik.errors.selectedCommune)}
                             size="small"
                             sx={{ my: 1, minWidth: 120 }}
                         >
@@ -241,7 +292,12 @@ function UserInfo() {
                                     communes ? communes.map((prov) => ({ label: prov.name, code: prov.code })) : []
                                 }
                                 value={
-                                    selectedCommune ? { label: selectedCommune.name, code: selectedCommune.code } : null
+                                    formik.values.selectedCommune
+                                        ? {
+                                              label: formik.values.selectedCommune.name,
+                                              code: formik.values.selectedCommune.code,
+                                          }
+                                        : null
                                 }
                                 sx={{ my: 1, minWidth: 120 }}
                                 renderInput={(params) => <TextField {...params} label="Xã/Phường" />}
@@ -249,7 +305,9 @@ function UserInfo() {
                                 size="small"
                                 onChange={(e, value) => handleChangeAddress(3, value.code)}
                             />
-                            <FormHelperText>{listErr.commune ? 'Vui lòng chọn xã/phường' : ''}</FormHelperText>
+                            <FormHelperText>
+                                {formik.touched.selectedCommune && formik.errors.selectedCommune}
+                            </FormHelperText>
                         </FormControl>
                     </div>
 
@@ -257,10 +315,12 @@ function UserInfo() {
                         label="Địa chỉ cụ thể"
                         variant="outlined"
                         fullWidth
-                        value={addressDetail}
-                        onChange={(e) => setAddressDetail(e.target.value)}
+                        value={formik.values.addressDetail}
+                        onChange={formik.handleChange}
                         margin="normal"
                         size="small"
+                        error={formik.touched.addressDetail && Boolean(formik.errors.addressDetail)}
+                        helperText={formik.touched.addressDetail && formik.errors.addressDetail}
                         sx={{ mt: 0.5 }}
                     />
                 </div>
@@ -269,13 +329,13 @@ function UserInfo() {
                     type="submit"
                     variant="contained"
                     color="primary"
-                    onClick={handleUpdateInfo}
+                    onClick={formik.handleSubmit}
                     className={cx('save-button')}
                     sx={{ mt: 2, padding: '1rem', width: '50%', mx: 'auto' }}
                 >
                     <span className="fw-semibold">Lưu thay đổi</span>
                 </Button>
-            </div>
+            </form>
             <ModalLoading isLoading={isLoading} />
         </div>
     );

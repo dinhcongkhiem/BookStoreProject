@@ -31,7 +31,7 @@ import CartService from '../../service/CartService';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import useDebounce from '../../hooks/useDebounce';
 import ConfirmModal from '../../component/Modal/ConfirmModal/ConfirmModal';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 const cx = classNames.bind(style);
 
@@ -50,7 +50,7 @@ function Cart() {
         const totalAmount = productsInCart?.cart?.reduce(
             (acc, item) => acc + (selectedItems.includes(item.id) ? item.price * item.quantity : 0),
             0,
-        );        
+        );
         setTotalAmout(totalAmount);
     }, [selectedItems]);
 
@@ -145,17 +145,15 @@ function Cart() {
         );
     };
 
-  
-
     const handleSubmit = () => {
-        if(selectedItems.length <= 0) {
-            toast.info("Bạn chưa chọn sản phẩm nào để mua.")
+        if (selectedItems.length <= 0) {
+            toast.info('Bạn chưa chọn sản phẩm nào để mua.');
             return;
         }
         localStorage.setItem('cartIdsForPayment', JSON.stringify(selectedItems));
-        localStorage.removeItem('productForPayment')
+        localStorage.removeItem('productForPayment');
         navigate('/payment', { state: { cartIds: selectedItems } });
-    }
+    };
 
     return (
         <div className={cx('cart-container')}>
@@ -202,13 +200,15 @@ function Cart() {
                                                 onChange={() => handleSelectItem(item.id)}
                                             />
                                         </TableCell>
-                                        <TableCell sx={{display: 'flex'}}>
-                                            <img
-                                                src={item.thumbnail_url}
-                                                alt="Banner"
-                                                style={{ width: '65px', marginRight: '10px' }}
-                                            />
-                                            <span className={cx('name-item')}>{item.productName}</span>
+                                        <TableCell>
+                                            <Link to={`/product/detail?id=${item.productId}`} style={{ display: 'flex' }}>
+                                                <img
+                                                    src={item.thumbnail_url}
+                                                    alt="Banner"
+                                                    style={{ width: '65px', marginRight: '10px' }}
+                                                />
+                                                <span className={cx('name-item')}>{item.productName}</span>
+                                            </Link>
                                         </TableCell>
                                         <TableCell align="center">
                                             {item.price.toLocaleString()} <span>₫</span>

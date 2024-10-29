@@ -60,9 +60,9 @@ function Home() {
         <div className={cx('wrapper')}>
             <div className={cx('carouselContainer')}>
                 <Carousel interval={3000} fade controls={false}>
-                    {listImgSlide.map((imgSlide) => {
+                    {listImgSlide.map((imgSlide, index) => {
                         return (
-                            <Carousel.Item>
+                            <Carousel.Item key={index}>
                                 <img
                                     className={cx('d-block w-100', 'carouselImage')}
                                     src={imgSlide.url}
@@ -99,7 +99,7 @@ function Home() {
             <div className={cx('lastPushlishSection')}>
                 <div className={cx('headerSection')}>
                     <h3>Sách mới nhất</h3>
-                    <Link to="/">
+                    <Link to="/product">
                         Xem thêm
                         <FontAwesomeIcon icon={faChevronRight} />
                     </Link>
@@ -107,7 +107,7 @@ function Home() {
                 <div className={cx('productContainer')}>
                     {Array.isArray(productsNewest) &&
                         productsNewest.map((product) => {
-                            return <ProductsComponent product={product} />;
+                            return <ProductsComponent product={product} to={`/product/detail?id=${product.id}`} />;
                         })}
                 </div>
             </div>

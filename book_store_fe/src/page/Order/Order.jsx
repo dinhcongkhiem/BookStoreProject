@@ -71,7 +71,22 @@ function Order() {
                 return null;
         }
     };
-
+    const convertStatusToVN = (status) => {
+        switch (status) {
+            case 'AWAITING_PAYMENT':
+                return 'Chờ thanh toán';
+            case 'PROCESSING':
+                return 'Đang xử lý';
+            case 'SHIPPING':
+                return 'Đang vận chuyển';
+            case 'COMPLETED':
+                return 'Đã giao';
+            case 'CANCELED':
+                return 'Đã hủy';
+            default:
+                return '';
+        }
+    }
     const getStatusClass = (status) => {
         switch (status) {
             case 'AWAITING_PAYMENT':
@@ -141,7 +156,7 @@ function Order() {
                     >
                         <div className={cx('orderHeader')}>
                             {getStatusIcon(order.status)}
-                            <span className={cx('orderStatus', getStatusClass(order.status))}>{order.status}</span>
+                            <span className={cx('orderStatus', getStatusClass(order.status))}>{convertStatusToVN(order.status)}</span>
                         </div>
                         <div className={cx('orderDetails')}>
                             {order.orderResponseList.map((product, index) => (

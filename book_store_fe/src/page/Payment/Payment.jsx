@@ -50,8 +50,8 @@ function Payment() {
             authentication?.user ||
             JSON.parse(localStorage.getItem('user')) ||
             JSON.parse(sessionStorage.getItem('user'));
-        if (!savedUser.address) {
-            toast.warning('Vui lớng thêm địa chỉ vào thông tin tài khoản!');
+        if (!savedUser.address || !savedUser.phoneNum) {
+            toast.warning('Vui lòng cập nhật đầy đủ thông tin tài khoản của bạn trước khi mua hàng!', {delay: 5000});
             navigate('/user/info');
         }
         if (savedUser) {

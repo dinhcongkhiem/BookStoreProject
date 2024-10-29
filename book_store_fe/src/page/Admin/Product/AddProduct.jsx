@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
     TextField,
     Button,
@@ -45,7 +45,9 @@ window.Quill = Quill;
 Quill.register('modules/imageResize', ImageResize);
 
 function AddProduct() {
+    const {productId} = useParams();
     const navigate = useNavigate();
+    console.log('Product ID:', productId);
     const [indexRemove, setIndexRemove] = useState(null);
     const validationSchema = Yup.object({
         name: Yup.string().required('Vui lòng nhập tên sách.'),

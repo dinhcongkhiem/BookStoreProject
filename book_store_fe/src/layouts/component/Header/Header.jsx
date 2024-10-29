@@ -10,7 +10,7 @@ import logoBook from '../../../assets/image/Logo-BookBazaar-nobg.png';
 import { AuthenticationContext } from '../../../context/AuthenticationProvider';
 import style from './Header.module.scss';
 import { Autocomplete, CircularProgress, ListItemIcon, Menu, MenuItem, Popper, TextField } from '@mui/material';
-import { Logout, ManageAccounts, Clear, Cancel } from '@mui/icons-material';
+import { Logout, ManageAccounts, Clear, Cancel, LibraryBooks } from '@mui/icons-material';
 
 import ProductService from '../../../service/ProductService';
 import { useQuery } from '@tanstack/react-query';
@@ -181,6 +181,14 @@ function Header() {
                                             <ManageAccounts fontSize="small" />
                                         </ListItemIcon>
                                         Thông tin cá nhân
+                                    </Link>
+                                </MenuItem>
+                                <MenuItem onClick={() => setAnchorEl(null)}>
+                                    <Link to="/order" className="d-flex align-items-center">
+                                        <ListItemIcon>
+                                            <LibraryBooks fontSize="small" />
+                                        </ListItemIcon>
+                                        Đơn hàng của tôi
                                     </Link>
                                 </MenuItem>
                                 <MenuItem onClick={() => setAnchorEl(null)} sx={{ alignItems: 'center' }}>
