@@ -3,6 +3,7 @@ package com.project.book_store_be.Services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.book_store_be.Interface.ShippingService;
+import com.project.book_store_be.Model.Address;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Response.FeeResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -63,10 +64,18 @@ public class ShippingServiceImpl implements ShippingService {
         log.info("Get shipping fee with default address");
 
         User currentUser = userService.getCurrentUser();
-        String province = String.valueOf(currentUser.getAddress().getProvince().getLabel());
-        String district = String.valueOf(currentUser.getAddress().getDistrict().getLabel());
-        String ward = currentUser.getAddress().getCommune().getLabel();
-        String address = currentUser.getAddress().getAddressDetail();
+        Address addressModel = currentUser.getAddress();
+        String province = "";
+        String district = "";
+        String ward = "";
+        String address = "";
+        if (addressModel != null) {
+            province = addressModel.getProvince().getLabel();
+            district = addressModel.getDistrict().getLabel();
+            ward = addressModel.getCommune().getLabel();
+            address = addressModel.getAddressDetail();
+        }
+
 
         try {
             return FetchShippingFee(province, district, ward, address, weight, value).get();
@@ -108,7 +117,6 @@ public class ShippingServiceImpl implements ShippingService {
             throw new RuntimeException("Error calculating shipping fee", e);
         }
     }
-
 
 
 }

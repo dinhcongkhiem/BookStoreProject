@@ -50,7 +50,10 @@ function Payment() {
             authentication?.user ||
             JSON.parse(localStorage.getItem('user')) ||
             JSON.parse(sessionStorage.getItem('user'));
-
+        if (!savedUser.address) {
+            toast.warning('Vui lớng thêm địa chỉ vào thông tin tài khoản!');
+            navigate('/user/info');
+        }
         if (savedUser) {
             setUser(savedUser);
         } else if (userInfo) {
@@ -107,7 +110,7 @@ function Payment() {
             paymentType: paymentType,
             buyerName: diffAddress ? diffAddress.fullName : null,
             buyerPhoneNum: diffAddress ? diffAddress.phoneNum : null,
-            items: checkoutData?.items.map((i) => ({cartId: i.cartId, productId: i.productId, qty: i.quantity })),
+            items: checkoutData?.items.map((i) => ({ cartId: i.cartId, productId: i.productId, qty: i.quantity })),
         };
         createOrderMutation.mutate(data);
     };
@@ -296,7 +299,7 @@ function Payment() {
             </div>
             <UpdateAddressModal
                 open={isOpen}
-                onClose={(isSubmit) => {                     
+                onClose={(isSubmit) => {
                     setIsOpen(false);
                     if (!diffAddress && !isSubmit) {
                         setAddressOption('default');
