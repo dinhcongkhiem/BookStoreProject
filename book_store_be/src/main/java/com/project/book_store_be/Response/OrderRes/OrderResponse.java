@@ -14,4 +14,6 @@ public class OrderResponse {
     private List<OrderItemsResponse> orderResponseList;
     private OrderStatus status;
     private BigDecimal finalPrice;
+
+    private Long orderId;
 }

@@ -51,5 +51,14 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
-
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getOrderDetailById(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(orderService.getOrderDetailById(id));
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Order not found");
+        }
+    }
 }

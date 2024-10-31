@@ -165,6 +165,7 @@ public class OrderServiceImpl implements OrderService {
                 .fullname(order.getBuyerName())
                 .phoneNum(order.getBuyerPhoneNum())
                 .address(order.getAddress())
+                .paymentType(order.getPaymentType())
                 .items(itemDetails)
                 .build();
     }
