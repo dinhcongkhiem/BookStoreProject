@@ -61,7 +61,7 @@ const Product = () => {
     const debouncedSearchValue = useDebounce(searchTerm, 800);
     const queryClient = useQueryClient();
     const handleEdit = (product) => {
-        navigate('/admin/product/edit', { state: { product } });
+        navigate(`/admin/product/update/${product.id}`);
     };
 
     const handleView = (product) => {

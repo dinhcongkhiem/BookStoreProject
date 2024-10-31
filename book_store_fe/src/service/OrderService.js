@@ -34,6 +34,20 @@ class OrderServiceClass {
         return httpRequest.request(config);
     };
 
+    getOrderDetailByID = (id) => {
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: ORDERS_URL + `/${id}`,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+        };
+
+        return httpRequest.request(config);
+    }
+
     checkStatusOrder = (orderCode) => {
         let config = {
             method: 'get',

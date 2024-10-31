@@ -46,8 +46,8 @@ public class ProductController {
             @RequestParam(defaultValue = "20") int pageSize,
             @RequestParam(required = false, defaultValue = "newest") String sort,
             @RequestParam(required = false) String keyword
-    ){
-        return ResponseEntity.ok().body(productService.getAllProducts(page, pageSize,sort, keyword));
+    ) {
+        return ResponseEntity.ok().body(productService.getAllProducts(page, pageSize, sort, keyword));
     }
 
     @GetMapping()
@@ -64,14 +64,14 @@ public class ProductController {
     public ResponseEntity<?> addProduct(
             @RequestParam("product") String productJson,
             @RequestParam("images") List<MultipartFile> images,
-            @RequestParam("i_thumbnail") Integer indexThumbnail){
+            @RequestParam("i_thumbnail") Integer indexThumbnail) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             ProductRequest productRequest = objectMapper.readValue(productJson, ProductRequest.class);
             if (productRequest == null || images.isEmpty()) {
                 return ResponseEntity.badRequest().body("Dữ liệu không hợp lệ");
             }
-            productService.addProduct(productRequest, images,indexThumbnail);
+            productService.addProduct(productRequest, images, indexThumbnail);
             return ResponseEntity.status(HttpStatus.CREATED).body("Thành công");
 
         } catch (JsonProcessingException e) {
@@ -93,11 +93,31 @@ public class ProductController {
         }
     }
 
-    @PatchMapping()
-    public ResponseEntity<Product> updateProduct(@RequestParam Long id, @RequestBody ProductRequest request) {
-        Product updatedProduct = productService.updateProduct(id, request);
-        return ResponseEntity.ok(updatedProduct);
+    @PutMapping("{id}")
+    public ResponseEntity<?> updateProduct(
+            @PathVariable Long id,
+            @RequestParam("product") String productJson,
+            @RequestParam("images") List<MultipartFile> images,
+            @RequestParam("i_thumbnail") Integer indexThumbnail,
+            @RequestParam("listOldImg") List<Long> listOldImg) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ProductRequest productRequest = objectMapper.readValue(productJson, ProductRequest.class);
+            if (productRequest == null || images.isEmpty()) {
+                return ResponseEntity.badRequest().body("Dữ liệu không hợp lệ");
+            }
+            productService.updateProduct(id, productRequest, images, indexThumbnail,listOldImg);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Thành công");
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Dữ liệu JSON không hợp lệ");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Có lỗi xảy ra");
+        }
     }
+
 
     @GetMapping("/price-range")
     public ResponseEntity<Map<String, BigDecimal>> getPriceRange() {

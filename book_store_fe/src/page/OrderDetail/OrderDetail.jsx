@@ -17,6 +17,9 @@ import { styled } from '@mui/material/styles';
 import classNames from 'classnames/bind';
 import style from './OrderDetail.module.scss';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useQuery } from '@tanstack/react-query';
+import OrderService from '../../service/OrderService';
+import { useLocation, useParams } from 'react-router-dom';
 
 const cx = classNames.bind(style);
 
@@ -90,6 +93,15 @@ const orderData = {
 };
 
 function OrderDetail() {
+    const {orderIdPath} = useParams();
+    const {data: orderDataRes, error, isLoading} = useQuery({
+        queryKey: ['orderDetail',orderIdPath ],
+        queryFn: () => OrderService.getOrderDetailByID(orderIdPath).then(res => res.data),
+        retry: 1,
+        enabled: !!orderIdPath
+
+    })
+
     const { orderId, orderStatus, orderDate, shippingAddress, shippingInfo, paymentInfo, products, orderSummary } =
         orderData;
     const calculatedSubtotal = products.reduce((total, product) => {

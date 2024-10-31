@@ -54,14 +54,13 @@ class ProductServiceClass {
         return httpRequest.request(config);
     };
 
-    insertProduct = (product, images,indexThumbnail) => {
-        const data = new FormData();        
-        data.append("product", JSON.stringify(product));   
-        data.append("i_thumbnail", indexThumbnail)     
-        images?.forEach(img => {
-            data.append('images', img);      
+    insertProduct = (product, images, indexThumbnail) => {
+        const data = new FormData();
+        data.append('product', JSON.stringify(product));
+        data.append('i_thumbnail', indexThumbnail);
+        images?.forEach((img) => {
+            data.append('images', img);
         });
-        
 
         let config = {
             method: 'post',
@@ -77,6 +76,32 @@ class ProductServiceClass {
         return httpRequest.request(config);
     };
 
+    updateProduct = (productId, product, images, indexThumbnail) => {
+        const data = new FormData();
+        let listOldImg = [];
+        data.append('product', JSON.stringify(product));
+        data.append('i_thumbnail', indexThumbnail);
+        images?.forEach((img, index) => {
+            if (img.productImgId) {
+                listOldImg.push(img.productImgId);
+            }
+            data.append('images', img);
+        });
+        data.append('listOldImg', listOldImg);
+
+        let config = {
+            method: 'put',
+            maxBodyLength: Infinity,
+            url: PRODUCT_URL + `/${productId}`,
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+            withCredentials: true,
+            data: data,
+        };
+
+        return httpRequest.request(config);
+    };
     getPriceRange = () => {
         let config = {
             method: 'get',

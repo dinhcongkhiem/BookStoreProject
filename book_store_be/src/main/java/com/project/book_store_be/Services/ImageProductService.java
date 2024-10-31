@@ -19,6 +19,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 @Builder
@@ -32,17 +33,21 @@ public class ImageProductService {
 
     public String uploadImage(MultipartFile images) {
         try {
-            return service.uploadFile(images);
-        }catch (IOException e) {
+            return service.uploadFile(images).getUrlImg();
+        } catch (IOException e) {
             return null;
         }
     }
-    public void uploadMultipleImageProduct(List<MultipartFile> images, Long productId, Integer indexThumbnail) {
+
+    public void uploadMultipleImageProduct(List<MultipartFile> images, Long productId, Integer indexThumbnail, List<Long> imagesId) {
         try {
             if (images != null && images.size() > 0) {
                 for (int i = 0; i < images.size(); i++) {
                     MultipartFile image = images.get(i);
-                    this.uploadFileAsync(image, productId, indexThumbnail == i).get();
+                    this.uploadFileAsync(image,
+                            productId,
+                            indexThumbnail == i,
+                            imagesId.size() - 1 < i ? null : imagesId.get(i)).get();
                 }
 
             }
@@ -51,34 +56,60 @@ public class ImageProductService {
             throw new RuntimeException(e);
         }
     }
+
     @Async
-    public CompletableFuture<String> uploadFileAsync(MultipartFile file, Long productId, Boolean isThumbnail) throws IOException {
-        String fileUrl = InsertProductImage(file, productId,isThumbnail);
+    public CompletableFuture<String> uploadFileAsync(MultipartFile file, Long productId, Boolean isThumbnail, Long imageId) throws IOException {
+        String fileUrl = InsertProductImage(file, productId, isThumbnail, imageId);
         return CompletableFuture.completedFuture(fileUrl);
     }
-    public String InsertProductImage(MultipartFile file, Long productId, Boolean isThumbnail) throws IOException {
+
+    public String InsertProductImage(MultipartFile file, Long productId, Boolean isThumbnail, Long imageId) throws IOException {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException("Invalid product ID:" + productId));
-        if (file.isEmpty()) {
+        if (file.isEmpty() && imageId == null) {
             throw new IllegalArgumentException("File must not be empty");
         }
-        String fileName = String.valueOf(100 + (int)(Math.random() * 900));
-        String fileUrl = service.uploadFile(file);
-        ImageProduct imageProduct = ImageProduct.builder()
-                .nameImage(product.getName() + "_" + fileName)
-                .urlImage(fileUrl)
-                .product(product)
-                .isThumbnail(isThumbnail)
-                .build();
-        repo.save(imageProduct);
-        return fileUrl;
+
+        String fileUrl = "";
+        if (imageId != null) {
+            ImageProduct imageProduct = repo.findById(imageId).orElseThrow(() -> new NoSuchElementException("Khong co Anh nao id la " + imageId));
+            imageProduct.setIsThumbnail(isThumbnail);
+            repo.save(imageProduct);
+            fileUrl = imageProduct.getUrlImage();
+            return fileUrl;
+
+        } else {
+            AmazonS3ServiceImpl.S3ServiceResponse s3ServiceResponse = service.uploadFile(file);
+            String fileName = s3ServiceResponse.getFileName();
+            fileUrl = s3ServiceResponse.getUrlImg();
+            ImageProduct imageProduct = ImageProduct.builder()
+                    .id(imageId)
+                    .nameImage(fileName)
+                    .urlImage(fileUrl)
+                    .product(product)
+                    .isThumbnail(isThumbnail)
+                    .build();
+            repo.save(imageProduct);
+            return fileUrl;
+        }
     }
+
+    public void updateOldImg(List<Long> listOldImg, Long productId) {
+        List<ImageProduct> currentImages = repo.findByProductIdOrderByIsThumbnailDesc(productId);
+        List<ImageProduct> imagesToDelete = currentImages.stream()
+                .filter(image -> !listOldImg.contains(image.getId()))
+                .toList();
+        repo.deleteAllById(imagesToDelete.stream().map(ImageProduct::getId).toList());
+        service.deleteFiles(imagesToDelete);
+
+    }
+
     public List<ImageProductResponse> getImagesProductId(Long productId) {
         return repo.findByProductIdOrderByIsThumbnailDesc(productId).stream().map(this::convertToResponse).toList();
     }
 
     public String getThumbnailProduct(Long productId) {
-        Optional<ImageProduct> optional =  repo.findThumbnailByProductId(productId);
+        Optional<ImageProduct> optional = repo.findThumbnailByProductId(productId);
         return optional.map(ImageProduct::getUrlImage).orElse(null);
     }
 
@@ -90,7 +121,6 @@ public class ImageProductService {
                 .isThumbnail(imageProduct.getIsThumbnail())
                 .build();
     }
-
 
 
 }
