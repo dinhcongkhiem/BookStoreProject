@@ -16,10 +16,13 @@ import java.util.List;
 public class OrderDetailResponse {
     private Long orderId;
     private OrderStatus status;
-    private BigDecimal finalPrice;
     private String fullname;
     private String phoneNum;
     private Address address;
     private List<OrderItemsDetailResponse> items;
     private PaymentType paymentType;
+    private BigDecimal originalSubtotal;
+    private BigDecimal totalDiscount;
+    private BigDecimal shippingFee;
+    private BigDecimal grandTotal ;
 }

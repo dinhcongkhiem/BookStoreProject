@@ -13,6 +13,6 @@ public interface OrderService {
     Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword);
     CreateOrderResponse createOrder(OrderRequest request);
     OrderStatus checkStatus(Long id);
-
     OrderDetailResponse getOrderDetailById(Long id);
+    OrderResponse updateOrderStatus(Long id, OrderStatus status);
 }
