@@ -198,9 +198,10 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal finalPrice = totalPrice[0].add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
 
         return OrderResponse.builder()
+                .orderId(order.getId())
                 .status(order.getStatus())
                 .finalPrice(finalPrice)
-                .orderResponseList(orderItemsRes)
+                .items(orderItemsRes)
                 .build();
     }
 
@@ -208,8 +209,14 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse updateOrderStatus(Long id, OrderStatus status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Order not found"));
-        order.setStatus(status);
-        orderRepository.save(order);
+
+        if (order.getStatus().canTransitionTo(status)) {
+            order.setStatus(status);
+            orderRepository.save(order);
+        } else {
+            throw new IllegalArgumentException("Invalid status transition from " + order.getStatus() + " to " + status);
+        }
+
         return OrderResponse.builder()
                 .status(order.getStatus())
                 .build();
