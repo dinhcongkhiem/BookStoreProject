@@ -131,9 +131,6 @@ public class OrderServiceImpl implements OrderService {
                 .getStatus();
     }
 
-
-
-
     @Override
     public OrderDetailResponse getOrderDetailById(Long id) {
         Order order = orderRepository.findById(id)
@@ -158,14 +155,25 @@ public class OrderServiceImpl implements OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
 
+        BigDecimal originalPrice = itemDetails.stream()
+                .map(item -> item.getOriginalPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalDiscount = itemDetails.stream()
+                .map(item -> item.getDiscount().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         return OrderDetailResponse.builder()
                 .orderId(order.getId())
                 .status(order.getStatus())
-                .finalPrice(totalPrice)
                 .fullname(order.getBuyerName())
                 .phoneNum(order.getBuyerPhoneNum())
                 .address(order.getAddress())
                 .paymentType(order.getPaymentType())
+                .originalSubtotal(originalPrice)
+                .totalDiscount(totalDiscount)
+                .shippingFee(order.getShippingFee())
+                .grandTotal(totalPrice)
                 .items(itemDetails)
                 .build();
     }
@@ -196,4 +204,14 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+    @Override
+    public OrderResponse updateOrderStatus(Long id, OrderStatus status) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Order not found"));
+        order.setStatus(status);
+        orderRepository.save(order);
+        return OrderResponse.builder()
+                .status(order.getStatus())
+                .build();
+    }
 }
