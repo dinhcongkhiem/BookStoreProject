@@ -58,7 +58,6 @@ public class GHTKStatusResponse {
         @JsonProperty("is_freeship")
         private Integer isFreeship;
 
-
     }
 
 

@@ -12,7 +12,6 @@ public class GHTKRequest {
     private List<Product> products;
     private Order order;
 
-
     @Data
     @Builder
     public static class Order {
