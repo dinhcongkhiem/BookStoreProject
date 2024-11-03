@@ -7,13 +7,18 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import classNames from 'classnames/bind';
 import style from './Order.module.scss';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import OrderService from '../../service/OrderService';
+import CartService from '../../service/CartService';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
 import { useNavigate } from 'react-router-dom';
 const cx = classNames.bind(style);
 
 function Order() {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    }, []);
+
     const [ordersList, setOrdersList] = useState([]);
     const [page, setPage] = useState(1);
     const [activeTab, setActiveTab] = useState('all');
@@ -25,16 +30,27 @@ function Order() {
         error,
         isLoading,
         refetch,
+        isFetching,
     } = useQuery({
         queryKey: ['orderByUser', page, activeTab],
         queryFn: () =>
             OrderService.getOrderByUser({ page, status: activeTab, keyword: searchTerm }).then((res) => res.data),
         retry: 1,
+        enabled: !!page && !!activeTab,
     });
-
     const handleSearchOrder = () => {
-        refetch({ queryKey: ['orderByUser', 1, activeTab, searchTerm] });
+        refetch();
     };
+
+    const reBuyProductsMutation = useMutation({
+        mutationFn: (orderCode) => CartService.rebuyProduct(orderCode),
+        onError: (error) => {
+            console.log(error);
+        },
+        onSuccess: () => {
+            navigate('/cart');
+        },
+    });
 
     const lastItemRef = useCallback(
         (node) => {
@@ -229,7 +245,12 @@ function Order() {
                                 )}
                                 {order.status === 'CANCELED' && (
                                     <>
-                                        <button className={cx('actionButton')}>Mua lại</button>
+                                        <button
+                                            className={cx('actionButton')}
+                                            onClick={() => reBuyProductsMutation.mutate(order.items.map(i => i.productId).join(','))}
+                                        >
+                                            Mua lại
+                                        </button>
                                         <button
                                             className={cx('actionButton')}
                                             onClick={() => navigate(`/order/detail/${order.orderId}`)}
@@ -243,7 +264,7 @@ function Order() {
                     </div>
                 ))}
             </div>
-            <ModalLoading isLoading={isLoading} />
+            <ModalLoading isLoading={isLoading || isFetching} />
         </div>
     );
 }

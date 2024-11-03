@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -126,7 +127,10 @@ public class ProductService {
         imageProductService.uploadMultipleImageProduct(images, product.getId(),indexThumbnail, null);
     }
 
-    public void deleteProduct(Long id) {
+    @Transactional
+    public void deleteProduct(Long id)   {
+        Product product = productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Khong co product nao co ID la: " + id));
+        imageProductService.deleteImagesProduct(product.getId());
         productRepository.deleteById(id);
     }
 

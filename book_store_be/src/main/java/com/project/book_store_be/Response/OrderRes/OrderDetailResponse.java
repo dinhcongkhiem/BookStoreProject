@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -24,5 +25,6 @@ public class OrderDetailResponse {
     private BigDecimal originalSubtotal;
     private BigDecimal totalDiscount;
     private BigDecimal shippingFee;
-    private BigDecimal grandTotal ;
+    private BigDecimal grandTotal;
+    private LocalDateTime orderDate;
 }
