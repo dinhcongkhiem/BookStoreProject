@@ -33,14 +33,14 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         }
     }
-    @PutMapping("/{reviewId}")
-    public ResponseEntity<?> updateReview(
+    @PatchMapping("/comment/{reviewId}")
+    public ResponseEntity<?> updateCommentAndStar(
             @PathVariable Long reviewId,
             @RequestBody ReviewRequest reviewRequest,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            ReviewDetailResponse response = reviewService.updateReview(reviewId, reviewRequest, page, size);
+            ReviewDetailResponse response = reviewService.updateCommentAndStar(reviewId, reviewRequest, page, size);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NoSuchElementException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Review not found.");
@@ -48,6 +48,24 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         }
     }
+
+    @PatchMapping("/like/{reviewId}")
+    public ResponseEntity<?> updateLikeCount(
+            @PathVariable Long reviewId,
+            @RequestBody ReviewRequest reviewRequest,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            ReviewDetailResponse response = reviewService.updateLikeCount(reviewId, reviewRequest, page, size);
+            return ResponseEntity.ok(response);
+        } catch (NoSuchElementException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Review not found.");
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        }
+    }
+
+
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<?> deleteReview(
             @PathVariable Long reviewId,
