@@ -113,7 +113,7 @@ public class OrderServiceImpl implements OrderService {
                         currentOrder.setStatus(OrderStatus.CANCELED);
                         orderRepository.save(currentOrder);
                     }
-                }, 30, TimeUnit.SECONDS);
+                }, 3, TimeUnit.HOURS);
 
             } catch (Exception e) {
                 throw new RuntimeException(e);
