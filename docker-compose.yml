@@ -21,4 +21,14 @@ services:
     networks:
       - backend
 
+  ngrok:
+    container_name: ngrok_be
+    image: ngrok/ngrok
+    environment:
+      - NGROK_AUTHTOKEN=2Z7O3YLL6lVZ1Cx5V45BsF2iVdW_4M1fhj9VFRmTvuwCs1XT6
+      - NGROK_REGION=sa
+    ports:
+      - '4040:4040'
+    command: http host.docker.internal:8080
+    tty: true
   
