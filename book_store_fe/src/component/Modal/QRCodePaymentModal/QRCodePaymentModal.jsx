@@ -5,13 +5,15 @@ import style from './QRCodePaymentModal.module.scss';
 import icon from '../../../assets/icons/bank_transfer_icon.png';
 import { Close, QrCode } from '@mui/icons-material';
 import ConfirmModal from '../ConfirmModal/ConfirmModal';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import OrderService from '../../../service/OrderService';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 const cx = classNames.bind(style);
 const QRCodePaymentModal = ({ open, handleClose, data }) => {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+
     const [timeLeft, setTimeLeft] = useState(300);
     const [isOpenConfirmModal, setIsOpenConfirmModal] = useState(false);
 
@@ -22,10 +24,11 @@ const QRCodePaymentModal = ({ open, handleClose, data }) => {
         refetchInterval: 3000,
         enabled: !!data.qrcodeURL,
     });
-    useEffect(() => {       
-        if(responseStatus && responseStatus === "PROCESSING" && data.qrcodeURL.length > 0) {
+    useEffect(() => {
+        if (responseStatus && responseStatus === "PROCESSING" && data.qrcodeURL.length > 0) {
             toast.success('Đã đặt hàng thành công!');
             handleClose();
+            queryClient.setQueryData(['checkStatusPayment'], null);
             navigate('/order');
         }
     }, [responseStatus]);
@@ -93,7 +96,7 @@ const QRCodePaymentModal = ({ open, handleClose, data }) => {
                         </div>
                         <div className="d-flex justify-content-between mt-3">
                             <p style={{ opacity: 0.6 }}>Tổng tiền</p>
-                            <p className="fw-bold">{data?.finalPrice?.toLocaleString('vi-VN')}</p>
+                            <p className="fw-bold">{data?.finalPrice?.toLocaleString('vi-VN')}₫</p>
                         </div>
                     </div>
                     <div className={cx('tutorial', 'col-7')}>
