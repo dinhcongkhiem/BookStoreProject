@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -100,8 +101,12 @@ public class ImageProductService {
                 .filter(image -> !listOldImg.contains(image.getId()))
                 .toList();
         repo.deleteAllById(imagesToDelete.stream().map(ImageProduct::getId).toList());
-        service.deleteFiles(imagesToDelete);
+        service.deleteFiles(imagesToDelete);    }
 
+    public void deleteImagesProduct(Long id){
+        List<ImageProduct> currentImages = repo.findByProductIdOrderByIsThumbnailDesc(id);
+        repo.deleteAllById(currentImages.stream().map(ImageProduct::getId).toList());
+        service.deleteFiles(currentImages);
     }
 
     public List<ImageProductResponse> getImagesProductId(Long productId) {

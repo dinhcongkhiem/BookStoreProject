@@ -15,7 +15,19 @@ class CartServiceClass {
 
         return httpRequest.request(config);
     };
-
+    rebuyProduct = (productsId) => {
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: CART_URL + '/re-buy',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+            params: {productsId}
+        };
+        return httpRequest.request(config)
+    }
     getProductInCart = ({ page = 1 }) => {
         let config = {
             method: 'get',

@@ -48,12 +48,14 @@ public class PaymentServiceImpl implements PaymentService {
                 result.getAccountNumber(), request.getDescription(), request.getAmount());
 
         scheduler.schedule(() -> {
-            String orderCodeStr = request.getOrderCode().toString();
-            Long orderCode = Long.valueOf(orderCodeStr.substring(0, orderCodeStr.length() - 6));
-            Order order = orderRepository.findById(orderCode).orElse(null);
-            if (order != null && order.getOrderDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
-                order.setStatus(OrderStatus.CANCELED);
-                orderRepository.save(order);
+            Long orderCode = request.getOrderCode();
+            try {
+                PaymentLinkData paymentLinkData =  payOS.getPaymentLinkInformation(orderCode);
+                if(!paymentLinkData.getStatus().equalsIgnoreCase("PAID")) {
+                    payOS.cancelPaymentLink(orderCode,"payment due");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         },5, TimeUnit.MINUTES);
         return PaymentResponse.builder()

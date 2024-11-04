@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import vn.payos.type.PaymentLinkData;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,6 +28,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentService paymentService;
     private final AddressService addressService;
     private final CartService cartService;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Override
     public OrderResponse getAllOrders() {
@@ -99,6 +104,17 @@ public class OrderServiceImpl implements OrderService {
                         .build()
 
                 );
+
+                scheduler.schedule(() -> {
+                    Order currentOrder = orderRepository.findById(order.getId()).orElseThrow(
+                            () -> new NoSuchElementException("Not found order id : " + order.getId())
+                    );
+                    if (currentOrder.getStatus().equals(OrderStatus.AWAITING_PAYMENT)) {
+                        currentOrder.setStatus(OrderStatus.CANCELED);
+                        orderRepository.save(currentOrder);
+                    }
+                }, 3, TimeUnit.HOURS);
+
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -106,7 +122,6 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderDetails(orderDetailList);
         orderRepository.save(order);
-
         request.getItems().forEach(item -> {
             Long cartId = item.getCartId();
             if (cartId != null) {
@@ -175,6 +190,7 @@ public class OrderServiceImpl implements OrderService {
                 .shippingFee(order.getShippingFee())
                 .grandTotal(totalPrice)
                 .items(itemDetails)
+                .orderDate(order.getOrderDate())
                 .build();
     }
 
@@ -188,6 +204,7 @@ public class OrderServiceImpl implements OrderService {
             totalPrice[0] = totalPrice[0].add(product.getPrice().subtract(discount).multiply(BigDecimal.valueOf(o.getQuantity())));
 
             return OrderItemsResponse.builder()
+                    .productId(product.getId())
                     .productName(product.getName())
                     .originalPrice(product.getOriginal_price())
                     .quantity(o.getQuantity())

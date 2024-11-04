@@ -102,6 +102,22 @@ class ProductServiceClass {
 
         return httpRequest.request(config);
     };
+
+    removeProduct = (productId) => {
+        let config = {
+            method: 'delete',
+            maxBodyLength: Infinity,
+            url: PRODUCT_URL,
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+            withCredentials: true,
+            params: { id: productId },
+        };
+
+        return httpRequest.request(config);
+    };
+
     getPriceRange = () => {
         let config = {
             method: 'get',

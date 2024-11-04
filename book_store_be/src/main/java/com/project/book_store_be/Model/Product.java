@@ -45,9 +45,10 @@ public class Product {
     private String manufacturer;
     @ManyToOne
     private Publisher publisher;
-    @ManyToMany(cascade = CascadeType.REMOVE)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Category> categories;
-    @ManyToMany(cascade = CascadeType.REMOVE)
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Author> authors;
     @ManyToOne
     private Discount discount;

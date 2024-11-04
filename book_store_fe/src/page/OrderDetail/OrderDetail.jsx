@@ -19,7 +19,7 @@ import style from './OrderDetail.module.scss';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useQuery } from '@tanstack/react-query';
 import OrderService from '../../service/OrderService';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 const cx = classNames.bind(style);
 
@@ -35,87 +35,48 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
     fontWeight: 'bold',
     marginBottom: theme.spacing(2),
 }));
-
-const orderData = {
-    orderId: '#229091853',
-    orderStatus: 'Huỷ',
-    orderDate: '20:36 15/10/2024',
-    shippingAddress: {
-        name: 'Bùi Văn Đức',
-        address:
-            'Xóm gần bờ sông gần Trường Tiểu Học Đồng Quang Thôn Yên Nội Xã Đồng Quang, Huyện Quốc Oai, Hà Nội, Việt Nam',
-        phone: '0974580241',
-    },
-    shippingInfo: {
-        deliveryTime: 'Giao thứ 3, trước 19h, 22/10',
-        deliveryBy: 'So Easy Homecare',
-        shippingFee: 33000,
-    },
-    paymentInfo: {
-        method: 'Thanh toán bằng ví MoMo',
-        status: 'Thanh toán thất bại. Vui lòng thanh toán lại hoặc chọn phương thức thanh toán khác',
-    },
-    products: [
-        {
-            id: 1,
-            name: 'Sách "Đắc Nhân Tâm" - Dale Carnegie',
-            price: 88000,
-            quantity: 1,
-            discount: 0,
-            imageUrl: 'https://salt.tikicdn.com/cache/200x200/media/catalog/product/d/a/dac-nhan-tam.jpg',
-            brand: 'First News',
-        },
-        {
-            id: 2,
-            name: 'Sách "Nhà Giả Kim" - Paulo Coelho',
-            price: 79000,
-            quantity: 1,
-            discount: 10000,
-            imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzAD3fE4gimUcLKMThvONgIwrdzkTf9bwzWQ&s',
-            brand: 'Nhã Nam',
-        },
-        {
-            id: 3,
-            name: 'Sách "Nhà Giả Kim" - Paulo Coelho',
-            price: 79000,
-            quantity: 1,
-            discount: 10000,
-            imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzAD3fE4gimUcLKMThvONgIwrdzkTf9bwzWQ&s',
-            brand: 'Nhã Nam',
-        },
-    ],
-    orderSummary: {
-        subtotal: 39000,
-        shippingFee: 38000,
-        shippingDiscount: -5000,
-        total: 72000,
-    },
-};
-
 function OrderDetail() {
-    const {orderIdPath} = useParams();
-    const {data: orderDataRes, error, isLoading} = useQuery({
-        queryKey: ['orderDetail',orderIdPath ],
-        queryFn: () => OrderService.getOrderDetailByID(orderIdPath).then(res => res.data),
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    const navigate = useNavigate();
+    const { orderIdPath } = useParams();
+    const {
+        data: orderDataRes,
+        error,
+        isLoading,
+    } = useQuery({
+        queryKey: ['orderDetail', orderIdPath],
+        queryFn: () => OrderService.getOrderDetailByID(orderIdPath).then((res) => res.data),
         retry: 1,
-        enabled: !!orderIdPath
+        enabled: !!orderIdPath,
+    });
 
-    })
-
-    const { orderId, orderStatus, orderDate, shippingAddress, shippingInfo, paymentInfo, products, orderSummary } =
-        orderData;
-    const calculatedSubtotal = products.reduce((total, product) => {
-        return total + (product.price * product.quantity - product.discount);
-    }, 0);
-
+    const convertStatusToVN = (status) => {
+        switch (status) {
+            case 'AWAITING_PAYMENT':
+                return 'Chờ thanh toán';
+            case 'PROCESSING':
+                return 'Đang xử lý';
+            case 'SHIPPING':
+                return 'Đang vận chuyển';
+            case 'COMPLETED':
+                return 'Đã giao';
+            case 'CANCELED':
+                return 'Đã hủy';
+            default:
+                return '';
+        }
+    };
     return (
         <Box className={cx('orderDetailContainer')}>
             <div className={cx('orderDetailHeader')}>
                 <Typography variant="h4" className={cx('orderTitle')}>
-                    Chi tiết đơn hàng {orderId} - <span className={cx('orderStatus')}>{orderStatus}</span>
+                    Chi tiết đơn hàng {orderDataRes?.orderId} -{' '}
+                    <span className={cx('orderStatus')}>{convertStatusToVN(orderDataRes?.status)}</span>
                 </Typography>
                 <Typography variant="body2" className={cx('orderDate')}>
-                    Ngày đặt hàng: {orderDate}
+                    Ngày đặt hàng:{' '}
+                    {new Date(orderDataRes?.orderDate).toLocaleDateString('vi-VN').split('/').reverse().join('-')}
                 </Typography>
             </div>
 
@@ -126,28 +87,13 @@ function OrderDetail() {
                     </SectionTitle>
                     <StyledPaper>
                         <Typography variant="body1" gutterBottom>
-                            {shippingAddress.name}
+                            {orderDataRes?.fullname}
                         </Typography>
                         <Typography variant="body2" className={cx('address')}>
-                            Địa chỉ: {shippingAddress.address}
+                            Địa chỉ:{' '}
+                            {`${orderDataRes?.address.addressDetail}, ${orderDataRes?.address.commune.label}, ${orderDataRes?.address.district.label}, ${orderDataRes?.address.province.label}`}
                         </Typography>
-                        <Typography variant="body2">Điện thoại: {shippingAddress.phone}</Typography>
-                    </StyledPaper>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                    <SectionTitle className={cx('addressTitle')} variant="h6">
-                        Giao hàng
-                    </SectionTitle>
-                    <StyledPaper>
-                        <Typography variant="body2" gutterBottom>
-                            {shippingInfo.deliveryTime}
-                        </Typography>
-                        <Typography variant="body2" gutterBottom>
-                            Được giao bởi {shippingInfo.deliveryBy}
-                        </Typography>
-                        <Typography variant="body2">
-                            Phí vận chuyển: {shippingInfo.shippingFee.toLocaleString()}₫
-                        </Typography>
+                        <Typography variant="body2">Điện thoại: {orderDataRes?.phoneNum}</Typography>
                     </StyledPaper>
                 </Grid>
                 <Grid item xs={12} md={4}>
@@ -156,10 +102,9 @@ function OrderDetail() {
                     </SectionTitle>
                     <StyledPaper>
                         <Typography variant="body1" gutterBottom>
-                            {paymentInfo.method}
-                        </Typography>
-                        <Typography variant="body2" className={cx('paymentFailed')}>
-                            {paymentInfo.status}
+                            {orderDataRes?.paymentType === 'bank_transfer'
+                                ? 'Chuyển khoản ngân hàng'
+                                : 'Tiền mặt khi nhận hàng'}
                         </Typography>
                     </StyledPaper>
                 </Grid>
@@ -185,52 +130,52 @@ function OrderDetail() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {products.map((product) => (
+                        {orderDataRes?.items.map((product) => (
                             <TableRow key={product.id}>
                                 <TableCell>
                                     <Box display="flex" className={cx('productInfo')}>
                                         <Box className={cx('productImageContainer')}>
                                             <img
-                                                src={product.imageUrl}
-                                                alt={product.name}
+                                                src={product.thumbnailUrl}
+                                                alt={product.id}
                                                 className={cx('productImage')}
                                             />
                                         </Box>
                                         <Box className={cx('productDetails')}>
                                             <Typography variant="body1" className={cx('productName')}>
-                                                {product.name}
+                                                {product.productName}
                                             </Typography>
                                             <Typography variant="body2">
                                                 Cung cấp bởi <span className={cx('brand')}>{product.brand}</span>
                                             </Typography>
-                                            <Box mt={1} className={cx('actionButtons')}>
-                                                <Button variant="outlined" size="small" className={cx('actionButton')}>
-                                                    Chat với nhà bán
-                                                </Button>
+                                            {/* <Box mt={1} className={cx('actionButtons')}>
                                                 <Button variant="outlined" size="small" className={cx('actionButton')}>
                                                     Mua lại
                                                 </Button>
-                                            </Box>
+                                            </Box> */}
                                         </Box>
                                     </Box>
                                 </TableCell>
                                 <TableCell align="right" className={cx('priceCell')}>
                                     <Box display="flex" justifyContent="flex-end">
-                                        <Typography noWrap>{product.price.toLocaleString()}</Typography>
+                                        <Typography noWrap>{product.originalPrice.toLocaleString()}</Typography>
                                         <Typography>&nbsp;₫</Typography>
                                     </Box>
                                 </TableCell>
                                 <TableCell align="right">{product.quantity}</TableCell>
                                 <TableCell align="right" className={cx('priceCell')}>
                                     <Box display="flex" justifyContent="flex-end">
-                                        <Typography noWrap>{product.discount.toLocaleString()}</Typography>
+                                        <Typography noWrap>{product.discount}</Typography>
                                         <Typography>&nbsp;₫</Typography>
                                     </Box>
                                 </TableCell>
                                 <TableCell align="right" className={cx('priceCell')}>
                                     <Box display="flex" justifyContent="flex-end">
                                         <Typography noWrap>
-                                            {(product.price * product.quantity - product.discount).toLocaleString()}
+                                            {(
+                                                product.originalPrice * product.quantity -
+                                                product.discount
+                                            ).toLocaleString()}
                                         </Typography>
                                         <Typography>&nbsp;₫</Typography>
                                     </Box>
@@ -247,31 +192,26 @@ function OrderDetail() {
                         <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
                             <Typography>Tạm tính</Typography>
                             <Typography noWrap className={cx('priceCell')}>
-                                {calculatedSubtotal.toLocaleString()} ₫
+                                {orderDataRes?.originalSubtotal.toLocaleString('vi-VN')} ₫
                             </Typography>
                         </Box>
                         <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
                             <Typography>Phí vận chuyển</Typography>
                             <Typography noWrap className={cx('priceCell')}>
-                                {orderSummary.shippingFee.toLocaleString()} ₫
+                                {orderDataRes?.shippingFee.toLocaleString('vi-VN')} ₫
                             </Typography>
                         </Box>
-                        <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
+                        {/* <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
                             <Typography>Khuyến mãi vận chuyển</Typography>
                             <Typography noWrap className={cx('priceCell')}>
-                                {orderSummary.shippingDiscount.toLocaleString()} ₫
+                                {orderDataRes.shippingDiscount.toLocaleString('vi-VN')} ₫
                             </Typography>
-                        </Box>
+                        </Box> */}
                         <Divider className={cx('summaryDivider')} />
                         <Box display="flex" justifyContent="space-between" className={cx('summaryTotal')}>
                             <Typography variant="h6">Tổng cổng</Typography>
                             <Typography style={{ color: '#FF0000' }} variant="h6" noWrap className={cx('priceCell')}>
-                                {(
-                                    calculatedSubtotal +
-                                    orderSummary.shippingFee +
-                                    orderSummary.shippingDiscount
-                                ).toLocaleString()}{' '}
-                                ₫
+                                {orderDataRes?.grandTotal.toLocaleString('vi-VN')} ₫
                             </Typography>
                         </Box>
                     </Grid>
@@ -282,9 +222,9 @@ function OrderDetail() {
                 variant="text"
                 startIcon={<ArrowBackIcon />}
                 className={cx('backButton')}
-                onClick={() => console.log('Go back')}
+                onClick={() => navigate("/order")}
             >
-                Quay lại đơn hàng
+                Quay lại
             </Button>
         </Box>
     );
