@@ -6,7 +6,7 @@ const PRODUCT_URL = `${API_BASE_URL}product`;
 const CATEGORY_URL = `${API_BASE_URL}category`;
 const PUBLISHER_URL = `${API_BASE_URL}publisher`;
 const CART_URL = `${API_BASE_URL}cart`;
-const AUTHOR_URL = `${API_BASE_URL}author`;
+const AUTHOR_URL = `${API_BASE_URL}authors`;
 const CHECKOUT_URL = `${API_BASE_URL}checkout`;
 const ORDERS_URL = `${API_BASE_URL}order`;
 const PAYMENT_URL = `${API_BASE_URL}payment`;
@@ -22,4 +22,5 @@ export {
     CHECKOUT_URL,
     ORDERS_URL,
     PAYMENT_URL,
+    AUTHOR_URL,
 };

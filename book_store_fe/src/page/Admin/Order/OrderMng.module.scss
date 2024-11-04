@@ -1,0 +1,288 @@
+.orderManagement {
+    margin: 0 auto;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+
+    .title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #333;
+    }
+
+    .statusTabs {
+        margin-bottom: 3.2rem;
+    }
+
+    .statusCard {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+        &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        &.active {
+            background: linear-gradient(135deg, #66beea 0%, #4b64a2 100%);
+            .statusTitle,
+            .statusCount {
+                color: #fff;
+            }
+        }
+
+        .statusTitle {
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-bottom: 0.8rem;
+        }
+
+        .statusCount {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+    }
+
+    .searchContainer {
+        margin-bottom: 3.2rem;
+        padding: 2.4rem;
+        border-radius: 1.2rem;
+    }
+
+    .tableContainer {
+        margin-bottom: 3.2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 1.2rem;
+        overflow: hidden;
+
+        table {
+            background-color: #fff;
+        }
+
+        th {
+            background-color: #f1f3f5;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+
+        .tableRow {
+            transition: background-color 0.3s ease;
+
+            &:hover {
+                background-color: #f8f9fa;
+            }
+        }
+    }
+
+    .statusChip {
+        font-weight: 600;
+        padding: 0.6rem 1.2rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+
+        &.statusProcessing {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        &.statusShipping {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        &.statusDelivered {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        &.statusCancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    }
+
+    .actionButton {
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+
+    .noOrders {
+        text-align: center;
+        margin-top: 2.4rem;
+        font-size: 1.2rem;
+        color: #6c757d;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 3.2rem;
+    }
+}
+.dialog {
+    .dialogTitle {
+        background: linear-gradient(135deg, #66beea 0%, #4b64a2 100%);
+        color: #fff;
+        padding: 2.4rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .statusChip {
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+
+            &.statusProcessing {
+                background-color: rgba(255, 243, 205, 0.9);
+                color: #856404;
+            }
+
+            &.statusShipping {
+                background-color: rgba(204, 229, 255, 0.9);
+                color: #004085;
+            }
+
+            &.statusDelivered {
+                background-color: rgba(212, 237, 218, 0.9);
+                color: #155724;
+            }
+
+            &.statusCancelled {
+                background-color: rgba(248, 215, 218, 0.9);
+                color: #721c24;
+            }
+        }
+    }
+
+    .dialogContent {
+        padding: 3.2rem;
+        background-color: #f8f9fa;
+
+        .infoSection,
+        .productSection {
+            background-color: #ffffff;
+            padding: 2.4rem;
+            border-radius: 1.2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2.4rem;
+            transition: box-shadow 0.3s ease;
+            &:hover {
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        .sectionTitle {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 1.6rem;
+            font-size: 1.25rem;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+
+            th {
+                background-color: #f1f3f5;
+                color: #495057;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 1rem;
+                letter-spacing: 0.5px;
+                padding: 1.2rem;
+            }
+
+            td {
+                background-color: #ffffff;
+                padding: 1.2rem;
+                transition: background-color 0.3s ease;
+            }
+
+            tr:hover td {
+                background-color: #f8f9fa;
+            }
+        }
+    }
+
+    .dialogActions {
+        padding: 1.6rem 3.2rem;
+        background-color: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+
+        button {
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.8rem 1.6rem;
+            transition: all 0.3s ease;
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+        }
+    }
+}
+.statusUpdateDialog {
+    .statusUpdateTitle {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.6rem 2.4rem;
+        background: linear-gradient(135deg, #66beea 0%, #4b64a2 100%);
+        color: #fff;
+
+        h6 {
+            font-weight: 600;
+        }
+
+        .closeButton {
+            color: #fff;
+        }
+    }
+
+    .statusUpdateContent {
+        padding: 2.4rem;
+
+        .MuiTypography-subtitle1 {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .MuiStepper-root {
+            margin: 2.4rem 0;
+        }
+
+        .MuiFormControl-root {
+            margin-top: 1.6rem;
+        }
+
+        .statusChip {
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 1.6rem;
+            font-size: 0.75rem;
+        }
+    }
+
+    .statusUpdateActions {
+        padding: 1.6rem 2.4rem;
+        background-color: #f8f9fa;
+    }
+}

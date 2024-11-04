@@ -19,6 +19,7 @@
         "book_store_fe": "file:",
         "bootstrap": "^5.3.3",
         "classnames": "^2.5.1",
+        "date-fns": "^2.29.3",
         "formik": "^2.4.6",
         "normalize.css": "^8.0.1",
         "photoswipe": "^5.4.4",
