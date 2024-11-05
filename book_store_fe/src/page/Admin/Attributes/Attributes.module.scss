@@ -1,0 +1,212 @@
+.pageWrapper {
+    min-height: 100vh;
+
+    .title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 2rem;
+    }
+
+    .attributeSection {
+        display: flex;
+        flex-direction: column;
+        height: 40rem;
+        overflow: hidden;
+        border-radius: 0.8rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease;
+
+        &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .sectionHeader {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 1.6rem;
+            background: linear-gradient(135deg, #66beea 0%, #4b64a2 100%);
+            color: #fff;
+            font-weight: bold;
+            border-top-left-radius: 0.8rem;
+            border-top-right-radius: 0.8rem;
+
+            .titleWrapper {
+                display: flex;
+                align-items: center;
+
+                .sectionIcon {
+                    margin-right: 1rem;
+                    font-size: 1.5rem;
+
+                    &.PersonIcon {
+                        color: #ffb400;
+                    }
+
+                    &.BusinessIcon {
+                        color: #ff6347;
+                    }
+
+                    &.CategoryIcon {
+                        color: #34c759;
+                    }
+                }
+
+                .sectionTitle {
+                    font-size: 1.25rem;
+                }
+            }
+
+            .addButton {
+                background-color: rgba(255, 255, 255, 0.2);
+                color: #fff;
+                transition: background-color 0.3s ease;
+
+                &:hover {
+                    background-color: rgba(255, 255, 255, 0.4);
+                }
+            }
+        }
+
+        .attributeList {
+            flex-grow: 1;
+            overflow-y: auto;
+            background-color: #f9fafb;
+
+            &::-webkit-scrollbar {
+                width: 0.6rem;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 0.3rem;
+            }
+
+            &::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+
+            .MuiTableHead-root {
+                .MuiTableCell-root {
+                    background-color: #f0f0f0;
+                    font-weight: bold;
+                }
+            }
+        }
+
+        .attributeItem {
+            transition: background-color 0.3s ease;
+
+            &:hover {
+                background-color: #f0f0f0;
+            }
+
+            .MuiTableCell-root {
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            &:last-child .MuiTableCell-root {
+                border-bottom: none;
+            }
+
+            .editButton,
+            .deleteButton {
+                color: #888;
+
+                &:hover {
+                    color: #333;
+                }
+            }
+
+            .editButton {
+                color: #4b64a2;
+            }
+
+            .deleteButton {
+                color: #d9534f;
+            }
+        }
+    }
+}
+.modalWindow {
+    border-radius: 1.6rem;
+    overflow: hidden;
+}
+
+.modalHeader {
+    background: linear-gradient(135deg, #4b64a2, #66beea);
+    color: #ffffff;
+    padding: 2rem 2.4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h6 {
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    .closeButton {
+        color: #ffffff;
+        transition: transform 0.2s ease-in-out;
+
+        &:hover {
+            transform: rotate(90deg);
+        }
+    }
+}
+
+.modalBody {
+    padding: 2.4rem;
+
+    .inputField {
+        margin-bottom: 0;
+
+        .inputRoot {
+            background-color: #f5f8fa;
+            border-radius: 0.8rem;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background-color: #e8f0fe;
+            }
+        }
+
+        .inputFocused {
+            background-color: #ffffff;
+            box-shadow: 0 0 0 2px rgba(102, 190, 234, 0.2);
+        }
+
+        .inputLabel {
+            color: #4a5568;
+        }
+
+        .inputLabelFocused {
+            color: #4b64a2;
+        }
+    }
+}
+
+.modalFooter {
+    padding: 1.6rem 2.4rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+
+    .confirmButton {
+        &:hover {
+            background: linear-gradient(135deg, #3a4f8c, #5ab0db);
+            box-shadow: 0 4px 12px rgba(102, 190, 234, 0.3);
+        }
+    }
+}

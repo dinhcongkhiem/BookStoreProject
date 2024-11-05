@@ -12,6 +12,7 @@ import ProductDetail from './ProductDetail/ProductDetail';
 import Payment from './Payment/Payment';
 import ChangePassword from './User/ChangePassword';
 import UserInfo from './User/UserInfo';
+import OrderMng from './Admin/Order/OrderMng';
 export {
     Home,
     Profile,
@@ -27,6 +28,7 @@ export {
     OrderDetail,
     ChangePassword,
     UserInfo,
+    OrderMng,
 };
 
 export * from './Admin';
