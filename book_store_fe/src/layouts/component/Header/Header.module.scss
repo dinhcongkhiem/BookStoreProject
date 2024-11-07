@@ -174,10 +174,10 @@
         overflow: hidden;
         strong {
             display: -webkit-box;
-            -webkit-box-orient: vertical; 
-            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
             overflow: hidden;
-            text-overflow: ellipsis; 
+            text-overflow: ellipsis;
         }
         p {
             font-size: 1.4rem;
@@ -189,4 +189,66 @@
     margin-top: 1.2rem !important;
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
     z-index: 1300;
+}
+
+.notifications-items {
+    > a {
+        width: 400px;
+        display: block;
+        flex: 1;
+        text-overflow: clip;
+        padding-right: 6rem;
+        padding-left: .5rem;
+        padding: 0.5rem;
+    }
+    padding: 0 !important;
+    .icon {
+        align-items: center;
+        justify-content: center;
+        min-width: auto;
+        width: 3.6rem;
+        height: 3.6rem;
+        border-radius: 50%;
+    }
+    .notification-order-icon {
+        color: #23c16b !important;
+        background-color: rgba(35, 193, 106, 0/2);
+    }
+    .notification-voucher-icon {
+        color: rgb(71, 145, 219) !important;
+        background-color: rgba(71, 145, 219, 0.2);
+    }
+
+    .notification-comment-icon {
+        color: rgb(60, 82 ,103) !important;
+        background-color: rgba(60, 82, 103, 0.2);
+    }
+
+    .notification-content {
+        padding: 0.5rem 0;
+        font-size: 1.4rem;
+        width: 100%;
+        flex: 1 1;
+        overflow: hidden;
+        > p {
+            margin: 0;
+        }
+        .notification-title {
+            font-weight: 600;
+            display: block;
+            text-overflow: ellipsis;
+            width: 100%;
+            overflow: hidden;
+        }
+        .notification-message {
+            opacity: 0.8;
+            height: 4.5rem;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: break-spaces;
+        }
+    }
 }

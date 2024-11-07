@@ -52,11 +52,11 @@ public class SecurityConfiguration {
     private static final String[] WHITE_LIST_GET_METHOD = {
             "/api/v1/product", "/api/v1/product/available",
             "/api/v1/product/price-range", "/api/v1/product/attributes",
-            "/api/v1/publisher/**", "/api/v1/category/**"
+            "/api/v1/publisher/**", "/api/v1/category/**", "api/v1/notifications/**"
     };
 
     private static final String[] USER_LIST_URL = {
-            "/api/v1/user/**", "/api/v1/review/**", "/api/v1/cart/**",
+            "/api/v1/review/**", "/api/v1/cart/**",
             "/api/v1/order/**"
     };
 

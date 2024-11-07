@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Enum.PaymentType;
 import com.project.book_store_be.Interface.AddressService;
@@ -20,7 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import vn.payos.type.PaymentLinkData;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -43,6 +44,7 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentService paymentService;
     private final AddressService addressService;
     private final CartService cartService;
+    private final NotificationService notificationService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Override
@@ -62,7 +64,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderDetail> orderDetailList = new ArrayList<>();
         User u = userService.getCurrentUser();
         BigDecimal[] totalPrice = {BigDecimal.ZERO};
-        Address addresss = request.getAddress() != null ? addressService.createAddress(request.getAddress()) : u.getAddress();
+        Address address = request.getAddress() != null ? addressService.createAddress(request.getAddress()) : u.getAddress();
         Order order = Order.builder()
                 .paymentType(request.getPaymentType())
                 .shippingFee(request.getShippingFee())
@@ -70,7 +72,7 @@ public class OrderServiceImpl implements OrderService {
                         ? OrderStatus.PROCESSING : OrderStatus.AWAITING_PAYMENT)
                 .orderDate(LocalDateTime.now())
                 .user(u)
-                .address(addresss)
+                .address(address)
                 .buyerName(request.getBuyerName() != null ? request.getBuyerName() : u.getFullName())
                 .buyerPhoneNum(request.getBuyerPhoneNum() != null ? request.getBuyerPhoneNum() : u.getPhoneNum())
                 .build();
@@ -109,6 +111,9 @@ public class OrderServiceImpl implements OrderService {
                     Order currentOrder = orderRepository.findById(order.getId()).orElseThrow(
                             () -> new NoSuchElementException("Not found order id : " + order.getId())
                     );
+                    String title = "Hủy đơn hàng vì quá thời hạn thanh toán.";
+                    String message = String.format("Đơn hàng bị hủy do quá thời hạn thanh toán #%s đã bị hủy vì chưa được thanh toán!", currentOrder.getId());
+                    notificationService.sendNotification(currentOrder.getUser(), title, message, NotificationType.ORDER);
                     if (currentOrder.getStatus().equals(OrderStatus.AWAITING_PAYMENT)) {
                         currentOrder.setStatus(OrderStatus.CANCELED);
                         orderRepository.save(currentOrder);
@@ -118,6 +123,9 @@ public class OrderServiceImpl implements OrderService {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        } else {
+            String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), totalPrice[0].add(order.getShippingFee()));
+            notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER);
         }
 
         order.setOrderDetails(orderDetailList);

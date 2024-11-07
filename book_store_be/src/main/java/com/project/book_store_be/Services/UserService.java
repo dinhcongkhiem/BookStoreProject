@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Enum.Role;
 import com.project.book_store_be.Exception.UserAlreadyExistsException;
 import com.project.book_store_be.Interface.AddressService;
 import com.project.book_store_be.Model.User;
@@ -13,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,6 +37,10 @@ public class UserService {
             return (User) authentication.getPrincipal();
         }
         return null;
+    }
+
+    public List<User> getAdminUser() {
+        return userRepository.findByRole(Role.ADMIN);
     }
 
     public UserResponse getUserInfor(User user) {

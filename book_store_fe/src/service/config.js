@@ -10,7 +10,7 @@ const AUTHOR_URL = `${API_BASE_URL}authors`;
 const CHECKOUT_URL = `${API_BASE_URL}checkout`;
 const ORDERS_URL = `${API_BASE_URL}order`;
 const PAYMENT_URL = `${API_BASE_URL}payment`;
-// const ADMIN_URL = `${API_BASE_URL}/admin`;
+const NOTIFICATION_URL = `${API_BASE_URL}notifications`;
 // const CONTACT_URL = `${API_BASE_URL}/contact`;
 export {
     AUTH_URL,
@@ -21,6 +21,7 @@ export {
     CART_URL,
     CHECKOUT_URL,
     ORDERS_URL,
-    PAYMENT_URL,
     AUTHOR_URL,
+    PAYMENT_URL,
+    NOTIFICATION_URL,
 };

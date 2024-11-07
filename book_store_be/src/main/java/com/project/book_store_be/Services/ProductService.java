@@ -45,15 +45,15 @@ public class ProductService {
         Specification<Product> spec = ProductSpecification.getProduct(
                 category, price, publisher, keyword, ProductStatus.AVAILABLE);
 
+        if (sortType == SoftProductType.TOP_SELLER) {
+            return productRepository.findTopSellProduct(PageRequest.of(page, pageSize)).map(this::convertToProductResponse);
+        }
         Sort sortValue = switch (sortType) {
-//                sort = Sort.by(Sort.Direction.ASC, "creationDate"); // Sắp xếp theo ngày tạo tăng dần
-//                break;
             case PRICE_DESC -> Sort.by(Sort.Direction.DESC, "price");
             case PRICE_ASC -> Sort.by(Sort.Direction.ASC, "price");
             default -> Sort.by(Sort.Direction.ASC, "createDate");
 
         };
-
         Pageable pageable = PageRequest.of(page, pageSize, sortValue);
         return productRepository.findAll(spec, pageable).map(this::convertToProductResponse);
 
@@ -76,6 +76,9 @@ public class ProductService {
             case OLDEST -> Sort.by(Sort.Direction.ASC, "createDate");
             default -> Sort.by(Sort.Direction.DESC, "createDate");
         };
+        if (sortType == SoftProductType.TOP_SELLER) {
+            return productRepository.findTopSellProduct(PageRequest.of(pageNumber, pageSize)).map(this::convertToProductResponse);
+        }
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize, sortValue);
         Long id;
         try {
@@ -124,17 +127,17 @@ public class ProductService {
                 .updateDate(new Date())
                 .build();
         productRepository.save(product);
-        imageProductService.uploadMultipleImageProduct(images, product.getId(),indexThumbnail, null);
+        imageProductService.uploadMultipleImageProduct(images, product.getId(), indexThumbnail, null);
     }
 
     @Transactional
-    public void deleteProduct(Long id)   {
+    public void deleteProduct(Long id) {
         Product product = productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Khong co product nao co ID la: " + id));
         imageProductService.deleteImagesProduct(product.getId());
         productRepository.deleteById(id);
     }
 
-    public void updateProduct(Long productId, ProductRequest request, List<MultipartFile> images, Integer indexThumbnail, List<Long> listOldImg){
+    public void updateProduct(Long productId, ProductRequest request, List<MultipartFile> images, Integer indexThumbnail, List<Long> listOldImg) {
         Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
 
         Product product = Product.builder()
@@ -158,9 +161,9 @@ public class ProductService {
                 .createDate(new Date())
                 .updateDate(new Date())
                 .build();
-        imageProductService.updateOldImg(listOldImg,productId);
+        imageProductService.updateOldImg(listOldImg, productId);
         productRepository.save(product);
-        imageProductService.uploadMultipleImageProduct(images, product.getId(),indexThumbnail, listOldImg);
+        imageProductService.uploadMultipleImageProduct(images, product.getId(), indexThumbnail, listOldImg);
     }
 
     public Map<String, BigDecimal> getPriceRange() {
