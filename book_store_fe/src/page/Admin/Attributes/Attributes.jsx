@@ -454,6 +454,7 @@ function Attributes() {
                     </DialogTitle>
                     <DialogContent className={cx('modalBody')}>
                         <TextField
+                            size="small"
                             autoFocus
                             margin="dense"
                             label="Tên"

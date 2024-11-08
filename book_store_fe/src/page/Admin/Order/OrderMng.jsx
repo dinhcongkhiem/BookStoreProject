@@ -29,8 +29,6 @@ import {
     LocalShipping as LocalShippingIcon,
     Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { format, parse } from 'date-fns';
-import viLocale from 'date-fns/locale/vi';
 import classNames from 'classnames/bind';
 import style from './OrderMng.module.scss';
 import { toast, ToastContainer } from 'react-toastify';
@@ -51,32 +49,6 @@ const mockOrders = [
     { id: 10, customerName: 'Lý Thị K', orderDate: '2023-10-27', total: 680000, status: 'Chưa thanh toán' },
 ];
 
-const mockOrderDetails = {
-    id: 1,
-    customerName: 'Nguyễn Văn A',
-    orderDate: '2023-10-25',
-    total: 250000,
-    status: 'Đang xử lý',
-    address: '123 Đường ABC, Quận 1, TP.HCM',
-    phone: '0123456789',
-    items: [
-        {
-            id: 1,
-            title: 'Sách A',
-            quantity: 2,
-            price: 75000,
-            image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNnvakZp4EO7l5-fhdR3B2xVBYUErcorHdCw&s',
-        },
-        {
-            id: 2,
-            title: 'Sách B',
-            quantity: 1,
-            price: 100000,
-            image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzAD3fE4gimUcLKMThvONgIwrdzkTf9bwzWQ&s',
-        },
-    ],
-};
-
 const statusTabs = ['Tất cả', 'Chưa thanh toán', 'Đang xử lý', 'Đang giao hàng', 'Đã giao hàng', 'Đã hủy'];
 
 export default function OrderMng() {
@@ -91,8 +63,6 @@ export default function OrderMng() {
     const [shippingConfirmOpen, setShippingConfirmOpen] = useState(false);
     const [orderToModify, setOrderToModify] = useState(null);
     const ordersPerPage = 5;
-
-    useEffect(() => {}, []);
 
     const handleSearch = (event) => {
         setSearchTerm(event.target.value);
@@ -187,8 +157,11 @@ export default function OrderMng() {
     };
 
     const formatDate = (dateString) => {
-        const date = parse(dateString, 'yyyy-MM-dd', new Date());
-        return format(date, 'dd/MM/yyyy', { locale: viLocale });
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
     };
 
     const getStatusCount = (status) => {
@@ -225,6 +198,7 @@ export default function OrderMng() {
                 <Grid container spacing={3}>
                     <Grid item xs={12} md={6}>
                         <TextField
+                            size="small"
                             fullWidth
                             label="Tìm kiếm"
                             variant="outlined"
@@ -241,6 +215,7 @@ export default function OrderMng() {
                     </Grid>
                     <Grid item xs={12} md={6}>
                         <TextField
+                            size="small"
                             fullWidth
                             label="Tìm kiếm theo ngày đặt hàng"
                             type="date"
@@ -254,21 +229,21 @@ export default function OrderMng() {
                     </Grid>
                 </Grid>
             </Paper>
-            <TableContainer component={Paper} className={cx('tableContainer')}>
+            <TableContainer component={Paper} className={cx('orderTable')}>
                 <Table>
                     <TableHead>
                         <TableRow>
                             <TableCell>ID</TableCell>
-                            <TableCell>Tên khách hàng</TableCell>
+                            <TableCell>Khách hàng</TableCell>
                             <TableCell>Ngày đặt hàng</TableCell>
                             <TableCell>Tổng tiền</TableCell>
                             <TableCell>Trạng thái</TableCell>
-                            <TableCell>Thao tác</TableCell>
+                            <TableCell align="center">Hành động</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {displayedOrders.map((order) => (
-                            <TableRow key={order.id} className={cx('tableRow')}>
+                            <TableRow key={order.id}>
                                 <TableCell>{order.id}</TableCell>
                                 <TableCell>{order.customerName}</TableCell>
                                 <TableCell>{formatDate(order.orderDate)}</TableCell>
@@ -279,29 +254,17 @@ export default function OrderMng() {
                                         className={cx('statusChip', getStatusColor(order.status))}
                                     />
                                 </TableCell>
-                                <TableCell>
-                                    <IconButton
-                                        onClick={() => handleViewDetails(order)}
-                                        color="primary"
-                                        className={cx('actionButton')}
-                                    >
+                                <TableCell align="center">
+                                    <IconButton color="primary" onClick={() => handleViewDetails(order)}>
                                         <VisibilityIcon />
                                     </IconButton>
-                                    {!['Đã hủy', 'Đã giao hàng', 'Đang giao hàng'].includes(order.status) && (
-                                        <IconButton
-                                            onClick={() => handleChangeToShipping(order.id)}
-                                            color="primary"
-                                            className={cx('actionButton')}
-                                        >
+                                    {order.status === 'Đang xử lý' && (
+                                        <IconButton color="primary" onClick={() => handleChangeToShipping(order.id)}>
                                             <LocalShippingIcon />
                                         </IconButton>
                                     )}
-                                    {['Đang xử lý', 'Chưa thanh toán'].includes(order.status) && (
-                                        <IconButton
-                                            onClick={() => handleDeleteOrder(order.id)}
-                                            color="error"
-                                            className={cx('actionButton')}
-                                        >
+                                    {(order.status === 'Đang xử lý' || order.status === 'Chưa thanh toán') && (
+                                        <IconButton color="error" onClick={() => handleDeleteOrder(order.id)}>
                                             <DeleteIcon />
                                         </IconButton>
                                     )}
@@ -310,134 +273,48 @@ export default function OrderMng() {
                         ))}
                     </TableBody>
                 </Table>
+                <Box display="flex" justifyContent="center" mt={2}>
+                    <Pagination
+                        count={pageCount}
+                        page={page}
+                        onChange={(event, value) => setPage(value)}
+                        color="primary"
+                        siblingCount={1}
+                        boundaryCount={1}
+                        showFirstButton
+                        showLastButton
+                    />
+                </Box>
             </TableContainer>
-            {displayedOrders.length === 0 && (
-                <Typography variant="body1" className={cx('noOrders')}>
-                    Không tìm thấy đơn hàng nào.
-                </Typography>
-            )}
-            <Box className={cx('pagination')}>
-                <Pagination
-                    count={pageCount}
-                    page={page}
-                    onChange={(event, value) => setPage(value)}
-                    color="primary"
-                    size="large"
-                />
-            </Box>
-            <Dialog open={detailOpen} onClose={handleCloseDetail} maxWidth="md" fullWidth className={cx('dialog')}>
-                {selectedOrder && (
-                    <>
-                        <DialogTitle className={cx('dialogTitle')}>
-                            <Box display="flex" justifyContent="space-between" alignItems="center">
-                                <Typography variant="h5">Chi tiết đơn hàng #{selectedOrder.id}</Typography>
-                                <Chip
-                                    label={selectedOrder.status}
-                                    className={cx('statusChip', getStatusColor(selectedOrder.status))}
-                                />
-                            </Box>
-                        </DialogTitle>
-                        <DialogContent className={cx('dialogContent')}>
-                            <Grid container spacing={3}>
-                                <Grid item xs={12} md={6}>
-                                    <Paper className={cx('infoSection')}>
-                                        <Typography variant="h6" className={cx('sectionTitle')}>
-                                            Thông tin khách hàng
-                                        </Typography>
-                                        <Typography>
-                                            <strong>Tên:</strong> {mockOrderDetails.customerName}
-                                        </Typography>
-                                        <Typography>
-                                            <strong>Địa chỉ:</strong> {mockOrderDetails.address}
-                                        </Typography>
-                                        <Typography>
-                                            <strong>Số điện thoại:</strong> {mockOrderDetails.phone}
-                                        </Typography>
-                                    </Paper>
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <Paper className={cx('infoSection')}>
-                                        <Typography variant="h6" className={cx('sectionTitle')}>
-                                            Thông tin đơn hàng
-                                        </Typography>
-                                        <Typography>
-                                            <strong>Ngày đặt hàng:</strong> {formatDate(mockOrderDetails.orderDate)}
-                                        </Typography>
-                                        <Typography>
-                                            <strong>Trạng thái:</strong> {mockOrderDetails.status}
-                                        </Typography>
-                                        <Typography>
-                                            <strong>Tổng tiền:</strong> {mockOrderDetails.total.toLocaleString('vi-VN')}{' '}
-                                            đ
-                                        </Typography>
-                                    </Paper>
-                                </Grid>
-                            </Grid>
-                            <Paper className={cx('productSection')}>
-                                <Typography variant="h6" className={cx('sectionTitle')}>
-                                    Sản phẩm
-                                </Typography>
-                                <TableContainer>
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>Hình ảnh</TableCell>
-                                                <TableCell>Tên sách</TableCell>
-                                                <TableCell align="right">Số lượng</TableCell>
-                                                <TableCell align="right">Đơn giá</TableCell>
-                                                <TableCell align="right">Thành tiền</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {mockOrderDetails.items.map((item) => (
-                                                <TableRow key={item.id}>
-                                                    <TableCell sx={{ display: 'flex' }}>
-                                                        <img
-                                                            src={item.image}
-                                                            alt={item.title}
-                                                            style={{ width: '65px', marginRight: '10px' }}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>{item.title}</TableCell>
-                                                    <TableCell align="right">{item.quantity}</TableCell>
-                                                    <TableCell align="right">
-                                                        {item.price.toLocaleString('vi-VN')} đ
-                                                    </TableCell>
-                                                    <TableCell align="right">
-                                                        {(item.quantity * item.price).toLocaleString('vi-VN')} đ
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                            <TableRow>
-                                                <TableCell colSpan={4} align="right">
-                                                    <strong>Tổng cộng:</strong>
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    <strong>{mockOrderDetails.total.toLocaleString('vi-VN')} đ</strong>
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Paper>
-                        </DialogContent>
-                        <DialogActions className={cx('dialogActions')}>
-                            <Button variant="outlined" onClick={handleCloseDetail} color="primary">
-                                Đóng
-                            </Button>
-                        </DialogActions>
-                    </>
-                )}
-            </Dialog>
-
-            {/* Confirmation Dialog for Shipping */}
-            <Dialog open={shippingConfirmOpen} onClose={cancelModification}>
-                <DialogTitle>Xác nhận chuyển trạng thái</DialogTitle>
+            <Dialog open={detailOpen} onClose={handleCloseDetail} maxWidth="sm" fullWidth>
+                <DialogTitle>Chi tiết đơn hàng</DialogTitle>
                 <DialogContent>
-                    Bạn có chắc chắn muốn chuyển đơn hàng này sang trạng thái "Đang giao hàng" không?
+                    {selectedOrder && (
+                        <Box>
+                            <Typography variant="subtitle1">Tên khách hàng: {selectedOrder.customerName}</Typography>
+                            <Typography variant="subtitle1">
+                                Ngày đặt hàng: {formatDate(selectedOrder.orderDate)}
+                            </Typography>
+                            <Typography variant="subtitle1">
+                                Tổng tiền: {selectedOrder.total.toLocaleString('vi-VN')} đ
+                            </Typography>
+                            <Typography variant="subtitle1">Trạng thái: {selectedOrder.status}</Typography>
+                        </Box>
+                    )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={cancelModification} color="primary">
+                    <Button onClick={handleCloseDetail} color="primary">
+                        Đóng
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={shippingConfirmOpen} onClose={cancelModification}>
+                <DialogTitle>Xác nhận chuyển sang Đang giao hàng</DialogTitle>
+                <DialogContent>
+                    <Typography>Bạn có chắc chắn muốn chuyển đơn hàng sang trạng thái Đang giao hàng không?</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={cancelModification} color="secondary">
                         Hủy
                     </Button>
                     <Button onClick={confirmChangeToShipping} color="primary">
@@ -445,13 +322,13 @@ export default function OrderMng() {
                     </Button>
                 </DialogActions>
             </Dialog>
-
-            {/* Confirmation Dialog for Deletion */}
             <Dialog open={deleteConfirmOpen} onClose={cancelModification}>
                 <DialogTitle>Xác nhận hủy đơn hàng</DialogTitle>
-                <DialogContent>Bạn có chắc chắn muốn hủy đơn hàng này không?</DialogContent>
+                <DialogContent>
+                    <Typography>Bạn có chắc chắn muốn hủy đơn hàng này không?</Typography>
+                </DialogContent>
                 <DialogActions>
-                    <Button onClick={cancelModification} color="primary">
+                    <Button onClick={cancelModification} color="secondary">
                         Hủy
                     </Button>
                     <Button onClick={confirmDeleteOrder} color="error">
@@ -459,8 +336,7 @@ export default function OrderMng() {
                     </Button>
                 </DialogActions>
             </Dialog>
-
-            <ToastContainer position="top-center" autoClose={3000} />
+            <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />
         </div>
     );
 }
