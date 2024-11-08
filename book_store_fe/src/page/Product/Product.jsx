@@ -15,7 +15,7 @@ function Product() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [page, setPage] = useState(searchParams.get('p') || 1);
-    const [orderBy, setOrderBy] = useState('newest');
+    const [orderBy, setOrderBy] = useState(searchParams.get('sort') || 'newest');
     const navigate = useNavigate();
 
     const listOrderBy = [
@@ -44,7 +44,7 @@ function Product() {
         queryKey: ['products', page, orderBy, searchParams.toString()],
         queryFn: () =>
             ProductService.getListProduct({
-                sort: orderBy,
+                sort: searchParams.get('sort') || orderBy || null,
                 pageSize: 20,
                 page: page,
                 categoryId: searchParams.get('c') || null,
@@ -61,6 +61,7 @@ function Product() {
     const handleChangeOrderBy = (e) => {
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.delete('p');
+        newSearchParams.set('sort', e.target.value)
         setSearchParams(Object.fromEntries(newSearchParams.entries()));
         setOrderBy(e.target.value);
     };

@@ -30,8 +30,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("Http request method not supported, try again", HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(HttpRequestMethodNotSupportedException ex) {
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        ex.printStackTrace();
         log.error("Invalid input format from controller - IllegalArgumentException");
         return new ResponseEntity<>("Invalid input format", HttpStatus.BAD_REQUEST);
     }
+
+//    @ExceptionHandler(IllegalStateException.class)
+//    public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
+//        ex.printStackTrace();
+//        log.error("Err - IllegalStateException");
+//        return new ResponseEntity<>("Invalid input format", HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
+
 }

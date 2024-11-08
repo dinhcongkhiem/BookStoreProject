@@ -52,6 +52,8 @@ public class Product {
     private List<Author> authors;
     @ManyToOne
     private Discount discount;
+    @OneToMany(mappedBy = "product")
+    private List<OrderDetail> orderDetails;
     private Date createDate;
     private Date updateDate;
 

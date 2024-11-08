@@ -27,7 +27,6 @@ function Home() {
         { url: image2, alt: 'First slide' },
         { url: image3, alt: 'First slide' },
     ];
-    const testListHotDeal = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     const settingsHotDeal = {
         dots: false,
         infinite: true,
@@ -48,6 +47,15 @@ function Home() {
         queryKey: ['products'],
         queryFn: () =>
             ProductService.getListProduct({ sort: 'newest', pageSize: 10, page: 1 }).then(
+                (response) => response.data.content,
+            ),
+        retry: 1,
+    });
+
+    const { data: productsHotDeal, isLoading: isProductsHotDealLoading } = useQuery({
+        queryKey: ['productsHotDeal'],
+        queryFn: () =>
+            ProductService.getListProduct({ sort: 'top_seller', pageSize: 10, page: 1 }).then(
                 (response) => response.data.content,
             ),
         retry: 1,
@@ -81,7 +89,7 @@ function Home() {
             <div className={cx('bestSelling')}>
                 <div className={cx('headerSection')}>
                     <h3>Sách bán chạy</h3>
-                    <Link to="">
+                    <Link to="/product?sort=top_seller">
                         Xem thêm
                         <span>
                             <FontAwesomeIcon icon={faChevronRight} />
@@ -90,8 +98,15 @@ function Home() {
                 </div>
                 <div className={cx('productContainer')}>
                     <Slider {...settingsHotDeal}>
-                        {testListHotDeal.map(() => {
-                            return <ProductsComponent className={cx('productBestSelling')} />;
+                        {productsHotDeal?.map((product, key) => {
+                            return (
+                                <ProductsComponent
+                                    product={product}
+                                    to={`/product/detail?id=${product.id}`}
+                                    key={key}
+                                    className={cx('productBestSelling')}
+                                />
+                            );
                         })}
                     </Slider>
                 </div>
@@ -106,12 +121,18 @@ function Home() {
                 </div>
                 <div className={cx('productContainer')}>
                     {Array.isArray(productsNewest) &&
-                        productsNewest.map((product) => {
-                            return <ProductsComponent product={product} to={`/product/detail?id=${product.id}`} />;
+                        productsNewest.map((product, key) => {
+                            return (
+                                <ProductsComponent
+                                    product={product}
+                                    to={`/product/detail?id=${product.id}`}
+                                    key={key}
+                                />
+                            );
                         })}
                 </div>
             </div>
-            <ModalLoading isLoading={isLoading} />
+            <ModalLoading isLoading={isLoading || isProductsHotDealLoading} />
         </div>
     );
 }
