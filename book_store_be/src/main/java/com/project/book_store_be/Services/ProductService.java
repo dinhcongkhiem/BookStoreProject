@@ -160,6 +160,7 @@ public class ProductService {
     public void updateProduct(Long productId, ProductRequest request, List<MultipartFile> images, Integer indexThumbnail, List<Long> listOldImg) {
         Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
 
+        Product currentProduct = productRepository.findById(productId).orElseThrow(() -> new NoSuchElementException("Khong co product nao"));
         Product product = Product.builder()
                 .id(productId)
                 .name(request.getName())
@@ -180,6 +181,11 @@ public class ProductService {
                 .description(request.getDescription())
                 .createDate(new Date())
                 .updateDate(new Date())
+                .discount(currentProduct.getDiscount())
+                .price(request.getOriginalPrice().subtract(request.getOriginalPrice().
+                        multiply(BigDecimal.valueOf(currentProduct.getDiscount().getDiscountRate()))
+                        .divide(new BigDecimal(100), RoundingMode.HALF_UP))
+                )
                 .build();
         imageProductService.updateOldImg(listOldImg, productId);
         productRepository.save(product);
@@ -254,11 +260,10 @@ public class ProductService {
     }
 
     private ProductsForManagerResponse convertToForManagerRes(Product product) {
-        Map<String, ?> discountValue = getDiscountValue(product);
         return ProductsForManagerResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
-                .price(product.getOriginal_price().subtract((BigDecimal) discountValue.get("discountVal")))
+                .price(product.getPrice())
                 .quantity(product.getQuantity())
                 .status(product.getStatus())
                 .createDate(product.getCreateDate())

@@ -36,11 +36,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("Invalid input format", HttpStatus.BAD_REQUEST);
     }
 
-//    @ExceptionHandler(IllegalStateException.class)
-//    public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
-//        ex.printStackTrace();
-//        log.error("Err - IllegalStateException");
-//        return new ResponseEntity<>("Invalid input format", HttpStatus.INTERNAL_SERVER_ERROR);
-//    }
+   @ExceptionHandler(IllegalStateException.class)
+   public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
+       ex.printStackTrace();
+       log.error("Err - IllegalStateException");
+       return new ResponseEntity<>("Invalid input format", HttpStatus.INTERNAL_SERVER_ERROR);
+   }
 
 }

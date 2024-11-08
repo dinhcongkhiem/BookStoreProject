@@ -16,11 +16,6 @@ function SideBarComponent() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [isSelectedCategory, setSelectedCategory] = useState(parseInt(searchParams.get('c')) ||  0);
 
-    useEffect(() => {
-        console.log(typeof isSelectedCategory);
-        
-    }, [isSelectedCategory]);
-
     const [isShowMoreCategory, setShowMoreCategory] = useState(false);
     const [isShowMoreBublisher, setShowMoreBublisher] = useState(false);
 

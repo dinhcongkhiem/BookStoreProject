@@ -25,6 +25,8 @@ public class OrderDetail {
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+    private BigDecimal originalPriceAtPurchase;
+    private BigDecimal priceAtPurchase;
     private Integer quantity;
     private BigDecimal discount;
 }

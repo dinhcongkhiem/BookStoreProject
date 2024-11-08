@@ -140,10 +140,6 @@ function OrderDetail() {
                     Chi tiết đơn hàng {orderDataRes?.orderId} -{' '}
                     <span className={cx('orderStatus')}>{convertStatusToVN(orderDataRes?.status)}</span>
                 </Typography>
-                <Typography variant="body2" className={cx('orderDate')}>
-                    Ngày đặt hàng:{' '}
-                    {new Date(orderDataRes?.orderDate).toLocaleDateString('vi-VN').split('/').reverse().join('-')}
-                </Typography>
             </div>
 
             <Grid container spacing={3} className={cx('infoSections')}>
@@ -173,16 +169,8 @@ function OrderDetail() {
                                 ? 'Chuyển khoản ngân hàng'
                                 : 'Tiền mặt khi nhận hàng'}
                         </Typography>
-                        <Typography variant="body2" className={cx('paymentStatus')}>
-                            Trạng thái thanh toán:{' '}
-                            <span className={cx(orderDataRes?.paymentStatus === 'PAID' ? 'paid' : 'unpaid')}>
-                                {orderDataRes?.paymentStatus === 'PAID' ? 'Đã thanh toán' : 'Chưa thanh toán'}
-                            </span>
-                        </Typography>
                     </StyledPaper>
                 </Grid>
-
-                {/* Thêm mục mới cho thông tin đơn hàng */}
                 <Grid item xs={12} md={4}>
                     <SectionTitle className={cx('orderInfoTitle')} variant="h6">
                         Thông tin đơn hàng
@@ -299,7 +287,12 @@ function OrderDetail() {
                         <Divider className={cx('summaryDivider')} />
                         <Box display="flex" justifyContent="space-between" className={cx('summaryTotal')}>
                             <Typography variant="h6">Tổng cộng</Typography>
-                            <Typography style={{ color: '#FF0000' }} variant="h6" noWrap className={cx('priceCell')}>
+                            <Typography
+                                style={{ color: '#FF0000', fontWeight: 600 }}
+                                variant="h6"
+                                noWrap
+                                className={cx('priceCell')}
+                            >
                                 {orderDataRes?.grandTotal.toLocaleString('vi-VN')} ₫
                             </Typography>
                         </Box>
