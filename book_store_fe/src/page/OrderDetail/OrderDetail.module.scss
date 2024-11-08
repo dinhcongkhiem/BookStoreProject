@@ -69,7 +69,17 @@
     text-overflow: ellipsis;
     white-space: normal;
 }
-
+.orderActionButtons {
+    margin-top: 2.4rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+.actionButtonCompleted {
+    padding: 5px 10px;
+    font-size: 8px;
+    font-weight: 600;
+}
 .orderSummary {
     margin-top: 2.4rem;
     .summaryRow {
