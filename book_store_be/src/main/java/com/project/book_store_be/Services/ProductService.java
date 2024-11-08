@@ -1,6 +1,5 @@
 package com.project.book_store_be.Services;
 
-import com.project.book_store_be.Enum.DiscountStatus;
 import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Enum.SoftProductType;
 import com.project.book_store_be.Interface.AuthorService;
@@ -19,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -45,15 +45,15 @@ public class ProductService {
         Specification<Product> spec = ProductSpecification.getProduct(
                 category, price, publisher, keyword, ProductStatus.AVAILABLE);
 
+        if (sortType == SoftProductType.TOP_SELLER) {
+            return productRepository.findTopSellProduct(PageRequest.of(page, pageSize)).map(this::convertToProductResponse);
+        }
         Sort sortValue = switch (sortType) {
-//                sort = Sort.by(Sort.Direction.ASC, "creationDate"); // Sắp xếp theo ngày tạo tăng dần
-//                break;
             case PRICE_DESC -> Sort.by(Sort.Direction.DESC, "price");
             case PRICE_ASC -> Sort.by(Sort.Direction.ASC, "price");
             default -> Sort.by(Sort.Direction.ASC, "createDate");
 
         };
-
         Pageable pageable = PageRequest.of(page, pageSize, sortValue);
         return productRepository.findAll(spec, pageable).map(this::convertToProductResponse);
 
@@ -76,6 +76,9 @@ public class ProductService {
             case OLDEST -> Sort.by(Sort.Direction.ASC, "createDate");
             default -> Sort.by(Sort.Direction.DESC, "createDate");
         };
+        if (sortType == SoftProductType.TOP_SELLER) {
+            return productRepository.findTopSellProduct(PageRequest.of(pageNumber, pageSize)).map(this::convertToProductResponse);
+        }
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize, sortValue);
         Long id;
         try {
@@ -124,42 +127,43 @@ public class ProductService {
                 .updateDate(new Date())
                 .build();
         productRepository.save(product);
-        imageProductService.uploadMultipleImageProduct(images, product.getId(),indexThumbnail);
+        imageProductService.uploadMultipleImageProduct(images, product.getId(), indexThumbnail, null);
     }
 
+    @Transactional
     public void deleteProduct(Long id) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Khong co product nao co ID la: " + id));
+        imageProductService.deleteImagesProduct(product.getId());
         productRepository.deleteById(id);
     }
 
-    public Product updateProduct(Long id, ProductRequest request) {
-        Product pr = productRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Product not found"));
-        BigDecimal price = request.getOriginalPrice();
-        if (pr.getDiscount() != null && pr.getDiscount().getStatus() == DiscountStatus.ACTIVE) {
-            BigDecimal discountAmount = pr.getOriginal_price()
-                    .multiply(BigDecimal.valueOf(pr.getDiscount().getDiscountRate()))
-                    .divide(ONE_HUNDRED, RoundingMode.HALF_UP);
-
-            price = pr.getOriginal_price().subtract(discountAmount);
-        }
+    public void updateProduct(Long productId, ProductRequest request, List<MultipartFile> images, Integer indexThumbnail, List<Long> listOldImg) {
         Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
-        pr.setName(request.getName());
-        pr.setPublisher(publisherService.getPublisherById(request.getPublisherId()).orElse(null));
-        pr.setNumber_of_pages(request.getNumberOfPages());
-        pr.setCost(request.getCost());
-        pr.setOriginal_price(request.getOriginalPrice());
-        pr.setNumber_of_pages(request.getNumberOfPages());
-        pr.setSize(size);
-        pr.setWeight(request.getWeight());
-        pr.setQuantity(request.getQuantity());
-        pr.setStatus(request.getStatus());
-        pr.setCoverType(request.getCoverType());
-        pr.setManufacturer(request.getManufacturer());
-        pr.setCategories(categoryService.getCategories(request.getCategoriesId()));
-        pr.setAuthors(authorService.getAuthors(request.getAuthorsId()));
-        pr.setDescription(request.getDescription());
-        pr.setPrice(price);
-        pr.setUpdateDate(new Date());
-        return productRepository.save(pr);
+
+        Product product = Product.builder()
+                .id(productId)
+                .name(request.getName())
+                .publisher(publisherService.getPublisherById(request.getPublisherId()).orElse(null))
+                .number_of_pages(request.getNumberOfPages())
+                .year_of_publication(request.getYearOfPublication())
+                .cost(request.getCost())
+                .original_price(request.getOriginalPrice())
+                .price(request.getOriginalPrice())
+                .size(size)
+                .weight(request.getWeight())
+                .quantity(request.getQuantity())
+                .status(request.getStatus())
+                .coverType(request.getCoverType())
+                .manufacturer(request.getManufacturer())
+                .categories(categoryService.getCategories(request.getCategoriesId()))
+                .authors(authorService.getAuthors(request.getAuthorsId()))
+                .description(request.getDescription())
+                .createDate(new Date())
+                .updateDate(new Date())
+                .build();
+        imageProductService.updateOldImg(listOldImg, productId);
+        productRepository.save(product);
+        imageProductService.uploadMultipleImageProduct(images, product.getId(), indexThumbnail, listOldImg);
     }
 
     public Map<String, BigDecimal> getPriceRange() {
@@ -203,6 +207,7 @@ public class ProductService {
         return ProductDetailResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
+                .cost(product.getCost())
                 .original_price(product.getOriginal_price())
                 .year_of_publication(product.getYear_of_publication())
                 .number_of_pages(product.getNumber_of_pages())

@@ -7,33 +7,51 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import classNames from 'classnames/bind';
 import style from './Order.module.scss';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import OrderService from '../../service/OrderService';
+import CartService from '../../service/CartService';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
+import { useNavigate } from 'react-router-dom';
 const cx = classNames.bind(style);
 
 function Order() {
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    }, []);
+
     const [ordersList, setOrdersList] = useState([]);
     const [page, setPage] = useState(1);
     const [activeTab, setActiveTab] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const observer = useRef();
-
+    const navigate = useNavigate();
     const {
         data: orders,
         error,
         isLoading,
-        refetch
+        refetch,
+        isFetching,
     } = useQuery({
         queryKey: ['orderByUser', page, activeTab],
-        queryFn: () => OrderService.getOrderByUser({ page, status: activeTab, keyword: searchTerm }).then((res) => res.data),
+        queryFn: () =>
+            OrderService.getOrderByUser({ page, status: activeTab, keyword: searchTerm }).then((res) => res.data),
         retry: 1,
+        enabled: !!page && !!activeTab,
+    });
+    const handleSearchOrder = () => {
+        refetch();
+    };
+
+    const reBuyProductsMutation = useMutation({
+        mutationFn: (orderCode) => CartService.rebuyProduct(orderCode),
+        onError: (error) => {
+            console.log(error);
+        },
+        onSuccess: () => {
+            navigate('/cart');
+        },
     });
 
-    const handleSearchOrder = () => {
-        refetch({ queryKey: ['orderByUser', 1, activeTab, searchTerm] });
-    };
-    
     const lastItemRef = useCallback(
         (node) => {
             if (observer.current) observer.current.disconnect();
@@ -86,7 +104,7 @@ function Order() {
             default:
                 return '';
         }
-    }
+    };
     const getStatusClass = (status) => {
         switch (status) {
             case 'AWAITING_PAYMENT':
@@ -122,9 +140,9 @@ function Order() {
                         key={tab.id}
                         className={cx('tab', { active: activeTab === tab.id })}
                         onClick={() => {
-                            setOrdersList(undefined)
+                            setOrdersList(undefined);
                             setActiveTab(tab.id);
-                            setPage(1)
+                            setPage(1);
                         }}
                     >
                         {tab.label}
@@ -136,14 +154,16 @@ function Order() {
                 <div className={cx('searchInputContainer')}>
                     <SearchIcon className={cx('searchIcon')} />
                     <input
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                         name="search"
                         placeholder="Tìm đơn hàng theo Mã đơn hàng hoặc Tên sản phẩm"
                         type="search"
                         className={cx('searchInput')}
                     />
-                    <button className={cx('searchButton')} onClick={handleSearchOrder}>Tìm đơn hàng</button>
+                    <button className={cx('searchButton')} onClick={handleSearchOrder}>
+                        Tìm đơn hàng
+                    </button>
                 </div>
             </div>
 
@@ -156,10 +176,12 @@ function Order() {
                     >
                         <div className={cx('orderHeader')}>
                             {getStatusIcon(order.status)}
-                            <span className={cx('orderStatus', getStatusClass(order.status))}>{convertStatusToVN(order.status)}</span>
+                            <span className={cx('orderStatus', getStatusClass(order.status))}>
+                                {convertStatusToVN(order.status)}
+                            </span>
                         </div>
                         <div className={cx('orderDetails')}>
-                            {order.orderResponseList.map((product, index) => (
+                            {order.items.map((product, index) => (
                                 <div key={index} className={cx('productRow')}>
                                     <div
                                         className={cx('productImage')}
@@ -186,25 +208,55 @@ function Order() {
                                 {order.status === 'AWAITING_PAYMENT' && (
                                     <>
                                         <button className={cx('actionButton', 'payAgainButton')}>Thanh toán lại</button>
-                                        <button className={cx('actionButton')}>Xem chi tiết</button>
+                                        <button
+                                            className={cx('actionButton')}
+                                            onClick={() => navigate(`/order/detail/${order.orderId}`)}
+                                        >
+                                            Xem chi tiết
+                                        </button>
                                     </>
                                 )}
                                 {order.status === 'PROCESSING' && (
-                                    <button className={cx('actionButton')}>Xem chi tiết</button>
+                                    <button
+                                        className={cx('actionButton')}
+                                        onClick={() => navigate(`/order/detail/${order.orderId}`)}
+                                    >
+                                        Xem chi tiết
+                                    </button>
                                 )}
                                 {order.status === 'SHIPPING' && (
-                                    <button className={cx('actionButton', 'receivedButton')}>Đã nhận được hàng</button>
+                                    <button
+                                        className={cx('actionButton')}
+                                        onClick={() => navigate(`/order/detail/${order.orderId}`)}
+                                    >
+                                        Xem chi tiết
+                                    </button>
                                 )}
                                 {order.status === 'COMPLETED' && (
                                     <>
                                         <button className={cx('actionButton', 'reviewButton')}>Đánh giá</button>
-                                        <button className={cx('actionButton')}>Xem chi tiết</button>
+                                        <button
+                                            className={cx('actionButton')}
+                                            onClick={() => navigate(`/order/detail/${order.orderId}`)}
+                                        >
+                                            Xem chi tiết
+                                        </button>
                                     </>
                                 )}
                                 {order.status === 'CANCELED' && (
                                     <>
-                                        <button className={cx('actionButton')}>Mua lại</button>
-                                        <button className={cx('actionButton')}>Xem chi tiết hủy đơn</button>
+                                        <button
+                                            className={cx('actionButton')}
+                                            onClick={() => reBuyProductsMutation.mutate(order.items.map(i => i.productId).join(','))}
+                                        >
+                                            Mua lại
+                                        </button>
+                                        <button
+                                            className={cx('actionButton')}
+                                            onClick={() => navigate(`/order/detail/${order.orderId}`)}
+                                        >
+                                            Xem chi tiết
+                                        </button>
                                     </>
                                 )}
                             </div>
@@ -212,7 +264,7 @@ function Order() {
                     </div>
                 ))}
             </div>
-            <ModalLoading isLoading={isLoading} />
+            <ModalLoading isLoading={isLoading || isFetching} />
         </div>
     );
 }

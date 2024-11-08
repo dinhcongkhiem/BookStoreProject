@@ -1,11 +1,15 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Interface.PaymentService;
 import com.project.book_store_be.Model.Order;
+import com.project.book_store_be.Model.OrderDetail;
+import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.OrderRepository;
 import com.project.book_store_be.Request.PaymentRequest;
+import com.project.book_store_be.Response.OrderRes.OrderItemsResponse;
 import com.project.book_store_be.Response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -27,10 +31,12 @@ import java.util.concurrent.TimeUnit;
 public class PaymentServiceImpl implements PaymentService {
     private final SendMailService sendMailService;
     private final OrderRepository orderRepository;
+    private final NotificationService notificationService;
     private final PayOS payOS;
     private static final String CANCEL_URL = "http://localhost:3000/profile";
     private static final String RETURN_URL = "http://localhost:3000/cart";
     private Set<String> sentEmailOrderCodes = new HashSet<>();
+
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
@@ -48,14 +54,16 @@ public class PaymentServiceImpl implements PaymentService {
                 result.getAccountNumber(), request.getDescription(), request.getAmount());
 
         scheduler.schedule(() -> {
-            String orderCodeStr = request.getOrderCode().toString();
-            Long orderCode = Long.valueOf(orderCodeStr.substring(0, orderCodeStr.length() - 6));
-            Order order = orderRepository.findById(orderCode).orElse(null);
-            if (order != null && order.getOrderDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
-                order.setStatus(OrderStatus.CANCELED);
-                orderRepository.save(order);
+            Long orderCode = request.getOrderCode();
+            try {
+                PaymentLinkData paymentLinkData = payOS.getPaymentLinkInformation(orderCode);
+                if (!paymentLinkData.getStatus().equalsIgnoreCase("PAID")) {
+                    payOS.cancelPaymentLink(orderCode, "payment due");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-        },5, TimeUnit.MINUTES);
+        }, 5, TimeUnit.MINUTES);
         return PaymentResponse.builder()
                 .expiredAt(5)
                 .amount(BigDecimal.valueOf(result.getAmount()))
@@ -77,6 +85,20 @@ public class PaymentServiceImpl implements PaymentService {
                 User user = order.getUser();
                 order.setStatus(OrderStatus.PROCESSING);
                 orderRepository.save(order);
+
+                List<OrderDetail> orderItems = order.getOrderDetails();
+                BigDecimal[] totalPrice = {BigDecimal.ZERO};
+
+                orderItems.forEach(o -> {
+                    Product product = o.getProduct();
+                    BigDecimal discount = o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO;
+                    totalPrice[0] = totalPrice[0].add(product.getPrice().subtract(discount).multiply(BigDecimal.valueOf(o.getQuantity())));
+                });
+
+                BigDecimal finalPrice = totalPrice[0].add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
+                String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(), finalPrice);
+                notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER);
+
                 if (!sentEmailOrderCodes.contains(orderCode)) {
                     Map<String, Object> variables = new HashMap<>();
                     variables.put("orderCode", order.getId());

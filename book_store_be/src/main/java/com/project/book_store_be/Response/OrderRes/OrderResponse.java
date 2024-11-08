@@ -11,7 +11,8 @@ import java.util.List;
 @Builder
 @Data
 public class OrderResponse {
-    private List<OrderItemsResponse> orderResponseList;
+    private List<OrderItemsResponse> items;
     private OrderStatus status;
     private BigDecimal finalPrice;
+    private Long orderId;
 }

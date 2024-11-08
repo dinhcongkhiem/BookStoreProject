@@ -15,9 +15,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -33,7 +35,7 @@ public class CartService {
 
     public CartResponse getCartByUserId(int page, int size) {
         User currentUser = userService.getCurrentUser();
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updateDate"));
         Page<Cart> cartPage = cartRepository.findByUserOrderById(currentUser, pageable);
         return convertToCartResponse(cartPage);
     }
@@ -59,6 +61,7 @@ public class CartService {
                 throw new IllegalArgumentException("Tổng số lượng trong giỏ hàng vượt quá số lượng có sẵn trong kho.");
             }
             cart.setCartQuantity(newQuantity);
+            cart.setUpdateDate(LocalDateTime.now());
             cartRepository.save(cart);
             return;
         }
@@ -66,9 +69,39 @@ public class CartService {
         cart.setProduct(product);
         cart.setCartQuantity(cartRequest.getCartQuantity());
         cart.setUser(currentUser);
+        cart.setCreateDate(LocalDateTime.now());
+        cart.setUpdateDate(LocalDateTime.now());
         cartRepository.save(cart);
     }
 
+
+    public void reBuyProducts(List<Long> productsId) {
+        User currentUser = userService.getCurrentUser();
+        productsId.forEach(p -> {
+            Product product = productRepository.findById(p)
+                    .orElseThrow(() -> new NoSuchElementException("Product not found"));
+            Optional<Cart> cartOptional = cartRepository.findByUserAndProduct(currentUser, product);
+
+            if (cartOptional.isPresent()) {
+                Cart cart = cartOptional.get();
+                int newQuantity = cart.getCartQuantity() + 1;
+                if (newQuantity > product.getQuantity()) {
+                    throw new IllegalArgumentException("Tổng số lượng trong giỏ hàng vượt quá số lượng có sẵn trong kho.");
+                }
+                cart.setCartQuantity(newQuantity);
+                cart.setUpdateDate(LocalDateTime.now());
+                cartRepository.save(cart);
+                return;
+            }
+            Cart cart = new Cart();
+            cart.setProduct(product);
+            cart.setCartQuantity(1);
+            cart.setCreateDate(LocalDateTime.now());
+            cart.setUpdateDate(LocalDateTime.now());
+            cart.setUser(currentUser);
+            cartRepository.save(cart);
+        });
+    }
     public void updateCartItem(Long cartId, Integer quantity) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Product not found in cart"));
@@ -76,7 +109,6 @@ public class CartService {
         if (quantity < 1 || quantity > product.getQuantity()) {
             throw new IllegalArgumentException("Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1 và nhỏ hơn hoặc bằng số lượng có sẵn.");
         }
-
         cart.setCartQuantity(quantity);
         cartRepository.save(cart);
     }

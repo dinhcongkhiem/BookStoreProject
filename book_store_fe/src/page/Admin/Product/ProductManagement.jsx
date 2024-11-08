@@ -24,7 +24,6 @@ import {
     Grid,
     Chip,
     Pagination,
-    DialogContentText,
     Snackbar,
     Alert,
 } from '@mui/material';
@@ -44,6 +43,7 @@ import ProductService from '../../../service/ProductService';
 import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 import useDebounce from '../../../hooks/useDebounce';
 import { toast } from 'react-toastify';
+import ConfirmModal from '../../../component/Modal/ConfirmModal/ConfirmModal'
 const cx = classNames.bind(style);
 
 const Product = () => {
@@ -61,7 +61,7 @@ const Product = () => {
     const debouncedSearchValue = useDebounce(searchTerm, 800);
     const queryClient = useQueryClient();
     const handleEdit = (product) => {
-        navigate('/admin/product/edit', { state: { product } });
+        navigate(`/admin/product/update/${product.id}`);
     };
 
     const handleView = (product) => {
@@ -95,7 +95,7 @@ const Product = () => {
         setProductToDelete(product);
         setDeleteConfirmOpen(true);
     };
-    const handleDeleteConfirm = () => {
+    const handleConfirmDelete = () => {
         if (productToDelete) {
             deleteMutation.mutate(productToDelete.id);
         }
@@ -133,7 +133,7 @@ const Product = () => {
         retry: 1,
     });
     const deleteMutation = useMutation({
-        mutationFn: (productId) => ProductService.deleteProduct(productId),
+        mutationFn: (productId) => ProductService.removeProduct(productId),
         onSuccess: () => {
             queryClient.invalidateQueries(['productsMng']);
             toast.success('Sản phẩm đã được xóa thành công');
@@ -521,46 +521,13 @@ const Product = () => {
                     </>
                 )}
             </Dialog>
-            <Dialog
-                open={deleteConfirmOpen}
-                onClose={handleDeleteCancel}
-                PaperProps={{
-                    style: {
-                        borderRadius: 15,
-                        padding: '20px',
-                    },
-                }}
-            >
-                <DialogTitle sx={{ textAlign: 'center', fontSize: '1.5rem', fontWeight: 'bold', color: 'error.main' }}>
-                    Xác nhận xóa sản phẩm
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description" sx={{ textAlign: 'center', fontSize: '1.1rem' }}>
-                        Bạn có chắc chắn muốn xóa sản phẩm
-                        <br />
-                        <strong>"{productToDelete?.name}"</strong> không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: 'center', mt: 2 }}>
-                    <Button
-                        onClick={handleDeleteCancel}
-                        variant="outlined"
-                        color="primary"
-                        sx={{ minWidth: 100, borderRadius: 20 }}
-                    >
-                        Hủy
-                    </Button>
-                    <Button
-                        onClick={handleDeleteConfirm}
-                        variant="contained"
-                        color="error"
-                        autoFocus
-                        sx={{ minWidth: 100, borderRadius: 20 }}
-                    >
-                        Xác nhận
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <ConfirmModal 
+              open={deleteConfirmOpen}
+              onClose={handleDeleteCancel}
+              onConfirm={handleConfirmDelete}
+              title={'Xác nhận'}
+              message={'Xóa sản phẩm khỏi cửa hàng.'}
+              type={'warn'}/>
             <Snackbar
                 open={toastOpen}
                 autoHideDuration={3000}
@@ -571,7 +538,7 @@ const Product = () => {
                     {toastMessage}
                 </Alert>
             </Snackbar>
-            <ModalLoading isLoading={isLoading || deleteMutation.isLoading} />
+            <ModalLoading isLoading={isLoading || deleteMutation.isPending} />
         </div>
     );
 };

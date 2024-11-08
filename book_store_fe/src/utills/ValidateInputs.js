@@ -19,7 +19,7 @@ const validateInputs = (listErr, fields, rules, setListErr) => {
                     isValid = true;
                 }
                 return;
-            }
+            }            
             const value = fields[field];
             const matchValue = matchField ? fields[matchField] : null;
             const isValidField = validators[type](value, matchValue);
@@ -59,16 +59,6 @@ const forgetPassRules = [
     { field: 'confirmPassword', validations: [{ type: 'required' }, { type: 'match', matchField: 'newPassword' }] },
 ];
 
-const changeInfoRules = [
-    { field: 'email', validations: [{ type: 'required' }, { type: 'emailFormat' }] },
-    { field: 'fullname', validations: [{ type: 'required' }] },
-    { field: 'phoneNum', validations: [{ type: 'required' }] },
-    { field: 'provinces', validations: [{ type: 'requiredObject' }] },
-    { field: 'districts', validations: [{ type: 'requiredObject' }] },
-    { field: 'communes', validations: [{ type: 'requiredObject' }] },
-    { field: 'addressDetail', validations: [{ type: 'required' }] },
-];
-
 const changePassRules = [
     { field: 'password', validations: [{ type: 'required' }] },
     { field: 'newPassword', validations: [{ type: 'required' }] },
@@ -81,9 +71,6 @@ export const validateInputsLogin = (listErr, fields, setListErr) =>
     validateInputs(listErr, fields, loginRules, setListErr);
 export const validateInputsForgetPass = (listErr, fields, setListErr) =>
     validateInputs(listErr, fields, forgetPassRules, setListErr);
-export const validateInputChangeInfo = (listErr, fields, setListErr) =>
-    validateInputs(listErr, fields, changeInfoRules, setListErr);
 export const validateInputChangePass = (listErr, fields, setListErr) =>
     validateInputs(listErr, fields, changePassRules, setListErr);
-export const validateInputPayment = (listErr, fields, setListErr) =>
-    validateInputs(listErr, fields, changeInfoRules, setListErr);
+

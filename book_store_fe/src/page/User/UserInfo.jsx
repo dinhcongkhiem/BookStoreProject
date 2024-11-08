@@ -315,6 +315,7 @@ function UserInfo() {
                         label="Địa chỉ cụ thể"
                         variant="outlined"
                         fullWidth
+                        name='addressDetail'
                         value={formik.values.addressDetail}
                         onChange={formik.handleChange}
                         margin="normal"

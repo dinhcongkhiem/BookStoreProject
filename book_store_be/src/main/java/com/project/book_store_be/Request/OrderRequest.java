@@ -26,4 +26,3 @@ public class OrderRequest {
         private Integer qty;
     }
 }
-

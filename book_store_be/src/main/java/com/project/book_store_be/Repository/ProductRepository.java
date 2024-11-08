@@ -25,6 +25,15 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CrudRep
 
     Page<Product> searchByNameContainingIgnoreCaseOrId(String name, Long id, Pageable pageable);
 
+
+    @Query("SELECT p " +
+            "FROM Order o " +
+            "JOIN o.orderDetails od " +
+            "RIGHT JOIN od.product p " +
+            "GROUP BY p.id " +
+            "ORDER BY count(p.id) DESC")
+    Page<Product> findTopSellProduct(Pageable pageable);
+
 }
 
 

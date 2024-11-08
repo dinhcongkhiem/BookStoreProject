@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -42,6 +43,23 @@ public class CartController {
         }
         try {
             cartService.addToCart(cartRequest);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Không tìm thấy sản phẩm để thêm vào giỏ hàng", "status", HttpStatus.NOT_FOUND.value()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1 và nhỏ hơn hoặc bằng số lượng có sẵn.", "status", HttpStatus.BAD_REQUEST.value()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Đã xảy ra lỗi không xác định", "status", HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    @PostMapping("/re-buy")
+    public ResponseEntity<?> reBuyProducts(@RequestParam List<Long> productsId) {
+        try {
+            cartService.reBuyProducts(productsId);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

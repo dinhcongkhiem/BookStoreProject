@@ -45,9 +45,8 @@ window.Quill = Quill;
 Quill.register('modules/imageResize', ImageResize);
 
 function AddProduct() {
-    const {productId} = useParams();
+    const { productId } = useParams();
     const navigate = useNavigate();
-    console.log('Product ID:', productId);
     const [indexRemove, setIndexRemove] = useState(null);
     const validationSchema = Yup.object({
         name: Yup.string().required('Vui lòng nhập tên sách.'),
@@ -67,7 +66,7 @@ function AddProduct() {
             .required('Vui lòng nhập giá bán.')
             .min(1, 'Phải lớn hơn 0')
             .when('cost', {
-                is: (cost) => cost !== undefined && cost >= 0, 
+                is: (cost) => cost !== undefined && cost >= 0,
                 then: (schema) =>
                     schema.test('is-greater-than-cost', 'Giá bán phải lớn hơn giá nhập.', function (value) {
                         const { cost } = this.parent;
@@ -104,6 +103,25 @@ function AddProduct() {
             navigate('/admin/product');
         },
     });
+    const updateProductMutation = useMutation({
+        mutationFn: (data) => {
+            const {
+                size: { x: length, y: width, z: height },
+                selectedImages,
+                indexThumbNail,
+                ...rest
+            } = data;
+            const product = { ...rest, length, width, height };
+            return ProductService.updateProduct(productId,product, selectedImages, indexThumbNail);
+        },
+        onError: (error) => {
+            console.log(error);
+        },
+        onSuccess: () => {
+            toast.success('Cập nhật thành công!');
+            navigate('/admin/product');
+        },
+    });
     const formik = useFormik({
         initialValues: {
             name: '',
@@ -128,7 +146,11 @@ function AddProduct() {
         validationSchema: validationSchema,
         onSubmit: (values) => {
             console.log('Form data:', values);
-            insertProductMutation.mutate(values);
+            if (productId) {
+                updateProductMutation.mutate(values);
+            } else {
+                insertProductMutation.mutate(values);
+            }
         },
         validateOnBlur: false,
         validateOnChange: false,
@@ -152,6 +174,61 @@ function AddProduct() {
             }
         }
     };
+
+    const convertProductStatus = (status) => {
+        switch (status) {
+            case 'AVAILABLE':
+                return 0;
+            case 'UNAVAILABLE':
+                return 1;
+            case 'STOP_SELL':
+                return 2;
+        }
+    };
+
+    const {
+        data: productToUpdate,
+        error: productToUpdateErr,
+        isLoading,
+    } = useQuery({
+        queryKey: ['productToUpdate'],
+        queryFn: () =>
+            ProductService.getProductDetail(productId).then((res) => {
+                const resData = res.data;
+                console.log(resData);
+
+                const formikMappingVal = {
+                    name: resData.name,
+                    publisherId: resData.publisher.id,
+                    numberOfPages: resData.number_of_pages,
+                    yearOfPublication: resData.year_of_publication,
+                    cost: '',
+                    originalPrice: resData.original_price,
+                    size: { x: resData.size.x, y: resData.size.y, z: resData.size.z },
+                    weight: resData.weight,
+                    quantity: resData.quantity,
+                    status: convertProductStatus(resData.status),
+                    coverType: resData.coverType === 'HARDCOVER' ? 0 : 1,
+                    manufacturer: resData.manufacturer,
+                    categoriesId: resData.categories.map((c) => c.id),
+                    authorsId: resData.authors.map((a) => a.id),
+                    translator: resData.translatorName ? resData.translatorName : '',
+                    description: resData.description,
+                    selectedImages: resData.images.map((image) => {
+                        const blob = new Blob();
+                        const file = new File([blob], image.urlImage.split('/').pop(), { type: 'image/jpeg' });
+                        file.preview = image.urlImage;
+                        file.productImgId = image.id;
+                        return file;
+                    }),
+                    indexThumbNail: 0,
+                };
+                formik.setValues(formikMappingVal);
+                return null;
+            }),
+        retry: 1,
+        enabled: !!productId,
+    });
 
     useEffect(() => {
         if (formik.submitCount > 0) {

@@ -1,8 +1,11 @@
 package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Interface.AmazonS3Service;
+import com.project.book_store_be.Model.ImageProduct;
 import jakarta.annotation.PostConstruct;
 
+import lombok.Builder;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,9 +14,10 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -22,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 
 
@@ -34,6 +40,7 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
     @Value("${s3.bucketName}")
     private String bucketName;
     private S3Client s3Client;
+
     @Override
     @PostConstruct
     public void init() {
@@ -43,6 +50,7 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
                 .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                 .build();
     }
+
     @Override
     public File convertToJpg(MultipartFile file) throws IOException {
         InputStream inputStream = file.getInputStream();
@@ -59,8 +67,9 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
 
         return outputFile;
     }
+
     @Override
-    public String uploadFile(MultipartFile file) throws IOException {
+    public S3ServiceResponse uploadFile(MultipartFile file) throws IOException {
         File convertedFile = convertToJpg(file);
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
@@ -69,16 +78,54 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
                 .key(convertedFile.getName())
                 .build();
 
-       s3Client.putObject(putObjectRequest, RequestBody.fromFile(convertedFile));
+        s3Client.putObject(putObjectRequest, RequestBody.fromFile(convertedFile));
 
         convertedFile.delete();
-        return "https://" + bucketName + ".s3." + Region.AP_SOUTHEAST_1.id() + ".amazonaws.com/" + convertedFile.getName();
+        return S3ServiceResponse.builder()
+                .fileName(convertedFile.getName())
+                .urlImg("https://" + bucketName + ".s3." + Region.AP_SOUTHEAST_1.id() + ".amazonaws.com/" + convertedFile.getName())
+                .build();
     }
+
+    public void deleteFiles(List<ImageProduct> imageProducts) {
+        try {
+            List<ObjectIdentifier> keys = imageProducts.stream()
+                    .map(img -> ObjectIdentifier.builder()
+                            .key(img.getNameImage())
+                            .build())
+                    .collect(Collectors.toList());
+
+            Delete del = Delete.builder().objects(keys)
+                    .build();
+            DeleteObjectsRequest multiObjectDeleteRequest = DeleteObjectsRequest.builder()
+                    .bucket(bucketName)
+                    .delete(del)
+                    .build();
+            DeleteObjectsResponse res = s3Client.deleteObjects(multiObjectDeleteRequest);
+            res.deleted().forEach(deletedObject ->
+                    System.out.println("Deleted: " + deletedObject.key())
+            );
+
+        } catch (S3Exception e) {
+            System.err.println("Error occurred while deleting objects: " + e.awsErrorDetails().errorMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public String hashFileName(String input) {
         CRC32 crc32 = new CRC32();
         crc32.update(input.getBytes(StandardCharsets.UTF_8));
         return Long.toHexString(crc32.getValue());
+    }
+
+
+    @Builder
+    @Data
+    public static class S3ServiceResponse {
+        private String fileName;
+        private String urlImg;
     }
 }
 

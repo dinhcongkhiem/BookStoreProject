@@ -40,33 +40,19 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public Author saveAuthor(Author author) {
-
-//        Optional<Author> existingAuthorByPseudonym = repo.findByPseudonym(author.getPseudonym());
-//        if( existingAuthorByPseudonym.isPresent()){
-//            throw new IllegalArgumentException("Author with the same name and pseudonym already exists");
-//        }
         return repo.save(author);
     }
 
     @Override
     public Author updateAuthor(Long id, Author authorDetails) {
-//        Author author = repo.findById(id).orElseThrow(() ->  new AuthorNotFoundException("Author not found"));
-//
-//        Optional<Author> existingAuthorWithPseudonym = repo.findByPseudonym(authorDetails.getPseudonym());
-//        if (existingAuthorWithPseudonym.isPresent() && !existingAuthorWithPseudonym.get().getId().equals(id)) {
-//            throw new DuplicatePseudonymException("Pseudonym already in use");
-//        }
-//
-//        author.setName(authorDetails.getName());
-//        author.setNationality(authorDetails.getNationality());
-//        author.setPseudonym(authorDetails.getPseudonym());
-        return repo.save(authorDetails);
+        Author author = repo.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
+        author.setName(authorDetails.getName());
+        return repo.save(author);
     }
-
 
     @Override
     public void deleteAuthor(Long id) {
-        Author author = repo.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
+        repo.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
         repo.deleteById(id);
     }
 

@@ -2,7 +2,10 @@ package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Interface.OrderService;
+import com.project.book_store_be.Model.Order;
+import com.project.book_store_be.Model.OrderDetail;
 import com.project.book_store_be.Request.OrderRequest;
+import com.project.book_store_be.Response.OrderRes.OrderResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,4 +55,23 @@ public class OrderController {
         }
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getOrderDetailById(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(orderService.getOrderDetailById(id));
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Order not found");
+        }
+    }
+
+    @PatchMapping("update-order/{id}")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody OrderStatus status) {
+        try {
+            return ResponseEntity.ok(orderService.updateOrderStatus(id,status));
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+        }
+    }
 }
