@@ -93,7 +93,7 @@ public class NotificationService {
                 .status(notification.getStatus())
                 .type(notification.getType())
                 .createdAt(notification.getCreatedAt())
-                .readAt(notification.getReadAt())
+//                .readAt(notification.getReadAt())
                 .build();
     }
 

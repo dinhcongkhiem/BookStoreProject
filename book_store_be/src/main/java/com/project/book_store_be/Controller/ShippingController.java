@@ -1,10 +1,7 @@
 package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Interface.ShippingService;
-import com.project.book_store_be.Response.FeeResponse;
-import com.project.book_store_be.Response.GHTKRequest;
-import com.project.book_store_be.Response.GHTKResponse;
-import com.project.book_store_be.Response.GHTKStatusResponse;
+import com.project.book_store_be.Response.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +30,10 @@ public class ShippingController {
         FeeResponse feeResponse = shippingService.calculateShippingFee(weight, value);
         return ResponseEntity.ok(feeResponse);
     }
-    //đăng đơn
+//    đăng đơn
     @PostMapping
-    public GHTKResponse createOrder(@RequestBody GHTKRequest ghtkRequest) {
-        return shippingService.createOrder(ghtkRequest);
+    public GHTKResponse createOrder(@RequestBody Long id) {
+        return shippingService.createOrder(id);
     }
     //trạng thái
     @GetMapping("/tracking/{trackingOrder}")
@@ -65,6 +62,15 @@ public class ShippingController {
             @RequestParam(defaultValue = "false") boolean usePartnerId
     ) {
         return shippingService.cancelOrder(trackingOrder, usePartnerId);
+    }
+
+    @PostMapping("/updateShipment")
+    public ResponseEntity<String> handleGHTKWebhook(
+            @RequestParam("hash") String hash,
+            @RequestBody GHTKWebhookPayload payload) {
+        System.out.println("Received webhook update for order: " + payload.getLabelId());
+        System.out.println("Status: " + payload.getStatusId());
+        return ResponseEntity.ok("Update received");
     }
 
 

@@ -13,7 +13,7 @@ public interface ShippingService {
      FeeResponse calculateShippingFee(int weight, BigDecimal value);
      FeeResponse calculateShippingFee(String province, String district,String ward,String address, int weight, BigDecimal value);
 
-     GHTKResponse createOrder(GHTKRequest ghtkRequest);
+     GHTKResponse createOrder(Long id);
 
      GHTKStatusResponse getTrackingStatus(String trackingOrder);
 

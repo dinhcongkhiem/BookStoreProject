@@ -5,6 +5,7 @@ import com.project.book_store_be.Model.Product;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 @Data
 @Builder
@@ -29,7 +30,7 @@ public class GHTKRequest {
         private String hamlet;
         private String tel;
         private String email;
-        private Integer value;
+        private BigDecimal[] value;
         private String transport;
 
     }

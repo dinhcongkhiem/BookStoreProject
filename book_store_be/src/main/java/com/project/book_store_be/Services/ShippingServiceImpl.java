@@ -2,13 +2,17 @@ package com.project.book_store_be.Services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.book_store_be.Interface.OrderService;
 import com.project.book_store_be.Interface.ShippingService;
 import com.project.book_store_be.Model.Address;
+import com.project.book_store_be.Model.Order;
 import com.project.book_store_be.Model.User;
+import com.project.book_store_be.Request.GHTKMapper;
 import com.project.book_store_be.Response.FeeResponse;
 import com.project.book_store_be.Response.GHTKRequest;
 import com.project.book_store_be.Response.GHTKResponse;
 import com.project.book_store_be.Response.GHTKStatusResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +34,7 @@ import java.util.concurrent.ExecutionException;
 public class ShippingServiceImpl implements ShippingService {
     private final RestTemplate restTemplate;
     private final UserService userService;
+    private final OrderService orderService;
     @Value("${ghtk.api.url}")
     private String ghtkApiUrl;
     @Value("${ghtk.api.urlProduction}")
@@ -46,9 +51,10 @@ public class ShippingServiceImpl implements ShippingService {
     private String pickAddress;
 
     @Autowired
-    public ShippingServiceImpl(RestTemplate restTemplate, UserService userService) {
+    public ShippingServiceImpl(RestTemplate restTemplate, UserService userService, OrderService orderService) {
         this.restTemplate = restTemplate;
         this.userService = userService;
+        this.orderService = orderService;
     }
 
     @Override
@@ -122,7 +128,10 @@ public class ShippingServiceImpl implements ShippingService {
     }
 
     //Đăng Đơn
-    public GHTKResponse createOrder(GHTKRequest ghtkRequest) {
+    public GHTKResponse createOrder(Long id) {
+        Order order = orderService.getOrderById(id);
+        GHTKMapper mapper = new GHTKMapper();
+        GHTKRequest ghtkRequest = mapper.mapToGHTKRequest(order);
         String url = ghtkApiUrl + "/services/shipment/order/?ver=1.5";
         HttpHeaders headers = new HttpHeaders();
         headers.set("Token", apiToken);

@@ -1,6 +1,7 @@
 package com.project.book_store_be.Interface;
 
 import com.project.book_store_be.Enum.OrderStatus;
+import com.project.book_store_be.Model.Order;
 import com.project.book_store_be.Request.OrderRequest;
 import com.project.book_store_be.Response.OrderRes.CreateOrderResponse;
 import com.project.book_store_be.Response.OrderRes.OrderDetailResponse;
@@ -15,4 +16,6 @@ public interface OrderService {
     OrderStatus checkStatus(Long id);
     OrderDetailResponse getOrderDetailById(Long id);
     OrderResponse updateOrderStatus(Long id, OrderStatus status);
+
+    Order getOrderById(Long id);
 }
