@@ -12,6 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -56,6 +58,8 @@ public class DisCountService {
                 .build();
         Discount newDiscount = repo.save(disCount);
         products.forEach(p -> {
+            p.setPrice(p.getOriginal_price().multiply(BigDecimal.valueOf(disCount.getDiscountRate()))
+                    .divide(new BigDecimal(100), RoundingMode.HALF_UP));
             p.setDiscount(newDiscount);
         });
         productRepository.saveAll(products);
@@ -85,6 +89,8 @@ public class DisCountService {
                 .build();
         Discount newDiscount = repo.save(updatedDiscount);
         products.forEach(p -> {
+            p.setPrice(p.getOriginal_price().multiply(BigDecimal.valueOf(newDiscount.getDiscountRate()))
+                    .divide(new BigDecimal(100), RoundingMode.HALF_UP));
             p.setDiscount(newDiscount);
         });
         productRepository.saveAll(products);

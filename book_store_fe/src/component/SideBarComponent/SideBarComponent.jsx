@@ -14,7 +14,7 @@ const cx = classNames.bind(style);
 
 function SideBarComponent() {
     const [searchParams, setSearchParams] = useSearchParams();
-    const [isSelectedCategory, setSelectedCategory] = useState(0);
+    const [isSelectedCategory, setSelectedCategory] = useState(parseInt(searchParams.get('c')) ||  0);
 
     const [isShowMoreCategory, setShowMoreCategory] = useState(false);
     const [isShowMoreBublisher, setShowMoreBublisher] = useState(false);

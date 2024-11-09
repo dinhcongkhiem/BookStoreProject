@@ -17,9 +17,13 @@ import { styled } from '@mui/material/styles';
 import classNames from 'classnames/bind';
 import style from './OrderDetail.module.scss';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PaymentIcon from '@mui/icons-material/Payment';
+import CancelIcon from '@mui/icons-material/Cancel';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+import ReplayIcon from '@mui/icons-material/Replay';
 import { useQuery } from '@tanstack/react-query';
 import OrderService from '../../service/OrderService';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const cx = classNames.bind(style);
 
@@ -35,6 +39,7 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
     fontWeight: 'bold',
     marginBottom: theme.spacing(2),
 }));
+
 function OrderDetail() {
     window.scrollTo({ top: 0, behavior: 'instant' });
 
@@ -67,16 +72,73 @@ function OrderDetail() {
                 return '';
         }
     };
+
+    function renderActionButtons(status) {
+        switch (status) {
+            case 'AWAITING_PAYMENT':
+                return (
+                    <>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<PaymentIcon />}
+                            className={cx('actionButton', 'payButton')}
+                        >
+                            Thanh toán lại
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            startIcon={<CancelIcon />}
+                            className={cx('actionButton', 'cancelButton')}
+                        >
+                            Hủy đơn hàng
+                        </Button>
+                    </>
+                );
+            case 'COMPLETED':
+                return (
+                    <>
+                        <Button
+                            variant="contained"
+                            color="success"
+                            startIcon={<RateReviewIcon />}
+                            className={cx('actionButton', 'reviewButton')}
+                        >
+                            Đánh giá
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            startIcon={<ReplayIcon />}
+                            className={cx('actionButton', 'reorderButton')}
+                        >
+                            Mua lại
+                        </Button>
+                    </>
+                );
+            case 'CANCELED':
+                return (
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<ReplayIcon />}
+                        className={cx('actionButton', 'reorderButton')}
+                    >
+                        Mua lại
+                    </Button>
+                );
+            default:
+                return null;
+        }
+    }
+
     return (
         <Box className={cx('orderDetailContainer')}>
             <div className={cx('orderDetailHeader')}>
                 <Typography variant="h4" className={cx('orderTitle')}>
                     Chi tiết đơn hàng {orderDataRes?.orderId} -{' '}
                     <span className={cx('orderStatus')}>{convertStatusToVN(orderDataRes?.status)}</span>
-                </Typography>
-                <Typography variant="body2" className={cx('orderDate')}>
-                    Ngày đặt hàng:{' '}
-                    {new Date(orderDataRes?.orderDate).toLocaleDateString('vi-VN').split('/').reverse().join('-')}
                 </Typography>
             </div>
 
@@ -96,8 +158,9 @@ function OrderDetail() {
                         <Typography variant="body2">Điện thoại: {orderDataRes?.phoneNum}</Typography>
                     </StyledPaper>
                 </Grid>
+
                 <Grid item xs={12} md={4}>
-                    <SectionTitle className={cx('addressTitle')} variant="h6">
+                    <SectionTitle className={cx('paymentTitle')} variant="h6">
                         Hình thức thanh toán
                     </SectionTitle>
                     <StyledPaper>
@@ -106,6 +169,20 @@ function OrderDetail() {
                                 ? 'Chuyển khoản ngân hàng'
                                 : 'Tiền mặt khi nhận hàng'}
                         </Typography>
+                    </StyledPaper>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <SectionTitle className={cx('orderInfoTitle')} variant="h6">
+                        Thông tin đơn hàng
+                    </SectionTitle>
+                    <StyledPaper>
+                        <Typography variant="body1" gutterBottom>
+                            Mã đơn hàng: {orderDataRes?.orderId}
+                        </Typography>
+                        <Typography variant="body2">
+                            Ngày đặt hàng: {new Date(orderDataRes?.orderDate).toLocaleDateString('vi-VN')}
+                        </Typography>
+                        <Typography variant="body2">Mã giảm giá: {orderDataRes?.discountCode || 'Không có'}</Typography>
                     </StyledPaper>
                 </Grid>
             </Grid>
@@ -148,11 +225,17 @@ function OrderDetail() {
                                             <Typography variant="body2">
                                                 Cung cấp bởi <span className={cx('brand')}>{product.brand}</span>
                                             </Typography>
-                                            {/* <Box mt={1} className={cx('actionButtons')}>
-                                                <Button variant="outlined" size="small" className={cx('actionButton')}>
-                                                    Mua lại
+                                            {orderDataRes?.status === 'COMPLETED' && (
+                                                <Button
+                                                    variant="outlined"
+                                                    color="primary"
+                                                    startIcon={<RateReviewIcon />}
+                                                    className={cx('actionButtonCompleted')}
+                                                    style={{ marginTop: '8px' }}
+                                                >
+                                                    Đánh giá
                                                 </Button>
-                                            </Box> */}
+                                            )}
                                         </Box>
                                     </Box>
                                 </TableCell>
@@ -201,16 +284,15 @@ function OrderDetail() {
                                 {orderDataRes?.shippingFee.toLocaleString('vi-VN')} ₫
                             </Typography>
                         </Box>
-                        {/* <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
-                            <Typography>Khuyến mãi vận chuyển</Typography>
-                            <Typography noWrap className={cx('priceCell')}>
-                                {orderDataRes.shippingDiscount.toLocaleString('vi-VN')} ₫
-                            </Typography>
-                        </Box> */}
                         <Divider className={cx('summaryDivider')} />
                         <Box display="flex" justifyContent="space-between" className={cx('summaryTotal')}>
-                            <Typography variant="h6">Tổng cổng</Typography>
-                            <Typography style={{ color: '#FF0000' }} variant="h6" noWrap className={cx('priceCell')}>
+                            <Typography variant="h6">Tổng cộng</Typography>
+                            <Typography
+                                style={{ color: '#FF0000', fontWeight: 600 }}
+                                variant="h6"
+                                noWrap
+                                className={cx('priceCell')}
+                            >
                                 {orderDataRes?.grandTotal.toLocaleString('vi-VN')} ₫
                             </Typography>
                         </Box>
@@ -218,11 +300,13 @@ function OrderDetail() {
                 </Grid>
             </Box>
 
+            <Box className={cx('orderActionButtons')}>{renderActionButtons(orderDataRes?.status)}</Box>
+
             <Button
                 variant="text"
                 startIcon={<ArrowBackIcon />}
                 className={cx('backButton')}
-                onClick={() => navigate("/order")}
+                onClick={() => navigate('/order')}
             >
                 Quay lại
             </Button>

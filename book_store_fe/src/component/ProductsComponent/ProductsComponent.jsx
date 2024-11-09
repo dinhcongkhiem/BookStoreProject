@@ -33,7 +33,7 @@ function ProductsComponent({ product, className, onClick, to}) {
                             />
                         </Stack>
                         <p className={cx('quantitySold')}>
-                            Đã bán <span>2157</span>
+                            Đã bán <span>{product?.quantity_sold}</span>
                         </p>
                     </div>
                     <div className={cx('price')}>

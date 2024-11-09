@@ -85,6 +85,8 @@ public class OrderServiceImpl implements OrderService {
             OrderDetail orderDetail = OrderDetail.builder()
                     .product(product)
                     .quantity(item.getQty())
+                    .originalPriceAtPurchase(product.getOriginal_price())
+                    .priceAtPurchase(product.getPrice())
                     .order(order)
                     .discount(discountVal)
                     .build();
@@ -129,6 +131,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setOrderDetails(orderDetailList);
+        order.setTotalPrice(totalPrice[0]);
         orderRepository.save(order);
         request.getItems().forEach(item -> {
             Long cartId = item.getCartId();
@@ -159,13 +162,25 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Order not found with ID: " + id));
 
+        final BigDecimal[] grandTotal = {BigDecimal.ZERO};
+        final BigDecimal[] originalSubtotal = {BigDecimal.ZERO};
+        final BigDecimal[] totalDiscount = {BigDecimal.ZERO};
+
         List<OrderItemsDetailResponse> itemDetails = order.getOrderDetails().stream()
                 .map(detail -> {
                     Product product = detail.getProduct();
                     BigDecimal discount = detail.getDiscount() != null ? detail.getDiscount() : BigDecimal.ZERO;
+                    BigDecimal quantity = BigDecimal.valueOf(detail.getQuantity());
+
+                    BigDecimal originalPriceAtPurchase = detail.getOriginalPriceAtPurchase();
+                    BigDecimal priceAtPurchase = detail.getPriceAtPurchase();
+                    originalSubtotal[0] = originalSubtotal[0].add(originalPriceAtPurchase.multiply(quantity));
+                    grandTotal[0] = grandTotal[0].add(priceAtPurchase.subtract(discount).multiply(quantity));
+                    totalDiscount[0] = totalDiscount[0].add(discount.multiply(quantity));
+
                     return OrderItemsDetailResponse.builder()
                             .productName(product.getName())
-                            .originalPrice(product.getOriginal_price())
+                            .originalPrice(originalPriceAtPurchase)
                             .discount(discount)
                             .quantity(detail.getQuantity())
                             .thumbnailUrl(imageProductService.getThumbnailProduct(product.getId()))
@@ -173,19 +188,7 @@ public class OrderServiceImpl implements OrderService {
                 })
                 .toList();
 
-        BigDecimal totalPrice = itemDetails.stream()
-                .map(item -> item.getOriginalPrice().subtract(item.getDiscount()).multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
-
-        BigDecimal originalPrice = itemDetails.stream()
-                .map(item -> item.getOriginalPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalDiscount = itemDetails.stream()
-                .map(item -> item.getDiscount().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+        grandTotal[0] = grandTotal[0].add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
         return OrderDetailResponse.builder()
                 .orderId(order.getId())
                 .status(order.getStatus())
@@ -193,10 +196,10 @@ public class OrderServiceImpl implements OrderService {
                 .phoneNum(order.getBuyerPhoneNum())
                 .address(order.getAddress())
                 .paymentType(order.getPaymentType())
-                .originalSubtotal(originalPrice)
-                .totalDiscount(totalDiscount)
+                .originalSubtotal(originalSubtotal[0])
+                .totalDiscount(totalDiscount[0])
                 .shippingFee(order.getShippingFee())
-                .grandTotal(totalPrice)
+                .grandTotal(grandTotal[0])
                 .items(itemDetails)
                 .orderDate(order.getOrderDate())
                 .build();
@@ -205,22 +208,19 @@ public class OrderServiceImpl implements OrderService {
     private OrderResponse convertOrderResponse(Order order) {
         List<OrderDetail> orderItems = order.getOrderDetails();
 
-        BigDecimal[] totalPrice = {BigDecimal.ZERO};
+        BigDecimal totalPrice = order.getTotalPrice();
         List<OrderItemsResponse> orderItemsRes = orderItems.stream().map(o -> {
             Product product = o.getProduct();
-            BigDecimal discount = o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO;
-            totalPrice[0] = totalPrice[0].add(product.getPrice().subtract(discount).multiply(BigDecimal.valueOf(o.getQuantity())));
-
             return OrderItemsResponse.builder()
                     .productId(product.getId())
                     .productName(product.getName())
-                    .originalPrice(product.getOriginal_price())
+                    .originalPrice(o.getOriginalPriceAtPurchase())
                     .quantity(o.getQuantity())
                     .thumbnail_url(imageProductService.getThumbnailProduct(product.getId()))
                     .build();
         }).toList();
 
-        BigDecimal finalPrice = totalPrice[0].add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
+        BigDecimal finalPrice = totalPrice.add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
 
         return OrderResponse.builder()
                 .orderId(order.getId())

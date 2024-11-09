@@ -112,7 +112,7 @@ function AddProduct() {
                 ...rest
             } = data;
             const product = { ...rest, length, width, height };
-            return ProductService.updateProduct(productId,product, selectedImages, indexThumbNail);
+            return ProductService.updateProduct(productId, product, selectedImages, indexThumbNail);
         },
         onError: (error) => {
             console.log(error);
@@ -186,23 +186,17 @@ function AddProduct() {
         }
     };
 
-    const {
-        data: productToUpdate,
-        error: productToUpdateErr,
-        isLoading,
-    } = useQuery({
+    const { isLoading } = useQuery({
         queryKey: ['productToUpdate'],
         queryFn: () =>
             ProductService.getProductDetail(productId).then((res) => {
                 const resData = res.data;
-                console.log(resData);
-
                 const formikMappingVal = {
                     name: resData.name,
                     publisherId: resData.publisher.id,
                     numberOfPages: resData.number_of_pages,
                     yearOfPublication: resData.year_of_publication,
-                    cost: '',
+                    cost: resData.cost,
                     originalPrice: resData.original_price,
                     size: { x: resData.size.x, y: resData.size.y, z: resData.size.z },
                     weight: resData.weight,
@@ -397,10 +391,16 @@ function AddProduct() {
                             </FormControl>
                             <Autocomplete
                                 disableClearable
-                                options={yearOfPublicationData.map((year) => ({ label: year, code: year }))}
-                                value={yearOfPublicationData.find(
-                                    (option) => option?.code === formik.values.yearOfPublication,
-                                )}
+                                options={yearOfPublicationData.map((year) => ({ label: String(year), code: year }))}
+                                value={
+                                    yearOfPublicationData.includes(formik.values.yearOfPublication)
+                                        ? {
+                                              label: String(formik.values.yearOfPublication),
+                                              code: formik.values.yearOfPublication,
+                                          }
+                                        : null
+                                }
+                                getOptionLabel={(option) => option.label}
                                 renderInput={(params) => <TextField {...params} label="Năm xuất bản" />}
                                 size="small"
                                 onChange={(event, newValue) => {
@@ -731,7 +731,7 @@ function AddProduct() {
                     Hủy
                 </Button>
                 <Button type="submit" variant="contained" className={cx('submit-button')} onClick={formik.handleSubmit}>
-                    Thêm sản phẩm
+                    {productId ? 'Cập nhật' : 'Thêm sản phẩm'}
                 </Button>
             </Box>
             <Snackbar
@@ -741,7 +741,9 @@ function AddProduct() {
                 message="Chỉ được chọn tối đa 4 ảnh"
             />
             <ModalLoading
-                isLoading={uploadImgInDesc.isPending || loadingFetchAttributes || insertProductMutation.isPending}
+                isLoading={
+                    uploadImgInDesc.isPending || loadingFetchAttributes || insertProductMutation.isPending || isLoading
+                }
             />
         </Box>
     );

@@ -30,6 +30,7 @@ public class Order {
     private PaymentType paymentType;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;
+    private BigDecimal totalPrice;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

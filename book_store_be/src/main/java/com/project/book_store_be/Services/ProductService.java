@@ -3,6 +3,7 @@ package com.project.book_store_be.Services;
 import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Enum.SoftProductType;
 import com.project.book_store_be.Interface.AuthorService;
+import com.project.book_store_be.Interface.ProductRepositoryCustom;
 import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Repository.ProductRepository;
@@ -11,6 +12,7 @@ import com.project.book_store_be.Request.ProductRequest;
 import com.project.book_store_be.Response.ProductRes.ProductDetailResponse;
 import com.project.book_store_be.Response.ProductRes.ProductResponse;
 import com.project.book_store_be.Response.ProductRes.ProductsForManagerResponse;
+import jakarta.persistence.Tuple;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,6 +38,7 @@ public class ProductService {
     private final AuthorService authorService;
     private final ImageProductService imageProductService;
     private final ReviewService reviewService;
+    private final ProductRepositoryCustom productRepositoryCustom;
 
     public Page<ProductResponse> getProductsAvailable(
             int page, int pageSize, Long category, List<BigDecimal> price,
@@ -44,10 +47,6 @@ public class ProductService {
         SoftProductType sortType = SoftProductType.fromValue(sort);
         Specification<Product> spec = ProductSpecification.getProduct(
                 category, price, publisher, keyword, ProductStatus.AVAILABLE);
-
-        if (sortType == SoftProductType.TOP_SELLER) {
-            return productRepository.findTopSellProduct(PageRequest.of(page, pageSize)).map(this::convertToProductResponse);
-        }
         Sort sortValue = switch (sortType) {
             case PRICE_DESC -> Sort.by(Sort.Direction.DESC, "price");
             case PRICE_ASC -> Sort.by(Sort.Direction.ASC, "price");
@@ -55,8 +54,23 @@ public class ProductService {
 
         };
         Pageable pageable = PageRequest.of(page, pageSize, sortValue);
-        return productRepository.findAll(spec, pageable).map(this::convertToProductResponse);
 
+        if (sortType == SoftProductType.TOP_SELLER) {
+            Page<Tuple> dtoPage = productRepositoryCustom.findProductsWithQtySold(spec, pageable, true);
+            return dtoPage.map(d -> {
+                Product product = d.get(0, Product.class);
+                Long qtySold = d.get(1, Long.class);
+                return this.convertToProductResponse(product, qtySold.intValue());
+            });
+        } else {
+            Page<Tuple> dtoPage = productRepositoryCustom.findProductsWithQtySold(spec, pageable, false);
+            return dtoPage.map(d -> {
+                Product product = d.get(0, Product.class);
+                Long qtySold = d.get(1, Long.class);
+
+                return this.convertToProductResponse(product, qtySold.intValue());
+            });
+        }
     }
 
     public Page<?> getAllProducts(int pageNumber, int pageSize, String sort, String keyword) {
@@ -76,11 +90,15 @@ public class ProductService {
             case OLDEST -> Sort.by(Sort.Direction.ASC, "createDate");
             default -> Sort.by(Sort.Direction.DESC, "createDate");
         };
-        if (sortType == SoftProductType.TOP_SELLER) {
-            return productRepository.findTopSellProduct(PageRequest.of(pageNumber, pageSize)).map(this::convertToProductResponse);
-        }
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize, sortValue);
-        Long id;
+        if (sortType == SoftProductType.TOP_SELLER) {
+            Page<Tuple> dtoPage = productRepositoryCustom.findProductsWithQtySold(null, pageRequest, true);
+            return dtoPage.map(d -> {
+                Product product = d.get(0, Product.class);
+                return this.convertToForManagerRes(product);
+            });
+        }
+        long id;
         try {
             id = Long.parseLong(keyword);
         } catch (NumberFormatException e) {
@@ -96,7 +114,9 @@ public class ProductService {
                 .orElseThrow(() -> new NoSuchElementException("No product found with id: " + productId));
         List<Author> authors = product.getAuthors();
         return productRepository.findTop10ByAuthorsExceptCurrent(authors, productId, PageRequest.of(0, 10))
-                .stream().map(this::convertToProductResponse).toList();
+                .stream()
+                .map(t -> convertToProductResponse(t.get(0, Product.class), t.get(1, Long.class).intValue()))
+                .toList();
     }
 
     public ProductDetailResponse findProductById(Product product) {
@@ -140,6 +160,7 @@ public class ProductService {
     public void updateProduct(Long productId, ProductRequest request, List<MultipartFile> images, Integer indexThumbnail, List<Long> listOldImg) {
         Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
 
+        Product currentProduct = productRepository.findById(productId).orElseThrow(() -> new NoSuchElementException("Khong co product nao"));
         Product product = Product.builder()
                 .id(productId)
                 .name(request.getName())
@@ -160,6 +181,11 @@ public class ProductService {
                 .description(request.getDescription())
                 .createDate(new Date())
                 .updateDate(new Date())
+                .discount(currentProduct.getDiscount())
+                .price(request.getOriginalPrice().subtract(request.getOriginalPrice().
+                        multiply(BigDecimal.valueOf(currentProduct.getDiscount().getDiscountRate()))
+                        .divide(new BigDecimal(100), RoundingMode.HALF_UP))
+                )
                 .build();
         imageProductService.updateOldImg(listOldImg, productId);
         productRepository.save(product);
@@ -185,7 +211,7 @@ public class ProductService {
         return attributes;
     }
 
-    public ProductResponse convertToProductResponse(Product product) {
+    public ProductResponse convertToProductResponse(Product product, Integer qty_sold) {
 
         Map<String, ?> discountValue = getDiscountValue(product);
         return ProductResponse.builder()
@@ -198,8 +224,8 @@ public class ProductService {
                 .discount_rate((Integer) discountValue.get("discountRate"))
                 .price(product.getPrice())
                 .rating_average(reviewService.calculateReviewAverage(product.getId()))
+                .quantity_sold(qty_sold)
                 .build();
-//                .quantity_sold()   PENDING
     }
 
     public ProductDetailResponse convertToProductDetailResponse(Product product) {
@@ -234,11 +260,10 @@ public class ProductService {
     }
 
     private ProductsForManagerResponse convertToForManagerRes(Product product) {
-        Map<String, ?> discountValue = getDiscountValue(product);
         return ProductsForManagerResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
-                .price(product.getOriginal_price().subtract((BigDecimal) discountValue.get("discountVal")))
+                .price(product.getPrice())
                 .quantity(product.getQuantity())
                 .status(product.getStatus())
                 .createDate(product.getCreateDate())
