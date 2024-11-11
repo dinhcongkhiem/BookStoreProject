@@ -1,28 +1,30 @@
 package com.project.book_store_be.util;
-
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "ghtk")
 public class GHTKConfig {
-    private Api api;
-    private Pickup pickup;
+    @Value("${ghtk.pickup.province}")
+    private String pickupProvince;
 
-    @Data
-    public static class Api {
-        private String url;
-        private String urlProduction;
-        private String token;
-    }
+    @Value("${ghtk.pickup.district}")
+    private String pickupDistrict;
 
-    @Data
-    public static class Pickup {
-        private String province;
-        private String district;
-        private String ward;
-        private String address;
-    }
+    @Value("${ghtk.pickup.ward}")
+    private String pickupWard;
+
+    @Value("${ghtk.pickup.address}")
+    private String pickupAddress;
+
+    @Value("${ghtk.pickup.phone}")
+    private String pickupPhone;
+
+    @Value("${ghtk.pickup.name}")
+    private String pickupName;
+
+//    @Value("${ghtk.pickup.money}")
+//    private String pickupMoney;
 }

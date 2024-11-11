@@ -24,6 +24,5 @@ public class GHTKResponse {
         private String estimated_deliver_time;
         private List<Product> products;
         private int status_id;
-
     }
 }

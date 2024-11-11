@@ -246,9 +246,7 @@ public class OrderServiceImpl implements OrderService {
                 .status(order.getStatus())
                 .build();
     }
-    public Order getOrderById(Long id){
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Order not found with ID: " + id));
-        return order;
+    public Order findById(Long id) {
+        return orderRepository.findById(id).orElse(null);
     }
 }

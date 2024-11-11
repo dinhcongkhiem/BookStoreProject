@@ -38,4 +38,5 @@ public class GHTKWebhookPayload {
 
     @JsonProperty("return_part_package")
     private Integer returnPartPackage;
+
 }

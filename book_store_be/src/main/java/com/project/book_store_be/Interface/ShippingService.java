@@ -1,7 +1,7 @@
 package com.project.book_store_be.Interface;
 
+import com.project.book_store_be.Model.Order;
 import com.project.book_store_be.Response.FeeResponse;
-import com.project.book_store_be.Response.GHTKRequest;
 import com.project.book_store_be.Response.GHTKResponse;
 import com.project.book_store_be.Response.GHTKStatusResponse;
 import org.springframework.core.io.InputStreamResource;

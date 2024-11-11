@@ -1,6 +1,7 @@
 package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Interface.ShippingService;
+import com.project.book_store_be.Model.Order;
 import com.project.book_store_be.Response.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -31,10 +32,11 @@ public class ShippingController {
         return ResponseEntity.ok(feeResponse);
     }
 //    đăng đơn
-    @PostMapping
-    public GHTKResponse createOrder(@RequestBody Long id) {
-        return shippingService.createOrder(id);
-    }
+@PostMapping("/createOrder")
+public GHTKResponse createOrder(@RequestParam Long id) {
+    // Fetch order details by id and create order with GHTK
+    return shippingService.createOrder(id);
+}
     //trạng thái
     @GetMapping("/tracking/{trackingOrder}")
     public ResponseEntity<GHTKStatusResponse> getOrderStatus(@PathVariable String trackingOrder) {
@@ -72,6 +74,4 @@ public class ShippingController {
         System.out.println("Status: " + payload.getStatusId());
         return ResponseEntity.ok("Update received");
     }
-
-
 }

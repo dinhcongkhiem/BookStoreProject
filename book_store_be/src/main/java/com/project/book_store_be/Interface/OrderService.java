@@ -17,5 +17,5 @@ public interface OrderService {
     OrderDetailResponse getOrderDetailById(Long id);
     OrderResponse updateOrderStatus(Long id, OrderStatus status);
 
-    Order getOrderById(Long id);
+    Order findById(Long id);
 }

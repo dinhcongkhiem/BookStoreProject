@@ -9,10 +9,8 @@ import com.project.book_store_be.Model.Order;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Request.GHTKMapper;
 import com.project.book_store_be.Response.FeeResponse;
-import com.project.book_store_be.Response.GHTKRequest;
 import com.project.book_store_be.Response.GHTKResponse;
 import com.project.book_store_be.Response.GHTKStatusResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +21,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
@@ -34,7 +33,15 @@ import java.util.concurrent.ExecutionException;
 public class ShippingServiceImpl implements ShippingService {
     private final RestTemplate restTemplate;
     private final UserService userService;
+
     private final OrderService orderService;
+
+    private final GHTKMapper ghtkMapper;
+
+    @Autowired
+    private GHTKMapper mapper;
+    @Autowired
+    private ObjectMapper objectMapper;
     @Value("${ghtk.api.url}")
     private String ghtkApiUrl;
     @Value("${ghtk.api.urlProduction}")
@@ -51,11 +58,13 @@ public class ShippingServiceImpl implements ShippingService {
     private String pickAddress;
 
     @Autowired
-    public ShippingServiceImpl(RestTemplate restTemplate, UserService userService, OrderService orderService) {
+    public ShippingServiceImpl(RestTemplate restTemplate, UserService userService, OrderService orderService, OrderService orderService1, GHTKMapper ghtkMapper) {
         this.restTemplate = restTemplate;
         this.userService = userService;
-        this.orderService = orderService;
+        this.orderService = orderService1;
+        this.ghtkMapper = ghtkMapper;
     }
+
 
     @Override
     public FeeResponse calculateShippingFee(String province, String district, String ward,
@@ -129,41 +138,49 @@ public class ShippingServiceImpl implements ShippingService {
 
     //Đăng Đơn
     public GHTKResponse createOrder(Long id) {
-        Order order = orderService.getOrderById(id);
-        GHTKMapper mapper = new GHTKMapper();
-        GHTKRequest ghtkRequest = mapper.mapToGHTKRequest(order);
+        Order order = orderService.findById(id);
+        if (order == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found");
+        }
         String url = ghtkApiUrl + "/services/shipment/order/?ver=1.5";
+        String ghtkRequestJson = ghtkMapper.convertOrderToGHTKJson(order);
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Token", apiToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
-        System.out.println(ghtkRequest);
-        HttpEntity<GHTKRequest> requestEntity = new HttpEntity<>(ghtkRequest, headers);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(ghtkRequestJson, headers);
+
         try {
+            log.info("Sending request to GHTK: {}", ghtkRequestJson);
+
             ResponseEntity<GHTKResponse> responseEntity = restTemplate.exchange(
                     url, HttpMethod.POST, requestEntity, GHTKResponse.class
             );
-            System.out.println("ok");
 
+            log.info("Response from GHTK: {}", responseEntity.getBody());
             return responseEntity.getBody();
 
         } catch (HttpStatusCodeException e) {
+            log.error("HTTP error occurred: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
 
-            GHTKResponse errorResponse = GHTKResponse.builder()
+            return GHTKResponse.builder()
                     .success(false)
-                    .message("Error occurred: " + e.getStatusCode() + " - " + e.getResponseBodyAsString())
+                    .message("HTTP error occurred: " + e.getStatusCode() + " - " + e.getResponseBodyAsString())
                     .build();
-            return errorResponse;
         } catch (Exception e) {
-            GHTKResponse errorResponse = GHTKResponse.builder()
+            log.error("Unexpected error occurred: {}", e.getMessage(), e);
+
+            return GHTKResponse.builder()
                     .success(false)
                     .message("Unexpected error occurred: " + e.getMessage())
                     .build();
-            return errorResponse;
         }
     }
 
 
-   //Trạng Thái
+
+    //Trạng Thái
     public GHTKStatusResponse getTrackingStatus(String trackingOrder) {
         String url = ghtkApiUrl + "/services/shipment/v2/" + trackingOrder;
         HttpHeaders headers = new HttpHeaders();
