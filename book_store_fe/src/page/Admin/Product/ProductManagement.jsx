@@ -93,13 +93,13 @@ const Product = () => {
     //     setProductToDelete(product);
     //     setDeleteConfirmOpen(true);
     // };
-    const handleConfirmDelete = () => {
-        if (productToDelete) {
-            deleteMutation.mutate(productToDelete.id);
-        }
-        setDeleteConfirmOpen(false);
-        setProductToDelete(null);
-    };
+    // const handleConfirmDelete = () => {
+    //     if (productToDelete) {
+    //         deleteMutation.mutate(productToDelete.id);
+    //     }
+    //     setDeleteConfirmOpen(false);
+    //     setProductToDelete(null);
+    // };
     // const handleDeleteCancel = () => {
     //     setDeleteConfirmOpen(false);
     //     setProductToDelete(null);
