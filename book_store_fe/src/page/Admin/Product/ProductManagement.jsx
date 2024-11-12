@@ -43,7 +43,6 @@ import ProductService from '../../../service/ProductService';
 import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 import useDebounce from '../../../hooks/useDebounce';
 import { toast } from 'react-toastify';
-import ConfirmModal from '../../../component/Modal/ConfirmModal/ConfirmModal'
 const cx = classNames.bind(style);
 
 const Product = () => {
@@ -53,7 +52,6 @@ const Product = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [page, setPage] = useState(1);
     const [orderBy, setOrderBy] = useState('newest');
-    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState(null);
     const [toastOpen, setToastOpen] = useState(false);
     const [toastMessage] = useState('');
