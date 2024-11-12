@@ -145,7 +145,6 @@ function AddProduct() {
         },
         validationSchema: validationSchema,
         onSubmit: (values) => {
-            console.log('Form data:', values);
             if (productId) {
                 updateProductMutation.mutate(values);
             } else {

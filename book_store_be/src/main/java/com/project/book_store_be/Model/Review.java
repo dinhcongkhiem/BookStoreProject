@@ -27,5 +27,5 @@ public class Review {
     private int star;
     private int likeCount;
     @Column(name = "update_time")
-    private Date updateTime;
+    private LocalDateTime updateTime;
 }

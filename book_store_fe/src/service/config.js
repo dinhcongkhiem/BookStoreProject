@@ -11,6 +11,7 @@ const CHECKOUT_URL = `${API_BASE_URL}checkout`;
 const ORDERS_URL = `${API_BASE_URL}order`;
 const PAYMENT_URL = `${API_BASE_URL}payment`;
 const NOTIFICATION_URL = `${API_BASE_URL}notifications`;
+const REVIEW_URL = `${API_BASE_URL}review`;
 // const CONTACT_URL = `${API_BASE_URL}/contact`;
 export {
     AUTH_URL,
@@ -24,4 +25,5 @@ export {
     AUTHOR_URL,
     PAYMENT_URL,
     NOTIFICATION_URL,
+    REVIEW_URL,
 };

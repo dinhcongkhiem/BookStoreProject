@@ -47,10 +47,6 @@ public class OrderServiceImpl implements OrderService {
     private final NotificationService notificationService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    @Override
-    public OrderResponse getAllOrders() {
-        return null;
-    }
 
     @Override
     public Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword) {
@@ -58,6 +54,14 @@ public class OrderServiceImpl implements OrderService {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
+
+    @Override
+    public Page<?> findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword) {
+        Specification<Order> spec = OrderSpecification.getOrders(null, status, keyword);
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
+        return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
+    }
+
 
     @Override
     public CreateOrderResponse createOrder(OrderRequest request) {
@@ -179,6 +183,7 @@ public class OrderServiceImpl implements OrderService {
                     totalDiscount[0] = totalDiscount[0].add(discount.multiply(quantity));
 
                     return OrderItemsDetailResponse.builder()
+                            .productId(product.getId() )
                             .productName(product.getName())
                             .originalPrice(originalPriceAtPurchase)
                             .discount(discount)

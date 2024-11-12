@@ -55,6 +55,23 @@ public class OrderController {
         }
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllOrders(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "15") Integer pageSize,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false)  OrderStatus status
+    ) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(orderService.findAllOrders(page, pageSize, status, keyword));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getOrderDetailById(@PathVariable Long id) {
         try {

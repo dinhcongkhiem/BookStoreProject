@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 @Data
 @Builder
 public class OrderItemsDetailResponse {
+    private Long productId;
     private String productName;
     private BigDecimal originalPrice;
     private BigDecimal discount;

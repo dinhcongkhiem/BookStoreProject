@@ -1,0 +1,44 @@
+.product {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    .thumbnail {
+        border-radius: 1rem;
+        border: 1px solid #ececec;
+        width: 15rem;
+        overflow: hidden;
+        &:hover {
+            img {
+                transform: scale(1.1);
+            }
+        }
+        img {
+            transition: transform 0.3s ease;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    p {
+        margin-top: 1rem;
+        margin-left: 1rem;
+        font-weight: 600;
+        font-weight: 1.8rem;
+    }
+}
+
+.rating {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+
+    :global {
+        .MuiRating-decimal.css-34he1w-MuiRating-decimal,
+        .MuiRating-decimal.MuiRating-iconActive.css-aax3j7-MuiRating-decimal {
+            > label {
+                top: 1px;
+            }
+        }
+    }
+}

@@ -15,7 +15,9 @@ public class OrderSpecification {
     public static Specification<Order> getOrders(User user,OrderStatus status, String keyword) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(criteriaBuilder.equal(root.get("user"),user));
+            if(user != null) {
+                predicates.add(criteriaBuilder.equal(root.get("user"),user));
+            }
             if (status != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));
             }

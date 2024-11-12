@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
     private final UserService userService;
+
     private void validateStarValue(int star) {
         if (star < 1 || star > 5) {
             throw new IllegalArgumentException("Star value must be between 1 and 5.");
@@ -34,13 +36,7 @@ public class ReviewService {
         }
         double totalStars = reviews.stream().mapToInt(Review::getStar).sum();
         double average = totalStars / reviews.size();
-        if (average < 0.5) {
-            return 0.0F;
-        } else if (average % 1 < 0.5) {
-            return (float) (Math.floor(average) + 0.5F);
-        } else {
-            return (float) Math.ceil(average);
-        }
+        return (float) (Math.round(average * 2) / 2.0);
     }
 
     public int getReviewCount(Long productId) {
@@ -57,7 +53,7 @@ public class ReviewService {
         review.setComment(reviewRequest.getComment());
         review.setStar(reviewRequest.getStar());
         review.setLikeCount(reviewRequest.getLikeCount());
-        review.setUpdateTime(new Date());
+        review.setUpdateTime(LocalDateTime.now());
         reviewRepository.save(review);
         return getReviewDetails(productId, page, size);
     }
@@ -98,8 +94,22 @@ public class ReviewService {
         int countStar3 = starCounts.getOrDefault(3, 0L).intValue();
         int countStar4 = starCounts.getOrDefault(4, 0L).intValue();
         int countStar5 = starCounts.getOrDefault(5, 0L).intValue();
+        Float averageRate = 0F;
+        if (!allReviews.isEmpty()) {
+            float totalStars = allReviews.stream().mapToInt(Review::getStar).sum();
+            float average = totalStars / allReviews.size();
+            averageRate =  (float) (Math.round(average * 2) / 2.0);
+        }
 
-        ReviewDetailResponse.MetaData metaData = ReviewDetailResponse.MetaData.builder().totalCount(allReviews.size()).countStar1(countStar1).countStar2(countStar2).countStar3(countStar3).countStar4(countStar4).countStar5(countStar5).build();
+        ReviewDetailResponse.MetaData metaData = ReviewDetailResponse.MetaData.builder()
+                .average(averageRate)
+                .totalCount(allReviews.size())
+                .countStar1(countStar1)
+                .countStar2(countStar2)
+                .countStar3(countStar3)
+                .countStar4(countStar4)
+                .countStar5(countStar5)
+                .build();
 
         List<ReviewResponse> reviewResponses = reviewPage.getContent().stream().map(this::convertToReviewResponse).collect(Collectors.toList());
 
@@ -107,6 +117,14 @@ public class ReviewService {
     }
 
     private ReviewResponse convertToReviewResponse(Review review) {
-        return ReviewResponse.builder().id(review.getId()).userName(review.getUser().getFullName()).customerId(review.getUser().getId()).comment(review.getComment()).star(review.getStar()).likeCount(review.getLikeCount()).updateTime(review.getUpdateTime()).build();
+        return ReviewResponse.builder()
+                .id(review.getId())
+                .userName(review.getUser().getFullName())
+                .customerId(review.getUser().getId())
+                .comment(review.getComment())
+                .star(review.getStar())
+                .likeCount(review.getLikeCount())
+                .createDate(review.getUpdateTime())
+                .build();
     }
 }

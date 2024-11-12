@@ -19,6 +19,25 @@ class OrderServiceClass {
 
         return httpRequest.request(config);
     };
+
+    getAllOrders = ({ page, status, keyword }) => {
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: ORDERS_URL + '/all',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            params: {
+                page: page - 1,
+                status: status === 'all' ? null : status,
+                keyword: keyword.trim().length > 0 ? keyword.trim() : null,
+            },
+            withCredentials: true,
+        };
+
+        return httpRequest.request(config);
+    };
     createOrder = (data) => {
         let config = {
             method: 'post',

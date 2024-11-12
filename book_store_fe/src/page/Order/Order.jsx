@@ -234,7 +234,6 @@ function Order() {
                                 )}
                                 {order.status === 'COMPLETED' && (
                                     <>
-                                        <button className={cx('actionButton', 'reviewButton')}>Đánh giá</button>
                                         <button
                                             className={cx('actionButton')}
                                             onClick={() => navigate(`/order/detail/${order.orderId}`)}

@@ -15,6 +15,7 @@ public class ReviewDetailResponse {
     @Data
     @Builder
     public static class MetaData {
+        private float average;
         private int totalCount;
         private int countStar1;
         private int countStar2;

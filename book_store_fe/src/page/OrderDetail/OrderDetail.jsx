@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Box,
     Typography,
@@ -24,6 +24,7 @@ import ReplayIcon from '@mui/icons-material/Replay';
 import { useQuery } from '@tanstack/react-query';
 import OrderService from '../../service/OrderService';
 import { useNavigate, useParams } from 'react-router-dom';
+import ReviewProductModal from '../../component/Modal/ReviewProductModal/ReviewProductModal';
 
 const cx = classNames.bind(style);
 
@@ -44,6 +45,14 @@ function OrderDetail() {
     window.scrollTo({ top: 0, behavior: 'instant' });
 
     const navigate = useNavigate();
+    const [reviewProduct, setReviewProduct] = useState(null);
+    const [isShowModalReview, setIsShowModalReview] = useState(false);
+
+    const handleReviewProduct = (product) => {
+        setReviewProduct({ productId: product.productId, thumbnailUrl: product.thumbnailUrl, name: product.productName });
+        setIsShowModalReview(true);
+    };
+
     const { orderIdPath } = useParams();
     const {
         data: orderDataRes,
@@ -99,14 +108,6 @@ function OrderDetail() {
             case 'COMPLETED':
                 return (
                     <>
-                        <Button
-                            variant="contained"
-                            color="success"
-                            startIcon={<RateReviewIcon />}
-                            className={cx('actionButton', 'reviewButton')}
-                        >
-                            Đánh giá
-                        </Button>
                         <Button
                             variant="outlined"
                             color="primary"
@@ -222,16 +223,13 @@ function OrderDetail() {
                                             <Typography variant="body1" className={cx('productName')}>
                                                 {product.productName}
                                             </Typography>
-                                            <Typography variant="body2">
-                                                Cung cấp bởi <span className={cx('brand')}>{product.brand}</span>
-                                            </Typography>
                                             {orderDataRes?.status === 'COMPLETED' && (
                                                 <Button
-                                                    variant="outlined"
                                                     color="primary"
                                                     startIcon={<RateReviewIcon />}
                                                     className={cx('actionButtonCompleted')}
-                                                    style={{ marginTop: '8px' }}
+                                                    onClick={() => handleReviewProduct(product)}
+                                                    style={{ marginTop: '8px', textTransform: 'none' }}
                                                 >
                                                     Đánh giá
                                                 </Button>
@@ -310,6 +308,13 @@ function OrderDetail() {
             >
                 Quay lại
             </Button>
+            {isShowModalReview && (
+                <ReviewProductModal
+                    open={isShowModalReview}
+                    data={reviewProduct}
+                    handleClose={() => setIsShowModalReview(false)}
+                />
+            )}
         </Box>
     );
 }

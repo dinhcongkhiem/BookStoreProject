@@ -21,6 +21,7 @@ import UpdateAddressModal from '../../component/Modal/UpdateAddressModal/UpdateA
 import { Gallery, Item } from 'react-photoswipe-gallery';
 import CartService from '../../service/CartService';
 import { toast } from 'react-toastify';
+import ReviewService from '../../service/ReviewService';
 
 const cx = classNames.bind(style);
 function ProductDetail() {
@@ -38,6 +39,12 @@ function ProductDetail() {
         retry: 1,
     });
 
+    const { data: reviews, isLoadingReviews } = useQuery({
+        queryKey: ['reviews'],
+        queryFn: () => ReviewService.getReviews(searchParams.get('id')).then((response) => response.data),
+        retry: 1,
+    });
+
     const settingsHotDeal = {
         dots: false,
         infinite: false,
@@ -49,14 +56,7 @@ function ProductDetail() {
         nextArrow: <NextArrow classNames={cx('next-arrow')} />,
         prevArrow: <PrevArrow classNames={cx('prev-arrow')} />,
     };
-    const [open, setOpen] = useState(false);
 
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
-    const handleConfirm = () => {
-        console.log('Action Confirmed!');
-        setOpen(false);
-    };
     const openGalleryRef = useRef(null);
 
     const addProductToCartMutation = useMutation({
@@ -71,9 +71,16 @@ function ProductDetail() {
     const handleBuyNow = () => {
         const data = { pid: product.id, qty: quantityProduct };
         localStorage.setItem('productForPayment', JSON.stringify({ pid: product.id, qty: quantityProduct }));
-        localStorage.removeItem('cartIdsForPayment')
+        localStorage.removeItem('cartIdsForPayment');
         navigate('/payment', { state: { product: data } });
     };
+
+    const converDateFormat = (dateString) => {
+        const date = new Date(dateString);
+        const formattedDate = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+        return formattedDate;
+        
+    }
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'instant' });
     }, [product]);
@@ -210,17 +217,8 @@ function ProductDetail() {
                         </div>
                     </div>
                     <div className={cx('shipping-info', 'block')}>
-                        <h5 className={cx('title')}>Thông tin vận chuyển</h5>
-                        <div className="d-flex align-items-center px-4">
-                            <p>
-                                Giao hàng tới: <span>Số ACBCD, Phường Cầu Diễn, Quận Một Mình, Hà Nội</span>
-                            </p>
-                            <Button sx={{ textTransform: 'none', marginLeft: '1rem' }} onClick={handleOpen}>
-                                Thay đổi
-                            </Button>
-                        </div>
-                        <div className="d-flex align-items-center mt-5">
-                            <label htmlFor="qty" style={{ fontWeight: '600' }}>
+                        <div className="d-flex align-items-center">
+                            <label htmlFor="qty" style={{ fontWeight: '600', fontSize: '1.8rem' }}>
                                 Số lượng:
                             </label>
                             <div className={cx('quantity-container')}>
@@ -343,139 +341,101 @@ function ProductDetail() {
                     <div className="col-4 d-flex gap-3">
                         <div className="d-flex flex-column align-items-center gap-1">
                             <div className={cx('rating-average')}>
-                                4.5<span>/5</span>
+                                {reviews?.metaData?.average}
+                                <span>/5</span>
                             </div>
                             <Rating
-                                defaultValue={4.5}
+                                value={reviews?.metaData?.average || 0}
                                 precision={0.5}
                                 readOnly
                                 size="medium"
                                 sx={{ marginRight: '0.3rem' }}
                             />
-                            <span style={{ color: '#7a7e7f' }}>(6 đánh giá)</span>
+
+                            <span style={{ color: '#7a7e7f' }}>({reviews?.metaData?.totalCount} đánh giá)</span>
                         </div>
                         <div className="flex-grow-1">
                             <div className={'d-flex align-items-center'}>
                                 <span className={cx('rating-label')}>5 sao</span>
                                 <div className={cx('review-rating')}>
-                                    <div style={{ width: '80%' }}></div>
+                                    <div
+                                        style={{
+                                            width: `${(reviews?.metaData?.countStar5 / reviews?.metaData?.totalCount) * 100}%`,
+                                        }}
+                                    ></div>
                                 </div>
-                                <span>4</span>
+                                <span>{reviews?.metaData?.countStar5}</span>
                             </div>
                             <div className={'d-flex align-items-center'}>
                                 <span className={cx('rating-label')}>4 sao</span>
                                 <div className={cx('review-rating')}>
-                                    <div></div>
+                                    <div
+                                        style={{
+                                            width: `${(reviews?.metaData?.countStar4 / reviews?.metaData?.totalCount) * 100}%`,
+                                        }}
+                                    ></div>
                                 </div>
-                                <span>0</span>
+                                <span>{reviews?.metaData?.countStar4}</span>
                             </div>
                             <div className={'d-flex align-items-center'}>
                                 <span className={cx('rating-label')}>3 sao</span>
                                 <div className={cx('review-rating')}>
-                                    <div style={{ width: '20%' }}></div>
+                                    <div
+                                        style={{
+                                            width: `${(reviews?.metaData?.countStar3 / reviews?.metaData?.totalCount) * 100}%`,
+                                        }}
+                                    ></div>
                                 </div>
-                                <span>2</span>
+                                <span>{reviews?.metaData?.countStar3}</span>
                             </div>
                             <div className={'d-flex align-items-center'}>
                                 <span className={cx('rating-label')}>2 sao</span>
                                 <div className={cx('review-rating')}>
-                                    <div></div>
+                                    <div
+                                        style={{
+                                            width: `${(reviews?.metaData?.countStar2 / reviews?.metaData?.totalCount) * 100}%`,
+                                        }}
+                                    ></div>
                                 </div>
-                                <span>0</span>
+                                <span>{reviews?.metaData?.countStar2}</span>
                             </div>
                             <div className={'d-flex align-items-center'}>
                                 <span className={cx('rating-label')}>1 sao</span>
                                 <div className={cx('review-rating')}>
-                                    <div></div>
+                                    <div
+                                        style={{
+                                            width: `${(reviews?.metaData?.countStar1 / reviews?.metaData?.totalCount) * 100}%`,
+                                        }}
+                                    ></div>
                                 </div>
-                                <span>0</span>
+                                <span>{reviews?.metaData?.countStar1}</span>
                             </div>
                         </div>
                     </div>
-                    <div className={cx('flex-grow-1', 'comment')}>
-                        <div className={cx('comment-item')}>
-                            <div className={cx('comment-info')}>
-                                <p className={cx('user-name')}>Dinh Cong Khiem</p>
-                                <p className={cx('comment-date')}>03/08/2024</p>
-                            </div>
-                            <p className={cx('comment-value')}>
-                                Sách hay lắm mn ơi,đọc sẽ hiểu được thêm về tuổi thơ của Bác Hồ và những nguyên nhân gì
-                                tác động khiến Bác ra đi tìm đường cứu nước,tuyệt vời nhe????❤️tiểu thuyết của Sơn Tùng
-                                cuốn mà hay lắm.
-                            </p>
+                    {reviews?.data.length > 0 && (
+                        <div className={cx('flex-grow-1', 'comment')}>
+                            {reviews?.data.map((review, index) => (
+                                <div className={cx('comment-item')}>
+                                    <div className={cx('comment-info')}>
+                                        <p className={cx('user-name')}>{review.userName}</p>
+                                        <p className={cx('comment-date')}>{converDateFormat(review.createDate)}</p>
+                                    </div>
+                                    <p className={cx('comment-value')}>{review.comment}</p>
 
-                            <Button
-                                size="small"
-                                sx={{ textTransform: 'none', marginTop: '1rem', marginLeft: '1.5rem' }}
-                            >
-                                <FontAwesomeIcon icon={faThumbsUp} /> <span className="ms-3">Thích (0)</span>
-                            </Button>
+                                    <Button
+                                        size="small"
+                                        sx={{ textTransform: 'none', marginTop: '1rem', marginLeft: '1.5rem' }}
+                                    >
+                                        <FontAwesomeIcon icon={faThumbsUp} />{' '}
+                                        <span className="ms-3">Thích ({review.likeCount})</span>
+                                    </Button>
+                                </div>
+                            ))}
                         </div>
-                        <div className={cx('comment-item')}>
-                            <div className={cx('comment-info')}>
-                                <p className={cx('user-name')}>Dinh Cong Khiem</p>
-                                <p className={cx('comment-date')}>03/08/2024</p>
-                            </div>
-                            <p className={cx('comment-value')}>
-                                Sách hay lắm mn ơi,đọc sẽ hiểu được thêm về tuổi thơ của Bác Hồ và những nguyên nhân gì
-                                tác động khiến Bác ra đi tìm đường cứu nước,tuyệt vời nhe????❤️tiểu thuyết của Sơn Tùng
-                                cuốn mà hay lắm.
-                            </p>
-
-                            <Button
-                                size="small"
-                                sx={{ textTransform: 'none', marginTop: '1rem', marginLeft: '1.5rem' }}
-                            >
-                                <FontAwesomeIcon icon={faThumbsUp} /> <span className="ms-3">Thích (0)</span>
-                            </Button>
-                        </div>
-                        <div className={cx('comment-item')}>
-                            <div className={cx('comment-info')}>
-                                <p className={cx('user-name')}>Dinh Cong Khiem</p>
-                                <p className={cx('comment-date')}>03/08/2024</p>
-                            </div>
-                            <p className={cx('comment-value')}>
-                                Sách hay lắm mn ơi,đọc sẽ hiểu được thêm về tuổi thơ của Bác Hồ và những nguyên nhân gì
-                                tác động khiến Bác ra đi tìm đường cứu nước,tuyệt vời nhe????❤️tiểu thuyết của Sơn Tùng
-                                cuốn mà hay lắm.
-                            </p>
-
-                            <Button
-                                size="small"
-                                sx={{ textTransform: 'none', marginTop: '1rem', marginLeft: '1.5rem' }}
-                            >
-                                <FontAwesomeIcon icon={faThumbsUp} /> <span className="ms-3">Thích (0)</span>
-                            </Button>
-                        </div>
-                        <div className={cx('comment-item')}>
-                            <div className={cx('comment-info')}>
-                                <p className={cx('user-name')}>Dinh Cong Khiem</p>
-                                <p className={cx('comment-date')}>03/08/2024</p>
-                            </div>
-                            <p className={cx('comment-value')}>
-                                Sách hay lắm mn ơi,đọc sẽ hiểu được thêm về tuổi thơ của Bác Hồ và những nguyên nhân gì
-                                tác động khiến Bác ra đi tìm đường cứu nước,tuyệt vời nhe????❤️tiểu thuyết của Sơn Tùng
-                                cuốn mà hay lắm.
-                            </p>
-
-                            <Button
-                                size="small"
-                                sx={{ textTransform: 'none', marginTop: '1rem', marginLeft: '1.5rem' }}
-                            >
-                                <FontAwesomeIcon icon={faThumbsUp} /> <span className="ms-3">Thích (0)</span>
-                            </Button>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
-            <UpdateAddressModal
-                open={open}
-                onClose={handleClose}
-                onConfirm={handleConfirm}
-                title="Xác nhận xóa"
-                message="Bạn có chắc chắn muốn xóa mục này không?"
-            />
-            <ModalLoading isLoading={isLoading || addProductToCartMutation.isPending} />
+            <ModalLoading isLoading={isLoading || addProductToCartMutation.isPending || isLoadingReviews} />
         </>
     );
 }

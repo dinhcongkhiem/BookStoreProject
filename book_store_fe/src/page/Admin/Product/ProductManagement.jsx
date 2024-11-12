@@ -91,10 +91,10 @@ const Product = () => {
         setPage(1);
         setSearchTerm(event.target.value);
     };
-    const handleDeleteClick = (product) => {
-        setProductToDelete(product);
-        setDeleteConfirmOpen(true);
-    };
+    // const handleDeleteClick = (product) => {
+    //     setProductToDelete(product);
+    //     setDeleteConfirmOpen(true);
+    // };
     const handleConfirmDelete = () => {
         if (productToDelete) {
             deleteMutation.mutate(productToDelete.id);
@@ -102,10 +102,10 @@ const Product = () => {
         setDeleteConfirmOpen(false);
         setProductToDelete(null);
     };
-    const handleDeleteCancel = () => {
-        setDeleteConfirmOpen(false);
-        setProductToDelete(null);
-    };
+    // const handleDeleteCancel = () => {
+    //     setDeleteConfirmOpen(false);
+    //     setProductToDelete(null);
+    // };
     const handleToastClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
@@ -311,13 +311,6 @@ const Product = () => {
                                     >
                                         <EditIcon fontSize="small" />
                                     </IconButton>
-                                    <IconButton
-                                        onClick={() => handleDeleteClick(product)}
-                                        aria-label="delete"
-                                        sx={{ color: 'red' }}
-                                    >
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -521,13 +514,13 @@ const Product = () => {
                     </>
                 )}
             </Dialog>
-            <ConfirmModal 
+            {/* <ConfirmModal 
               open={deleteConfirmOpen}
               onClose={handleDeleteCancel}
               onConfirm={handleConfirmDelete}
               title={'Xác nhận'}
               message={'Xóa sản phẩm khỏi cửa hàng.'}
-              type={'warn'}/>
+              type={'warn'}/> */}
             <Snackbar
                 open={toastOpen}
                 autoHideDuration={3000}

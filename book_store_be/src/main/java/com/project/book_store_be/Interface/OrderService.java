@@ -9,8 +9,10 @@ import org.springframework.data.domain.Page;
 
 
 public interface OrderService {
-    OrderResponse getAllOrders();
     Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword);
+
+    Page<?> findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword);
+
     CreateOrderResponse createOrder(OrderRequest request);
     OrderStatus checkStatus(Long id);
     OrderDetailResponse getOrderDetailById(Long id);
