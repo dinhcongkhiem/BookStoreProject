@@ -10,8 +10,7 @@ import java.math.BigDecimal;
 
 public interface OrderService {
     Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword);
-
-    //    Page<?> findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword);
+    
     OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword);
 
     CreateOrderResponse createOrder(OrderRequest request);
