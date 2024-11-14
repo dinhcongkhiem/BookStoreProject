@@ -14,6 +14,7 @@ import com.project.book_store_be.Request.OrderRequest;
 import com.project.book_store_be.Request.PaymentRequest;
 import com.project.book_store_be.Response.OrderRes.*;
 import com.project.book_store_be.Response.PaymentResponse;
+import jakarta.persistence.Tuple;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,10 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -55,14 +53,32 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
 
-    @Override
-    public Page<?> findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(null, status, keyword);
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
-        return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
-    }
-
-
+//    @Override
+//    public Page<?> findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword) {
+//        Specification<Order> spec = OrderSpecification.getOrders(null, status, keyword);
+//        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
+//        System.out.println("pageable " + pageable);
+//        Tuple count = orderRepository.countOrder();
+//        System.out.println("count " + count);
+//
+//        return orderRepository.findAll(spec, pageable).map(this::convertToResMng);
+//    }
+@Override
+public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword) {
+    Specification<Order> spec = OrderSpecification.getOrders(null, status, keyword);
+    Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
+    Page<GetAllOrderResponse> ordersPage = orderRepository.findAll(spec, pageable).map(this::convertToResMng);
+    Tuple count = orderRepository.countOrder();
+    OrderStatusResponse orderStatusCountDTO = new OrderStatusResponse(
+            count.get("awaiting_payment_count", Long.class),
+            count.get("processing_count", Long.class),
+            count.get("shipping_count", Long.class),
+            count.get("canceled_count", Long.class),
+            count.get("completed_count", Long.class),
+            count.get("all_count", Long.class)
+    );
+    return new OrderPageResponse(ordersPage, orderStatusCountDTO);
+}
     @Override
     public CreateOrderResponse createOrder(OrderRequest request) {
         List<OrderDetail> orderDetailList = new ArrayList<>();
@@ -210,6 +226,16 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+private GetAllOrderResponse convertToResMng(Order order) {
+    return GetAllOrderResponse.builder()
+            .orderId(order.getId())
+            .status(order.getStatus())
+            .buyerName(order.getBuyerName())
+            .finalPrice(order.getTotalPrice().add(order.getShippingFee()))
+            .orderDate(order.getOrderDate())
+            .build();
+}
+
     private OrderResponse convertOrderResponse(Order order) {
         List<OrderDetail> orderItems = order.getOrderDetails();
 
@@ -251,4 +277,5 @@ public class OrderServiceImpl implements OrderService {
                 .status(order.getStatus())
                 .build();
     }
+
 }
