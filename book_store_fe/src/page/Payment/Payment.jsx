@@ -488,6 +488,7 @@ function Payment() {
                                             onClick={() => handleApplyPromo(promo)}
                                             className={cx('apply-button')}
                                         >
+                                            
                                             Áp dụng
                                         </Button>
                                     </div>
