@@ -53,16 +53,6 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
 
-//    @Override
-//    public Page<?> findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-//        Specification<Order> spec = OrderSpecification.getOrders(null, status, keyword);
-//        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
-//        System.out.println("pageable " + pageable);
-//        Tuple count = orderRepository.countOrder();
-//        System.out.println("count " + count);
-//
-//        return orderRepository.findAll(spec, pageable).map(this::convertToResMng);
-//    }
 @Override
 public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword) {
     Specification<Order> spec = OrderSpecification.getOrders(null, status, keyword);
