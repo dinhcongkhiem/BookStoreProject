@@ -2,10 +2,9 @@ package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Interface.OrderService;
-import com.project.book_store_be.Model.Order;
-import com.project.book_store_be.Model.OrderDetail;
 import com.project.book_store_be.Request.OrderRequest;
-import com.project.book_store_be.Response.OrderRes.OrderResponse;
+import com.project.book_store_be.Response.OrderRes.OrderStatusResponse;
+import com.project.book_store_be.Services.OrderServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,9 +70,8 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getOrderDetailById(@PathVariable Long id) {
+    @GetMapping("/detail")
+    public ResponseEntity<?> getOrderDetailById(@RequestParam Long id) {
         try {
             return ResponseEntity.ok(orderService.getOrderDetailById(id));
         } catch (NoSuchElementException e) {
