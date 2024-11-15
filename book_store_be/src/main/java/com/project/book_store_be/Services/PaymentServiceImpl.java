@@ -92,7 +92,7 @@ public class PaymentServiceImpl implements PaymentService {
                 orderItems.forEach(o -> {
                     Product product = o.getProduct();
                     BigDecimal discount = o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO;
-                    totalPrice[0] = totalPrice[0].add(product.getPrice().subtract(discount).multiply(BigDecimal.valueOf(o.getQuantity())));
+                    totalPrice[0] = totalPrice[0].add(product.getOriginal_price().subtract(discount).multiply(BigDecimal.valueOf(o.getQuantity())));
                 });
 
                 BigDecimal finalPrice = totalPrice[0].add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
@@ -103,7 +103,7 @@ public class PaymentServiceImpl implements PaymentService {
                     Map<String, Object> variables = new HashMap<>();
                     variables.put("orderCode", order.getId());
                     variables.put("amount", order.getOrderDetails().stream()
-                            .map(detail -> BigDecimal.valueOf(detail.getProduct().getPrice().doubleValue())
+                            .map(detail -> BigDecimal.valueOf(detail.getProduct().getOriginal_price().doubleValue())
                                     .multiply(BigDecimal.valueOf(detail.getQuantity())))
                             .reduce(BigDecimal.ZERO, BigDecimal::add));
 

@@ -18,7 +18,10 @@ const UpdateAddressModal = ({ open, onClose, setValue }) => {
 
     const validationSchema = Yup.object({
         name: Yup.string().required('Vui lòng nhập tên người nhận hàng.'),
-        phoneNum: Yup.string().required('Vui lòng nhập số điện thoại.').length(10, 'Số điện thoại phải có 10 chữ số.'),
+        phoneNum: Yup.string()
+            .required('Vui lòng nhập số điện thoại.')
+            .matches(/^0\d*$/, 'Định dạng không hợp lệ!')
+            .length(10, 'Số điện thoại phải có 10 chữ số.'),
         selectedProvince: Yup.object()
             .nullable()
             .required('Vui lòng chọn tỉnh.')
@@ -49,14 +52,14 @@ const UpdateAddressModal = ({ open, onClose, setValue }) => {
                 fullName: values.name,
                 phoneNum: values.phoneNum,
                 address: {
-                    province: {value: values.selectedProvince.code, label: values.selectedProvince.name},
-                    district:{value: values.selectedDistrict.code, label: values.selectedDistrict.name},
-                    commune:{value: values.selectedCommune.code, label: values.selectedCommune.name},
-                    addressDetail: values.addressDetail
+                    province: { value: values.selectedProvince.code, label: values.selectedProvince.name },
+                    district: { value: values.selectedDistrict.code, label: values.selectedDistrict.name },
+                    commune: { value: values.selectedCommune.code, label: values.selectedCommune.name },
+                    addressDetail: values.addressDetail,
                 },
             };
             setValue(data);
-            onClose(true)
+            onClose(true);
         },
         validateOnBlur: false,
         validateOnChange: false,

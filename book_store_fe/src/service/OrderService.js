@@ -57,15 +57,16 @@ class OrderServiceClass {
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
-            url: ORDERS_URL + `/${id}`,
+            url: ORDERS_URL + `/detail`,
             headers: {
                 'Content-Type': 'application/json',
             },
             withCredentials: true,
+            params: { id },
         };
 
         return httpRequest.request(config);
-    }
+    };
 
     checkStatusOrder = (orderCode) => {
         let config = {

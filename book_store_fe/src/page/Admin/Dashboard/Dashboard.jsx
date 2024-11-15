@@ -25,7 +25,7 @@ const areaChartOptions = {
     yaxis: {
         labels: {
             formatter: function (value) {
-                return value.toLocaleString('vi-VN') + ' ₫'; // Định dạng theo kiểu Việt Nam (dấu chấm phân cách hàng nghìn)
+                return value.toLocaleString('vi-VN') + ' ₫'; 
             },
         },
     },

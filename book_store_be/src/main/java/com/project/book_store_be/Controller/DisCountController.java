@@ -1,6 +1,5 @@
 package com.project.book_store_be.Controller;
 
-import com.project.book_store_be.Enum.DiscountStatus;
 import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Request.DisCountRequest;
 import com.project.book_store_be.Services.DisCountService;
@@ -23,23 +22,23 @@ public class DisCountController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "all") String orderBy,
-            @RequestParam(required = false,defaultValue = "") String keyword,
-            @RequestParam(required = false) DiscountStatus status) {
+            @RequestParam(required = false, defaultValue = "") String keyword,
+            @RequestParam(required = false) Integer status) {
         return service.getDiscounts(page, size, orderBy, keyword, status);
     }
 
     @PostMapping
     public ResponseEntity<?> createDiscount(@RequestBody DisCountRequest disCountRequest) {
         try {
-            Discount createdDisCount = service.createDiscount(disCountRequest);
-            return new ResponseEntity<>(createdDisCount, HttpStatus.CREATED);
+            service.createDiscount(disCountRequest);
+            return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateDiscount(@PathVariable Long id, @RequestBody DisCountRequest disCountRequest) {
+    public ResponseEntity<?> updateDiscount(@PathVariable Long id ,@RequestBody DisCountRequest disCountRequest) {
         try {
             Discount updatedDiscount = service.updateDiscount(id, disCountRequest);
             return new ResponseEntity<>(updatedDiscount, HttpStatus.OK);

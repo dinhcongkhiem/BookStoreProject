@@ -8,34 +8,6 @@
     color: #333;
 }
 
-.statistics {
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: linear-gradient(135deg, #f6f8fa 0%, #e9ecef 100%);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-  }
-
-  .stat-title {
-    color: #6c757d;
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  .stat-value {
-    color: #343a40;
-    font-size: 1.8rem;
-    font-weight: bold;
-  }
-}
 
 .discount-table {
   margin-top: 2rem;
@@ -47,37 +19,28 @@
 .status {
   padding: 6px 12px;
   border-radius: 20px;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 1.2rem;
   text-align: center;
   transition: background-color 0.3s ease;
-  width: 15rem;
+  width: 12rem;
   display: inline-block;
 
   &.active {
-    background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
+    background: linear-gradient(135deg, #4caf50 0%, hsl(123, 42%, 72%) 100%);
     color: white;
   }
 
   &.inactive {
-    background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+    background: linear-gradient(135deg, #f0574c 0%, #f87371 100%);
+    color: white;
+  }
+  &.upcoming {
+    background: linear-gradient(135deg, var(--primary) 0%,#8fb5db 100%);
     color: white;
   }
 }
 
-.search-input {
-  .MuiOutlinedInput-root {
-    border-radius: 20px;
-    transition: all 0.3s ease;
-
-    &:hover {
-      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-    }
-
-    &.Mui-focused {
-      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
-    }
-  }
-}
 
 .add-button {
   border-radius: 20px;

@@ -7,22 +7,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @RequiredArgsConstructor
 public class ProductSpecification {
 
-    public static Specification<Product> getProduct(Long category, List<BigDecimal> price, List<Long> publisher, String keyword, ProductStatus status) {
-        BigDecimal minPrice;
-        BigDecimal maxPrice;
-        if (price != null && !price.isEmpty()) {
-            minPrice = price.get(0);
-            maxPrice = (price.size() == 2) ? price.get(1) : null;
-        } else {
-            maxPrice = null;
-            minPrice = null;
-        }
+    public static Specification<Product> getProduct(Long category, List<Long> publisher, String keyword, ProductStatus status) {
+
 
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -30,9 +24,6 @@ public class ProductSpecification {
             if (category != null) {
                 Join<Product, Category> categoryJoin = root.join("categories", JoinType.INNER);
                 predicates.add(criteriaBuilder.equal(categoryJoin.get("id"), category));
-            }
-            if (minPrice != null && maxPrice != null) {
-                predicates.add(criteriaBuilder.between(root.get("price"), minPrice, maxPrice));
             }
             if (publisher != null && !publisher.isEmpty()) {
                 Join<Product, Publisher> publisherJoin = root.join("publisher", JoinType.INNER);

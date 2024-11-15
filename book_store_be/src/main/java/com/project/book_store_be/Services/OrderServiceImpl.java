@@ -91,12 +91,13 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
         request.getItems().forEach(item -> {
             Product product = productService.findProductById(item.getProductId());
             BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
-            totalPrice[0] = totalPrice[0].add(product.getPrice().subtract(discountVal).multiply(BigDecimal.valueOf(item.getQty())));
+            BigDecimal price = product.getOriginal_price().subtract(discountVal);
+            totalPrice[0] = totalPrice[0].add(price.multiply(BigDecimal.valueOf(item.getQty())));
             OrderDetail orderDetail = OrderDetail.builder()
                     .product(product)
                     .quantity(item.getQty())
                     .originalPriceAtPurchase(product.getOriginal_price())
-                    .priceAtPurchase(product.getPrice())
+                    .priceAtPurchase(price)
                     .order(order)
                     .discount(discountVal)
                     .build();

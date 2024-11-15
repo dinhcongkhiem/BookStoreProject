@@ -49,7 +49,11 @@ function OrderDetail() {
     const [isShowModalReview, setIsShowModalReview] = useState(false);
 
     const handleReviewProduct = (product) => {
-        setReviewProduct({ productId: product.productId, thumbnailUrl: product.thumbnailUrl, name: product.productName });
+        setReviewProduct({
+            productId: product.productId,
+            thumbnailUrl: product.thumbnailUrl,
+            name: product.productName,
+        });
         setIsShowModalReview(true);
     };
 
@@ -239,14 +243,14 @@ function OrderDetail() {
                                 </TableCell>
                                 <TableCell align="right" className={cx('priceCell')}>
                                     <Box display="flex" justifyContent="flex-end">
-                                        <Typography noWrap>{product.originalPrice.toLocaleString()}</Typography>
+                                        <Typography noWrap>{product.originalPrice.toLocaleString('vi-VN')}</Typography>
                                         <Typography>&nbsp;₫</Typography>
                                     </Box>
                                 </TableCell>
                                 <TableCell align="right">{product.quantity}</TableCell>
                                 <TableCell align="right" className={cx('priceCell')}>
                                     <Box display="flex" justifyContent="flex-end">
-                                        <Typography noWrap>{product.discount}</Typography>
+                                        <Typography noWrap>{product.discount.toLocaleString('vi-VN')}</Typography>
                                         <Typography>&nbsp;₫</Typography>
                                     </Box>
                                 </TableCell>
@@ -256,7 +260,7 @@ function OrderDetail() {
                                             {(
                                                 product.originalPrice * product.quantity -
                                                 product.discount
-                                            ).toLocaleString()}
+                                            ).toLocaleString('vi-VN')}
                                         </Typography>
                                         <Typography>&nbsp;₫</Typography>
                                     </Box>
@@ -282,6 +286,14 @@ function OrderDetail() {
                                 {orderDataRes?.shippingFee.toLocaleString('vi-VN')} ₫
                             </Typography>
                         </Box>
+                        {orderDataRes?.totalDiscount !== 0 && (
+                            <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
+                                <Typography>Giảm giá</Typography>
+                                <Typography noWrap className={cx('priceCell')}>
+                                    -{orderDataRes?.totalDiscount.toLocaleString('vi-VN')} ₫
+                                </Typography>
+                            </Box>
+                        )}
                         <Divider className={cx('summaryDivider')} />
                         <Box display="flex" justifyContent="space-between" className={cx('summaryTotal')}>
                             <Typography variant="h6">Tổng cộng</Typography>

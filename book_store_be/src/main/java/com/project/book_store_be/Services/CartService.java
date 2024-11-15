@@ -1,12 +1,10 @@
 package com.project.book_store_be.Services;
 
-import com.project.book_store_be.Enum.DiscountStatus;
 import com.project.book_store_be.Model.Cart;
 import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.CartRepository;
-import com.project.book_store_be.Repository.DisCountRepository;
 import com.project.book_store_be.Repository.ProductRepository;
 import com.project.book_store_be.Request.CartRequest;
 import com.project.book_store_be.Response.CartResponse;
@@ -32,6 +30,7 @@ public class CartService {
     private final ProductRepository productRepository;
     private final ImageProductService imageProductService;
     private final UserService userService;
+    private final ProductService productService;
 
     public CartResponse getCartByUserId(int page, int size) {
         User currentUser = userService.getCurrentUser();
@@ -134,7 +133,7 @@ public class CartService {
 
     private ProductCartResponse convertToProductCartResponse(Cart cart) {
         Product product = cart.getProduct();
-        BigDecimal discountValue = calculateDiscount(product);
+        BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
         return ProductCartResponse.builder()
                 .id(cart.getId())
                 .productId(product.getId())
@@ -142,24 +141,10 @@ public class CartService {
                 .quantity(cart.getCartQuantity())
                 .productQuantity(product.getQuantity())
                 .original_price(product.getOriginal_price())
-                .discount(discountValue)
-                .price(product.getOriginal_price().subtract(discountValue))
+                .discount(discountVal)
+                .price(product.getOriginal_price().subtract(discountVal))
                 .thumbnail_url(imageProductService.getThumbnailProduct(product.getId()))
                 .build();
     }
 
-    private BigDecimal calculateDiscount(Product product) {
-        Discount discount = product.getDiscount();
-        if (discount != null && discount.getStatus() == DiscountStatus.ACTIVE) {
-            return product.getOriginal_price()
-                    .multiply(BigDecimal.valueOf(discount.getDiscountRate()))
-                    .divide(BigDecimal.valueOf(100));
-        }
-        return BigDecimal.ZERO;
-    }
-    public int getTotalCartItems() {
-        User currentUser = userService.getCurrentUser();
-        long totalItems = cartRepository.countByUser(currentUser);
-        return (int) totalItems;
-    }
 }

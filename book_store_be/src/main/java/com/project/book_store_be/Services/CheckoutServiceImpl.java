@@ -87,7 +87,7 @@ public class CheckoutServiceImpl implements CheckoutService {
                 .quantity(cart != null ? cart.getCartQuantity() : qty)
                 .original_price(product.getOriginal_price())
                 .discount(discountVal)
-                .price(product.getPrice())
+                .price(product.getOriginal_price().subtract(discountVal))
                 .weight(product.getWeight())
                 .thumbnail_url(imageProductService.getThumbnailProduct(product.getId()))
                 .build();

@@ -31,8 +31,9 @@ import {
 } from '@mui/icons-material';
 import classNames from 'classnames/bind';
 import style from './OrderMng.module.scss';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
+import { useQuery } from '@tanstack/react-query';
+import OrderService from '../../../service/OrderService';
 
 const cx = classNames.bind(style);
 
@@ -49,13 +50,10 @@ const mockOrders = [
     { id: 10, customerName: 'Lý Thị K', orderDate: '2023-10-27', total: 680000, status: 'Chưa thanh toán' },
 ];
 
-const statusTabs = ['Tất cả', 'Chưa thanh toán', 'Đang xử lý', 'Đang giao hàng', 'Đã giao hàng', 'Đã hủy'];
-
 export default function OrderMng() {
-    const [orders, setOrders] = useState(mockOrders);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchDate, setSearchDate] = useState('');
-    const [currentStatus, setCurrentStatus] = useState('Tất cả');
+    const [currentStatus, setCurrentStatus] = useState('all');
     const [page, setPage] = useState(1);
     const [detailOpen, setDetailOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -63,6 +61,27 @@ export default function OrderMng() {
     const [shippingConfirmOpen, setShippingConfirmOpen] = useState(false);
     const [orderToModify, setOrderToModify] = useState(null);
     const ordersPerPage = 5;
+
+    const tabs = [
+        { id: 'all', label: 'Tất cả đơn' },
+        { id: 'AWAITING_PAYMENT', label: 'Chờ thanh toán' },
+        { id: 'PROCESSING', label: 'Đang xử lý' },
+        { id: 'SHIPPING', label: 'Đang vận chuyển' },
+        { id: 'COMPLETED', label: 'Đã giao' },
+        { id: 'CANCELED', label: 'Đã huỷ ' },
+    ];
+
+    const {
+        data: orders,
+        error,
+        isLoading,
+    } = useQuery({
+        queryKey: ['orderMng'],
+        queryFn: () =>
+            OrderService.getAllOrders({ page, status: currentStatus, keyword: searchTerm }).then((res) => res.data),
+        retry: 1,
+        enabled: !!page && !!currentStatus,
+    });
 
     const handleSearch = (event) => {
         setSearchTerm(event.target.value);
@@ -98,7 +117,7 @@ export default function OrderMng() {
         const updatedOrders = orders.map((order) =>
             order.id === orderToModify ? { ...order, status: 'Đang giao hàng' } : order,
         );
-        setOrders(updatedOrders);
+        // setOrders(updatedOrders);
         if (selectedOrder && selectedOrder.id === orderToModify) {
             setSelectedOrder({ ...selectedOrder, status: 'Đang giao hàng' });
         }
@@ -115,7 +134,7 @@ export default function OrderMng() {
         const updatedOrders = orders.map((order) =>
             order.id === orderToModify ? { ...order, status: 'Đã hủy' } : order,
         );
-        setOrders(updatedOrders);
+        // setOrders(updatedOrders);
         if (selectedOrder && selectedOrder.id === orderToModify) {
             setSelectedOrder({ ...selectedOrder, status: 'Đã hủy' });
         }
@@ -128,16 +147,6 @@ export default function OrderMng() {
         setShippingConfirmOpen(false);
         setOrderToModify(null);
     };
-
-    const filteredOrders = orders.filter((order) => {
-        const matchesName = order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = currentStatus === 'Tất cả' || order.status === currentStatus;
-        const matchesDate = !searchDate || order.orderDate === searchDate;
-        return matchesName && matchesStatus && matchesDate;
-    });
-
-    const pageCount = Math.ceil(filteredOrders.length / ordersPerPage);
-    const displayedOrders = filteredOrders.slice((page - 1) * ordersPerPage, page * ordersPerPage);
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -164,10 +173,6 @@ export default function OrderMng() {
         return `${day}/${month}/${year}`;
     };
 
-    const getStatusCount = (status) => {
-        return orders.filter((order) => status === 'Tất cả' || order.status === status).length;
-    };
-
     return (
         <div className={cx('orderManagement')}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -176,19 +181,19 @@ export default function OrderMng() {
                 </Typography>
             </Box>
             <Grid container spacing={3} className={cx('statusTabs')}>
-                {statusTabs.map((status) => (
-                    <Grid item xs={6} sm={4} md={2} key={status}>
+                {tabs.map((status, index) => (
+                    <Grid item xs={6} sm={4} md={2} key={index}>
                         <Card
-                            className={cx('statusCard', { active: currentStatus === status })}
-                            onClick={() => handleStatusChange(status)}
+                            className={cx('statusCard', { active: currentStatus === status.id })}
+                            onClick={() => handleStatusChange(status.id)}
                         >
                             <CardContent>
                                 <Typography variant="h6" className={cx('statusTitle')}>
-                                    {status}
+                                    {status.label}
                                 </Typography>
-                                <Typography variant="h4" className={cx('statusCount')}>
+                                {/* <Typography variant="h4" className={cx('statusCount')}>
                                     {getStatusCount(status)}
-                                </Typography>
+                                </Typography> */}
                             </CardContent>
                         </Card>
                     </Grid>
@@ -242,12 +247,12 @@ export default function OrderMng() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {displayedOrders.map((order) => (
-                            <TableRow key={order.id}>
-                                <TableCell>{order.id}</TableCell>
-                                <TableCell>{order.customerName}</TableCell>
-                                <TableCell>{formatDate(order.orderDate)}</TableCell>
-                                <TableCell>{order.total.toLocaleString('vi-VN')} đ</TableCell>
+                        {orders?.content.map((order) => (
+                            <TableRow key={order.orderId}>
+                                <TableCell>{order.orderId}</TableCell>
+                                <TableCell>{order?.customerName}</TableCell>
+                                <TableCell>{formatDate(order?.orderDate)}</TableCell>
+                                <TableCell>{order.finalPrice.toLocaleString('vi-VN')} đ</TableCell>
                                 <TableCell>
                                     <Chip
                                         label={order.status}
@@ -275,7 +280,7 @@ export default function OrderMng() {
                 </Table>
                 <Box display="flex" justifyContent="center" mt={2}>
                     <Pagination
-                        count={pageCount}
+                        count={orders?.totalPages}
                         page={page}
                         onChange={(event, value) => setPage(value)}
                         color="primary"
@@ -336,7 +341,6 @@ export default function OrderMng() {
                     </Button>
                 </DialogActions>
             </Dialog>
-            <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />
         </div>
     );
 }
