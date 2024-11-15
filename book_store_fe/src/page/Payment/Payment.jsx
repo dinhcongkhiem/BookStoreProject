@@ -1,9 +1,20 @@
 import classNames from 'classnames/bind';
 
 import style from './Payment.module.scss';
-import { Box, Button, FormControl, FormControlLabel, Radio, RadioGroup, Typography } from '@mui/material';
+import {
+    Box, Button, FormControl, FormControlLabel, Radio, RadioGroup, Typography,
+    IconButton,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    TextField,
+    InputAdornment, Tooltip
+} from '@mui/material';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import CancelIcon from '@mui/icons-material/Cancel';
+import InfoIcon from '@mui/icons-material/Info';
 import { useContext, useEffect, useState } from 'react';
 import bank_transfer_icon from '../../assets/icons/bank_transfer_icon.png';
 import cash_on_delivery_icon from '../../assets/icons/cash_on_delivery_icon.png';
@@ -29,10 +40,11 @@ function Payment() {
     const [addressOption, setAddressOption] = useState('default');
     const [paymentType, setPaymentType] = useState('cash_on_delivery');
     const [paymentData, setPaymentData] = useState('');
-
+    const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const cartIdsFromState = location.state?.cartIds || null;
     const productFromState = location.state?.product || null;
-
+    const [showAll, setShowAll] = useState(false);
     const cartIds = cartIdsFromState || JSON.parse(localStorage.getItem('cartIdsForPayment'));
     const product = productFromState || JSON.parse(localStorage.getItem('productForPayment'));
     const {
@@ -51,7 +63,7 @@ function Payment() {
             JSON.parse(localStorage.getItem('user')) ||
             JSON.parse(sessionStorage.getItem('user'));
         if (!savedUser.address || !savedUser.phoneNum) {
-            toast.warning('Vui lòng cập nhật đầy đủ thông tin tài khoản của bạn trước khi mua hàng!', {delay: 5000});
+            toast.warning('Vui lòng cập nhật đầy đủ thông tin tài khoản của bạn trước khi mua hàng!', { delay: 5000 });
             navigate('/user/info');
         }
         if (savedUser) {
@@ -113,6 +125,89 @@ function Payment() {
             items: checkoutData?.items.map((i) => ({ cartId: i.cartId, productId: i.productId, qty: i.quantity })),
         };
         createOrderMutation.mutate(data);
+    };
+
+    // New state for applied promo
+    const [appliedPromo, setAppliedPromo] = useState(null);
+
+    // Fake promo data
+    const fakePromos = [
+        {
+            code: 'PROMO10',
+            name: 'Giảm giá 10% cho đơn hàng từ 500k',
+            startDate: '2024-11-01',
+            endDate: '15-11-2024',
+            quantity: 50,
+            status: 'Active',
+            discountValue: 10,
+            discountType: 'Percentage',
+            description: 'Áp dụng giảm giá 10% cho các đơn hàng có giá trị từ 500K trở lên.',
+            maxValue: 50000,  // Mức giảm tối đa
+            condition: 'Áp dụng cho đơn hàng từ 500k',
+        },
+        {
+            code: 'PROMO20',
+            name: 'Giảm 20k cho đơn hàng trên 200k',
+            startDate: '2024-11-10',
+            endDate: '15-11-2024',
+            quantity: 100,
+            status: 'Active',
+            discountValue: 20000,
+            discountType: 'VND',
+            description: 'Giảm ngay 20K cho các đơn hàng có giá trị từ 2500K trở lên.',
+            maxValue: 20000,  // Mức giảm tối đa
+            condition: 'Áp dụng cho đơn hàng từ 200k',
+        },
+        {
+            code: 'PROMO30',
+            name: 'Giảm giá 30% cho sản phẩm mới',
+            startDate: '2024-11-05',
+            endDate: '15-11-2024',
+            quantity: 75,
+            status: 'Active',
+            discountValue: 30,
+            discountType: 'Percentage',
+            description: 'Giảm giá 30% cho tất cả sản phẩm mới ra mắt trong tháng 11 và tháng 12.',
+            maxValue: 100000,  // Mức giảm tối đa
+            condition: 'Áp dụng cho sản phẩm mới',
+        },
+        {
+            code: 'PROMO50',
+            name: 'Giảm 50k cho khách hàng lần đầu',
+            startDate: '2024-11-15',
+            endDate: '15-11-2024',
+            quantity: 200,
+            status: 'Active',
+            discountValue: 50000,
+            discountType: 'VND',
+            description: 'Giảm 50K cho khách hàng lần đầu tiên mua hàng.',
+            maxValue: 50000,  // Mức giảm tối đa
+            condition: 'Chỉ áp dụng cho khách hàng lần đầu',
+        },
+        {
+            code: 'PROMO5',
+            name: 'Giảm giá 5% cho đơn hàng trên 300k',
+            startDate: '2024-11-20',
+            endDate: '15-11-2024',
+            quantity: 150,
+            status: 'Active',
+            discountValue: 5,
+            discountType: 'Percentage',
+            description: 'Áp dụng giảm giá 5% cho các đơn hàng có giá trị trên 30K.',
+            maxValue: 20000,  // Mức giảm tối đa
+            condition: 'Áp dụng cho đơn hàng từ 300k',
+        }
+    ];
+
+
+    const filteredPromos = fakePromos.filter(promo =>
+        promo.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        promo.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    const displayedPromos = showAll ? filteredPromos : filteredPromos.slice(0, 3);
+    const handleApplyPromo = (promo) => {
+        setAppliedPromo(promo);
+        setDiscountDialogOpen(false);
     };
 
     return (
@@ -239,10 +334,10 @@ function Payment() {
                     </FormControl>
                 </div>
                 <div className={cx('section')}>
-                    <h4>BookBazaar Khuyến Mãi</h4>
-                    <div className={cx('discount-content')}>
+                    <h4>BookBazaar Khuyến Mãi</h4>
+                    <div className={cx('discount-content')} onClick={() => setDiscountDialogOpen(true)}>
                         <MonetizationOnIcon className={cx('discount-icon')} />
-                        <span>Chọn hoặc nhập mã khuyến mãi khác</span>
+                        <span>{appliedPromo ? `Đã áp dụng: ${appliedPromo.code}` : 'Chọn hoặc nhập mã khuyến mãi khác'}</span>
                     </div>
                 </div>
                 <div className={cx('section', 'order-price')}>
@@ -276,10 +371,12 @@ function Payment() {
                             </div>
                         )}
 
-                        {/* <div className="d-flex justify-content-between">
-                            <p className={cx('label')}>Giảm giá từ mã khuyến mãi</p>
-                            <p className={cx('discount')}>351.350₫</p>
-                        </div> */}
+                        {appliedPromo && (
+                            <div className="d-flex justify-content-between">
+                                <p className={cx('label')}>Giảm giá từ mã khuyến mãi</p>
+                                <p className={cx('discount')}>{appliedPromo.discount}</p>
+                            </div>
+                        )}
                     </div>
                     <div className={cx('order-total-price')}>
                         <div className="d-flex justify-content-between">
@@ -315,6 +412,108 @@ function Payment() {
                     data={paymentData}
                 />
             )}
+            <Dialog open={discountDialogOpen} onClose={() => setDiscountDialogOpen(false)} >
+                <DialogTitle>Chọn mã giảm giá</DialogTitle>
+                <DialogContent>
+                    <div className={cx('search-container')}>
+                        <TextField
+                            placeholder="Tìm kiếm mã giảm giá..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <LocalOfferIcon />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        {searchTerm ? (
+                                            <IconButton onClick={() => setSearchTerm('')} className={cx('close-icon')}>
+                                                <CancelIcon />
+                                            </IconButton>
+                                        ) : (
+                                            <Box sx={{ width: '1.5rem' }} />
+                                        )}
+                                    </InputAdornment>
+                                ),
+                                classes: {
+                                    input: cx('custom-textfield'),
+                                },
+                                style: { width: '42.5rem' },
+                            }}
+                        />
+                        <Button className={cx('search-button')} variant="outlined" disabled={searchTerm === ''}>
+                            Xác nhận
+                        </Button>
+                    </div>
+                    {displayedPromos.length > 0 ? (
+                        <>
+                            {displayedPromos.map((promo, index) => (
+                                <div key={index} className={cx('promo-item')}>
+                                    <div className={cx('promo-content')}>
+                                        <div className={cx('promo-info-icon')}>
+                                            <Tooltip
+                                                title={
+                                                    <div>
+                                                        <strong>Mã:</strong> {promo.code} <br />
+                                                        <strong>Tên:</strong> {promo.name} <br />
+                                                        <strong>Mô tả:</strong> {promo.description} <br />
+                                                        <strong>Thời gian:</strong> {promo.startDate} - {promo.endDate} <br />
+                                                        <strong>Số lượng còn lại:</strong> {promo.quantity} <br />
+                                                        <strong>Trạng thái:</strong> {promo.status} <br />
+                                                        <strong>Giảm giá:</strong> {promo.discountValue} {promo.discountType === 'Percentage' ? '%' : '₫'}<br/>
+                                                        <strong>Tối đa:</strong> {promo.maxValue.toLocaleString('vi-VN')}<span>₫</span> <br />
+                                                        <strong>Điều kiện:</strong> {promo.condition} <br />
+
+                                                    </div>
+                                                }
+                                                arrow
+                                            >
+                                                <IconButton className={cx('info-icon')}>
+                                                    <InfoIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </div>
+                                        <p className={cx('promo-discount')}>
+                                            Giảm {promo.discountValue} {promo.discountType === 'Percentage' ? '%' : '₫'}
+                                        </p>
+                                        <p className={cx('promo-description')}>{promo.description}</p>
+                                        <p className={cx('promo-dates')}>HSD: {promo.endDate}</p>
+                                    </div>
+                                    <div className={cx('promo-actions')}>
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={() => handleApplyPromo(promo)}
+                                            className={cx('apply-button')}
+                                        >
+                                            
+                                            Áp dụng
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                            {filteredPromos.length > 3 && (
+                                <Button
+                                    onClick={() => setShowAll(!showAll)}
+                                    className={cx('show-more-button')}
+                                >
+                                    {showAll ? 'Thu gọn' : 'Xem thêm'}
+                                </Button>
+                            )}
+                        </>
+                    ) : (
+                        <p>Không tìm thấy mã giảm giá phù hợp.</p>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button variant="outlined" color="primary" onClick={() => setDiscountDialogOpen(false)}>
+                        Đóng
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
         </div>
     );
 }
