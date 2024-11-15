@@ -1,5 +1,6 @@
 package com.project.book_store_be.Controller;
 
+import com.project.book_store_be.Enum.DiscountStatus;
 import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Request.DisCountRequest;
 import com.project.book_store_be.Services.DisCountService;
@@ -16,11 +17,15 @@ import java.util.NoSuchElementException;
 public class DisCountController {
     @Autowired
     private DisCountService service;
+
     @GetMapping
     public Page<Discount> getDiscounts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return service.getDiscounts(page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "all") String orderBy,
+            @RequestParam(required = false,defaultValue = "") String keyword,
+            @RequestParam(required = false) DiscountStatus status) {
+        return service.getDiscounts(page, size, orderBy, keyword, status);
     }
 
     @PostMapping
@@ -36,7 +41,6 @@ public class DisCountController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateDiscount(@PathVariable Long id, @RequestBody DisCountRequest disCountRequest) {
         try {
-            // Gọi service để cập nhật Discount
             Discount updatedDiscount = service.updateDiscount(id, disCountRequest);
             return new ResponseEntity<>(updatedDiscount, HttpStatus.OK);
         } catch (RuntimeException e) {

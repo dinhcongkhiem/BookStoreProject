@@ -132,7 +132,7 @@ function Payment() {
                                     </p>
                                     {checkout.price !== checkout.original_price && (
                                         <p className={cx('originalPrice')}>
-                                            {checkout.quantity.toLocaleString('vi-VN')}
+                                            {(checkout.original_price).toLocaleString('vi-VN')}
                                             <span>₫</span>
                                         </p>
                                     )}
@@ -249,7 +249,7 @@ function Payment() {
                     <div className={cx('head')}>
                         <div>
                             <h4>Đơn hàng</h4>
-                            <span>2 sản phẩm</span>
+                            <span>{checkoutData?.items.reduce((total, item) => total + item.quantity, 0)} sản phẩm</span>
                         </div>
                         <Link to="/cart">Thay đổi</Link>
                     </div>
@@ -271,7 +271,7 @@ function Payment() {
                             <div className="d-flex justify-content-between">
                                 <p className={cx('label')}>Giảm giá từ Deal</p>
                                 <p className={cx('discount')}>
-                                    {checkoutData?.totalDiscount.toLocaleString('vi-VN')} <span>₫</span>
+                                    -{checkoutData?.totalDiscount.toLocaleString('vi-VN')} <span>₫</span>
                                 </p>
                             </div>
                         )}
