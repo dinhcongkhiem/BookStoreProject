@@ -19,7 +19,6 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
     @Query("SELECT o FROM Order o WHERE o.status = :status AND o.orderDate BETWEEN :startDate AND :endDate")
     List<Order> findByStatusAndDateRange(OrderStatus status, LocalDateTime startDate, LocalDateTime endDate);
-
     List<Order> findByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate);
 
 }

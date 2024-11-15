@@ -71,7 +71,6 @@ public class RevenueService {
                 dailyProfit = dailyProfit.add(order.getTotalPrice().subtract(totalCost));
             }
             Map<String, Object> dailyData = new HashMap<>();
-            dailyData.put("date", currentDay);
             dailyData.put("revenue", dailyRevenue);
             dailyData.put("profit", dailyProfit);
             result.add(dailyData);
@@ -80,7 +79,6 @@ public class RevenueService {
 
         return result;
     }
-
 
     public Map<String, Object> getOrderStatistics() {
         Map<String, Object> statistics = new HashMap<>();
