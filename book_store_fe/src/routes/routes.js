@@ -36,7 +36,7 @@ const adminRoutes = [
     { path: '/admin/voucher/edit', component: Pages.EditVoucher },
     { path: '/admin/discount', component: Pages.Discount, label: 'Khuyến mãi' },
     { path: '/admin/discount/add', component: Pages.AddDiscount },
-    { path: '/admin/discount/edit', component: Pages.EditDiscount },
+    { path: '/admin/discount/update/:discountId', component: Pages.AddDiscount  },
     { path: '/admin/attributes', component: Pages.Attributes, label: 'Thuộc tính' },
 ];
 

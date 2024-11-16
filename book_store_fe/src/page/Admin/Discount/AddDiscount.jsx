@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import style from './AddDiscount.module.scss';
 import classNames from 'classnames/bind';
 import * as Yup from 'yup';
@@ -34,9 +34,13 @@ import { toast } from 'react-toastify';
 const cx = classNames.bind(style);
 
 function AddDiscount() {
+    const { discountId } = useParams();
+
     const navigate = useNavigate();
     const startDateRef = useRef(null);
     const endDateRef = useRef(null);
+    const [startDateVal, setStartDateVal] = useState();
+    const [endDateVal, setEndDateVal] = useState();
 
     const [page, setPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
@@ -74,10 +78,15 @@ function AddDiscount() {
 
     const handleDateChange = (event, type) => {
         const date = event.target.value;
-        const formattedDate = convertDate(date);
+        let formattedDate = convertDate(date);
+        if (date.length === 0) {
+            formattedDate = '';
+        }
         if (type === 0) {
+            setStartDateVal(date);
             formik.setFieldValue('start', formattedDate);
         } else {
+            setStartDateVal(date);
             formik.setFieldValue('end', formattedDate);
         }
     };
@@ -96,7 +105,7 @@ function AddDiscount() {
                 const startDate = parseDate(value);
                 const currentDate = new Date();
                 currentDate.setHours(0, 0, 0, 0);
-                return startDate >= currentDate;
+                return discountId ? true : startDate >= currentDate;
             }),
         end: Yup.string()
             .required('Vui lòng nhập ngày kết thúc.')
@@ -113,12 +122,45 @@ function AddDiscount() {
             .required('Bạn phải chọn ít nhất một sản phẩm'),
     });
 
+    useQuery({
+        queryKey: ['discountById'],
+        queryFn: () =>
+            DiscountService.getDiscountByID(discountId).then((res) => {
+                const resData = res.data;
+                const formikMappingVal = {
+                    name: resData.name,
+                    value: resData.discountRate,
+                    start: convertDate(resData.startDate),
+                    end: convertDate(resData.endDate),
+                    productIds: resData.productIds,
+                };
+                setStartDateVal(resData.startDate.split('T')[0]);
+                setEndDateVal(resData.endDate.split('T')[0]);
+
+                formik.setValues(formikMappingVal);
+                return null;
+            }),
+        retry: 1,
+        enabled: !!discountId,
+    });
+
     const convertToISOString = (dateString) => {
-        const [day, month, year] = dateString.split("/"); 
+        const [day, month, year] = dateString.split('/');
         return `${year}-${month}-${day}T00:00:00`;
-    }
+    };
     const createDiscountMutation = useMutation({
-        mutationFn: ({ data }) => DiscountService.createDiscount( data ),
+        mutationFn: ({ data }) => DiscountService.createDiscount(data),
+        onError: (error) => {
+            console.log(error);
+        },
+        onSuccess: () => {
+            toast.success('Thành công');
+            navigate('/admin/discount');
+        },
+    });
+
+    const updateiscountMutation = useMutation({
+        mutationFn: ({ id, data }) => DiscountService.updateDiscount(id, data),
         onError: (error) => {
             console.log(error);
         },
@@ -149,9 +191,13 @@ function AddDiscount() {
                 startDate: convertToISOString(values.start),
                 endDate: convertToISOString(values.end),
                 productIds: values.productIds,
-                isAll: isAll
+                isAll: isAll,
             };
-            createDiscountMutation.mutate({ data });
+            if (discountId) {
+                updateiscountMutation.mutate({ id: discountId, data });
+            } else {
+                createDiscountMutation.mutate({ data });
+            }
         },
         validateOnBlur: false,
         validateOnChange: false,
@@ -235,7 +281,12 @@ function AddDiscount() {
                                             ),
                                         }}
                                     />
-                                    <input type="date" ref={startDateRef} onChange={(e) => handleDateChange(e, 0)} />
+                                    <input
+                                        type="date"
+                                        ref={startDateRef}
+                                        onChange={(e) => handleDateChange(e, 0)}
+                                        value={startDateVal}
+                                    />
                                 </div>
 
                                 <div className={cx('input-date')}>
@@ -272,7 +323,12 @@ function AddDiscount() {
                                             ),
                                         }}
                                     />
-                                    <input type="date" ref={endDateRef} onChange={(e) => handleDateChange(e, 1)} />
+                                    <input
+                                        type="date"
+                                        ref={endDateRef}
+                                        value={endDateVal}
+                                        onChange={(e) => handleDateChange(e, 1)}
+                                    />
                                 </div>
                             </div>
                             <Box className={cx('button-group')}>
@@ -289,7 +345,7 @@ function AddDiscount() {
                                     className={cx('submit-button')}
                                     onClick={formik.handleSubmit}
                                 >
-                                    Thêm
+                                    {discountId ? 'Cập nhật' : 'Thêm'}
                                 </Button>
                             </Box>
                         </Paper>
@@ -316,7 +372,9 @@ function AddDiscount() {
                     {formik.errors.productIds && (
                         <FormHelperText sx={{ color: '#d32f2f' }}>{formik.errors.productIds}</FormHelperText>
                     )}
-
+                    <span style={{ fontSize: '1.4rem', marginTop: '1rem', opacity: 0.8 }}>
+                        Đã chọn: {formik.values.productIds.length}
+                    </span>
                     <TableContainer component={Paper} className={cx('product-table')}>
                         <Table>
                             <TableHead>
@@ -331,7 +389,7 @@ function AddDiscount() {
                                             onChange={() => {
                                                 const updatedProductIds = Array.isArray(formik.values.productIds)
                                                     ? formik.values.productIds.includes(-1)
-                                                        ? formik.values.productIds.filter((id) => id !== -1)
+                                                        ? []
                                                         : [-1]
                                                     : [-1];
 

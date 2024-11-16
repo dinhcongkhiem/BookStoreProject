@@ -269,8 +269,10 @@ public class ProductService {
     public Map<String, ?> getDiscountValue(Product p) {
         Integer discountRate = 0;
         if (!p.getDiscounts().isEmpty()) {
-            System.out.println(p.getDiscounts().size());
-            Discount discount = p.getDiscounts().get(0);
+            Discount discount = p.getDiscounts().stream()
+                    .max(Comparator.comparing(Discount::getCreateDate))
+                    .orElse(null);
+
             discountRate = discount.getDiscountRate();
         }
         BigDecimal discountValue = p.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))

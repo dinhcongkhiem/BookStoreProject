@@ -5,12 +5,14 @@ import com.project.book_store_be.Repository.ProductRepository;
 import com.project.book_store_be.Request.DisCountRequest;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Repository.DisCountRepository;
+import com.project.book_store_be.Response.DiscountRes.DiscountResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,8 +33,10 @@ public class DisCountService {
     @Autowired
     private ProductRepository productRepository;
 
-    public Page<Discount> getDiscounts(int page, int size, String orderBy, String keyword, Integer status) {
+    public Page<?> getDiscounts(int page, int size, String orderBy, String keyword, Integer status) {
         Sort sortValue = switch (orderBy) {
+            case "name_asc" -> Sort.by(Sort.Direction.ASC, "name");
+            case "name_desc" -> Sort.by(Sort.Direction.DESC, "name");
             case "value_asc" -> Sort.by(Sort.Direction.ASC, "discountRate");
             case "value_desc" -> Sort.by(Sort.Direction.DESC, "discountRate");
             case "start_asc" -> Sort.by(Sort.Direction.ASC, "startDate");
@@ -42,9 +46,13 @@ public class DisCountService {
             default -> Sort.by(Sort.Direction.DESC, "createDate");
         };
         Pageable pageable = PageRequest.of(page, size, sortValue);
-        return repo.getDiscount(pageable, keyword, status);
+        return repo.getDiscount(pageable, keyword, status).map(this::convertToRes);
     }
 
+    public DiscountResponse getDiscountById(Long id) {
+        Discount discount =  this.findById(id).orElseThrow(() -> new NoSuchElementException("Khoong co discount nao id la: " + id));
+        return this.convertToResDetail(discount);
+    }
     private void validateDiscountRate(Integer discountRate) {
         if (discountRate < 0 || discountRate > 30) {
             throw new IllegalArgumentException("Discount rate must be between 0% and 30% ");
@@ -122,8 +130,10 @@ public class DisCountService {
         return newDiscount;
     }
 
+    @Transactional
     public void delete(Long id) {
         Discount disCount = repo.findById(id).orElseThrow(() -> new NoSuchElementException("Discount not found"));
+        repo.deleteProductDiscountLinks(id);
         repo.delete(disCount);
     }
 
@@ -135,4 +145,23 @@ public class DisCountService {
         productRepository.saveAll(products);
     }
 
+    private DiscountResponse convertToRes(Discount d) {
+        return DiscountResponse.builder()
+                .id(d.getId())
+                .name(d.getName())
+                .discountRate(d.getDiscountRate())
+                .startDate(d.getStartDate())
+                .endDate(d.getEndDate())
+                .build();
+    }
+    private DiscountResponse convertToResDetail(Discount d) {
+        return DiscountResponse.builder()
+                .id(d.getId())
+                .name(d.getName())
+                .discountRate(d.getDiscountRate())
+                .startDate(d.getStartDate())
+                .endDate(d.getEndDate())
+                .productIds(d.getProducts().stream().map(Product::getId).toList())
+                .build();
+    }
 }

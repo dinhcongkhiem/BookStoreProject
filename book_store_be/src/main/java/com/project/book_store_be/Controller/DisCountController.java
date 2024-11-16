@@ -18,13 +18,23 @@ public class DisCountController {
     private DisCountService service;
 
     @GetMapping
-    public Page<Discount> getDiscounts(
+    public ResponseEntity<?> getDiscounts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "all") String orderBy,
             @RequestParam(required = false, defaultValue = "") String keyword,
             @RequestParam(required = false) Integer status) {
-        return service.getDiscounts(page, size, orderBy, keyword, status);
+        return ResponseEntity.ok().body(service.getDiscounts(page, size, orderBy, keyword, status));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getDiscounts(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok().body(service.getDiscountById(id));
+
+        }catch (NoSuchElementException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PostMapping
@@ -38,7 +48,7 @@ public class DisCountController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateDiscount(@PathVariable Long id ,@RequestBody DisCountRequest disCountRequest) {
+    public ResponseEntity<?> updateDiscount(@PathVariable Long id, @RequestBody DisCountRequest disCountRequest) {
         try {
             Discount updatedDiscount = service.updateDiscount(id, disCountRequest);
             return new ResponseEntity<>(updatedDiscount, HttpStatus.OK);

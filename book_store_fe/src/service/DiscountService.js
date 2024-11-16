@@ -17,12 +17,40 @@ class DiscountServiceClass {
         return httpRequest.request(config);
     };
 
+    getDiscountByID = (id) => {
+        let config = {
+            method: 'get',
+            url: DISCOUNT_URL + `/${id}`,
+            withCredentials: true,
+        };
+        return httpRequest.request(config);
+    };
+
     createDiscount = (data) => {
         let config = {
             method: 'post',
             url: DISCOUNT_URL,
             withCredentials: true,
             data: data,
+        };
+        return httpRequest.request(config);
+    };
+
+    updateDiscount = (id, data) => {
+        let config = {
+            method: 'put',
+            url: DISCOUNT_URL + `/${id}`,
+            withCredentials: true,
+            data: data,
+        };
+        return httpRequest.request(config);
+    };
+
+    remove = (id) => {
+        let config = {
+            method: 'delete',
+            url: DISCOUNT_URL + `/${id}`,
+            withCredentials: true,
         };
         return httpRequest.request(config);
     };

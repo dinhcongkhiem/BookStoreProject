@@ -23,54 +23,76 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import DiscountService from '../../../service/DiscountService';
 import useDebounce from '../../../hooks/useDebounce';
+import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
+import { toast } from 'react-toastify';
+import ConfirmModal from '../../../component/Modal/ConfirmModal/ConfirmModal';
 
 const cx = classNames.bind(style);
 
 const Discount = () => {
+    const queryClient = useQueryClient();
     const navigate = useNavigate();
+    const [sort, setSort] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
     const [page, setPage] = useState(1);
     const [status, setStatus] = useState(-2);
     const [searchTerm, setSearchTerm] = useState('');
-    const searchTermDebouce = useDebounce(searchTerm.trim(), 0);
-
-    const handleEdit = (discount) => {
-        navigate('/admin/discount/edit', { state: { discount } });
-    };
+    const searchTermDebouce = useDebounce(searchTerm.trim(), 800);
+    const [idToRemove, setIdToRemove] = useState();
+    const [isOpen, setIsOpen] = useState(false);
     const handleChangePage = (event, value) => {
         setPage(value);
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.set('p', value);
         setSearchParams(Object.fromEntries(newSearchParams.entries()));
     };
+
+    const handleChangeSort = (prop) => {
+        if (sort.split('_')[0] !== prop) {
+            setSort(`${prop}_asc`);
+        } else {
+            setSort(`${prop}_${sort.split('_')[1] !== 'desc' ? 'desc' : 'asc'}`);
+        }
+        setPage(1);
+    };
+
     const {
         data: discounts,
         error,
         isLoading,
     } = useQuery({
-        queryKey: ['discountMng', page, status, searchTermDebouce],
+        queryKey: ['discountMng', page, status, sort, searchTermDebouce],
         queryFn: () =>
-            DiscountService.getDiscounts({ page, size: 20, keyword: searchTermDebouce, status }).then(
+            DiscountService.getDiscounts({ page, size: 20, orderBy: sort, keyword: searchTermDebouce, status }).then(
                 (res) => res.data,
             ),
         retry: 1,
     });
 
+    const deleteDiscountMutation = useMutation({
+        mutationFn: () => DiscountService.remove(idToRemove),
+        onError: (error) => {
+            console.log(error);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['discountMng']); 
+            toast.success('Đã xóa đợt giảm giá thành công');
+        },
+        
+    });
     const convertStatus = (discount) => {
         const startDate = new Date(discount.startDate);
         const endDate = new Date(discount.endDate);
         const today = new Date();
         if (today < startDate) {
-            return {label: "Sắp diễn ra", class: "upcoming"}
+            return { label: 'Sắp diễn ra', class: 'upcoming' };
         } else if (today >= startDate && today <= endDate) {
-            return {label: "Đang hoạt động", class: "active"}
-
+            return { label: 'Đang hoạt động', class: 'active' };
         } else {
-            return {label: "Đã kết thúc", class: "inactive"}
-
+            return { label: 'Đã kết thúc', class: 'inactive' };
         }
     };
 
@@ -84,7 +106,7 @@ const Discount = () => {
                 <div className="d-flex flex-grow-1 gap-5">
                     <div className="d-flex gap-3 align-items-center">
                         <label htmlFor="searchDiscount" className="fw-semibold">
-                            Tìm kiếm:{' '}
+                            Tìm kiếm:
                         </label>
                         <TextField
                             id="searchDiscount"
@@ -143,22 +165,38 @@ const Discount = () => {
                                 <b>ID</b>
                             </TableCell>
                             <TableCell sx={{ width: '450px' }}>
-                                <TableSortLabel>
+                                <TableSortLabel
+                                    active={sort.split('_')[0] === 'name'}
+                                    direction={sort.split('_')[1]}
+                                    onClick={() => handleChangeSort('name')}
+                                >
                                     <b>Tên</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell sx={{ width: '120px' }}>
-                                <TableSortLabel>
+                                <TableSortLabel
+                                    active={sort.split('_')[0] === 'value'}
+                                    direction={sort.split('_')[1]}
+                                    onClick={() => handleChangeSort('value')}
+                                >
                                     <b>Giá trị (%)</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell sx={{ width: '150px' }}>
-                                <TableSortLabel>
+                                <TableSortLabel
+                                    active={sort.split('_')[0] === 'start'}
+                                    direction={sort.split('_')[1]}
+                                    onClick={() => handleChangeSort('start')}
+                                >
                                     <b>Ngày bắt đầu</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell sx={{ width: '150px' }}>
-                                <TableSortLabel>
+                                <TableSortLabel
+                                    active={sort.split('_')[0] === 'end'}
+                                    direction={sort.split('_')[1]}
+                                    onClick={() => handleChangeSort('end')}
+                                >
                                     <b>Ngày hết hạn</b>
                                 </TableSortLabel>
                             </TableCell>
@@ -187,13 +225,20 @@ const Discount = () => {
                                 </TableCell>
                                 <TableCell>
                                     <IconButton
-                                        onClick={() => handleEdit(discount)}
+                                        onClick={() => navigate(`/admin/discount/update/${discount.id}`)}
                                         aria-label="edit"
                                         sx={{ color: 'green' }}
                                     >
                                         <EditIcon />
                                     </IconButton>
-                                    <IconButton aria-label="delete" sx={{ color: 'red' }}>
+                                    <IconButton
+                                        aria-label="delete"
+                                        sx={{ color: 'red' }}
+                                        onClick={() => {
+                                            setIdToRemove(discount.id);
+                                            setIsOpen(true);
+                                        }}
+                                    >
                                         <DeleteIcon />
                                     </IconButton>
                                 </TableCell>
@@ -211,6 +256,20 @@ const Discount = () => {
                     count={discounts?.totalPages < 1 ? 1 : discounts?.totalPages}
                 />
             </div>
+            <ModalLoading isLoading={isLoading} />
+            {isOpen && (
+                <ConfirmModal
+                    open={isOpen}
+                    onClose={() => setIsOpen(false)}
+                    onConfirm={() => {
+                        setIsOpen(false);
+                        deleteDiscountMutation.mutate();
+                    }}
+                    title={'Xác nhận'}
+                    message={'Bạn có chắn muốn xóa đợt giảm giá này?'}
+                    type="warn"
+                />
+            )}
         </div>
     );
 };
