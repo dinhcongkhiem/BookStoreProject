@@ -23,8 +23,9 @@ import RateReviewIcon from '@mui/icons-material/RateReview';
 import ReplayIcon from '@mui/icons-material/Replay';
 import { useQuery } from '@tanstack/react-query';
 import OrderService from '../../service/OrderService';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ReviewProductModal from '../../component/Modal/ReviewProductModal/ReviewProductModal';
+import { convertStatusOrderToVN } from '../../utills/ConvertData';
 
 const cx = classNames.bind(style);
 
@@ -58,6 +59,7 @@ function OrderDetail() {
     };
 
     const { orderIdPath } = useParams();
+    const { pathname } = useLocation();
     const {
         data: orderDataRes,
         error,
@@ -69,83 +71,84 @@ function OrderDetail() {
         enabled: !!orderIdPath,
     });
 
-    const convertStatusToVN = (status) => {
-        switch (status) {
-            case 'AWAITING_PAYMENT':
-                return 'Chờ thanh toán';
-            case 'PROCESSING':
-                return 'Đang xử lý';
-            case 'SHIPPING':
-                return 'Đang vận chuyển';
-            case 'COMPLETED':
-                return 'Đã giao';
-            case 'CANCELED':
-                return 'Đã hủy';
-            default:
-                return '';
-        }
-    };
-
     function renderActionButtons(status) {
-        switch (status) {
-            case 'AWAITING_PAYMENT':
-                return (
-                    <>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<PaymentIcon />}
-                            className={cx('actionButton', 'payButton')}
-                        >
-                            Thanh toán lại
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="error"
-                            startIcon={<CancelIcon />}
-                            className={cx('actionButton', 'cancelButton')}
-                        >
-                            Hủy đơn hàng
-                        </Button>
-                    </>
-                );
-            case 'COMPLETED':
-                return (
-                    <>
-                        <Button
-                            variant="outlined"
-                            color="primary"
-                            startIcon={<ReplayIcon />}
-                            className={cx('actionButton', 'reorderButton')}
-                        >
-                            Mua lại
-                        </Button>
-                    </>
-                );
-            case 'CANCELED':
-                return (
+        const isAdmin = pathname.startsWith('/admin');        
+        const buttons = {
+            AWAITING_PAYMENT: isAdmin ? null : (
+                <>
                     <Button
-                        variant="outlined"
+                        variant="contained"
                         color="primary"
-                        startIcon={<ReplayIcon />}
-                        className={cx('actionButton', 'reorderButton')}
+                        startIcon={<PaymentIcon />}
+                        className={cx('actionButton', 'payButton')}
                     >
-                        Mua lại
+                        Thanh toán lại
                     </Button>
-                );
-            default:
-                return null;
-        }
+                    <Button
+                        variant="contained"
+                        color="error"
+                        startIcon={<CancelIcon />}
+                        className={cx('actionButton', 'cancelButton')}
+                    >
+                        Hủy đơn hàng
+                    </Button>
+                </>
+            ),
+            COMPLETED: !isAdmin && (
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<ReplayIcon />}
+                    className={cx('actionButton', 'reorderButton')}
+                >
+                    Mua lại
+                </Button>
+            ),
+            CANCELED: (
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<ReplayIcon />}
+                    className={cx('actionButton', 'reorderButton')}
+                >
+                    Mua lại
+                </Button>
+            ),
+            CANCELED: (
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<ReplayIcon />}
+                    className={cx('actionButton', 'reorderButton')}
+                >
+                    Mua lại
+                </Button>
+            ),
+            PROCESSING: (
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<ReplayIcon />}
+                    className={cx('actionButton', 'reorderButton')}
+                >
+                    Xác nhận đơn hàng
+                </Button>
+            ),
+        };
+
+        return buttons[status] || null;
     }
 
     return (
         <Box className={cx('orderDetailContainer')}>
-            <div className={cx('orderDetailHeader')}>
-                <Typography variant="h4" className={cx('orderTitle')}>
-                    Chi tiết đơn hàng {orderDataRes?.orderId} -{' '}
-                    <span className={cx('orderStatus')}>{convertStatusToVN(orderDataRes?.status)}</span>
-                </Typography>
-            </div>
+            {!pathname.startsWith('/admin') && (
+                <div className={cx('orderDetailHeader')}>
+                    <Typography variant="h4" className={cx('orderTitle')}>
+                        Chi tiết đơn hàng {orderDataRes?.orderId} -{' '}
+                        <span className={cx('orderStatus')}>{convertStatusOrderToVN(orderDataRes?.status)}</span>
+                    </Typography>
+                </div>
+            )}
 
             <Grid container spacing={3} className={cx('infoSections')}>
                 <Grid item xs={12} md={4}>
@@ -157,7 +160,7 @@ function OrderDetail() {
                             {orderDataRes?.fullname}
                         </Typography>
                         <Typography variant="body2" className={cx('address')}>
-                            Địa chỉ:{' '}
+                            Địa chỉ:
                             {`${orderDataRes?.address.addressDetail}, ${orderDataRes?.address.commune.label}, ${orderDataRes?.address.district.label}, ${orderDataRes?.address.province.label}`}
                         </Typography>
                         <Typography variant="body2">Điện thoại: {orderDataRes?.phoneNum}</Typography>
@@ -227,7 +230,7 @@ function OrderDetail() {
                                             <Typography variant="body1" className={cx('productName')}>
                                                 {product.productName}
                                             </Typography>
-                                            {orderDataRes?.status === 'COMPLETED' && (
+                                            {orderDataRes?.status === 'COMPLETED' && !pathname.startsWith('/admin') && (
                                                 <Button
                                                     color="primary"
                                                     startIcon={<RateReviewIcon />}
@@ -312,14 +315,16 @@ function OrderDetail() {
 
             <Box className={cx('orderActionButtons')}>{renderActionButtons(orderDataRes?.status)}</Box>
 
-            <Button
-                variant="text"
-                startIcon={<ArrowBackIcon />}
-                className={cx('backButton')}
-                onClick={() => navigate('/order')}
-            >
-                Quay lại
-            </Button>
+            {!pathname.startsWith('/admin') && (
+                <Button
+                    variant="text"
+                    startIcon={<ArrowBackIcon />}
+                    className={cx('backButton')}
+                    onClick={() => navigate('/order')}
+                >
+                    Quay lại
+                </Button>
+            )}
             {isShowModalReview && (
                 <ReviewProductModal
                     open={isShowModalReview}

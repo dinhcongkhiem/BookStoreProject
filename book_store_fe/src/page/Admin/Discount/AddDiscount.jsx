@@ -30,6 +30,7 @@ import { faCalendar } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DiscountService from '../../../service/DiscountService';
 import { toast } from 'react-toastify';
+import { formatDate } from '../../../utills/ConvertData';
 
 const cx = classNames.bind(style);
 
@@ -68,17 +69,10 @@ function AddDiscount() {
         return new Date(`${year}-${month}-${day}`);
     };
 
-    const convertDate = (date) => {
-        const dateObject = new Date(date);
-        const day = String(dateObject.getDate()).padStart(2, '0');
-        const month = String(dateObject.getMonth() + 1).padStart(2, '0');
-        const year = dateObject.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
 
     const handleDateChange = (event, type) => {
         const date = event.target.value;
-        let formattedDate = convertDate(date);
+        let formattedDate = formatDate(date);
         if (date.length === 0) {
             formattedDate = '';
         }
@@ -130,8 +124,8 @@ function AddDiscount() {
                 const formikMappingVal = {
                     name: resData.name,
                     value: resData.discountRate,
-                    start: convertDate(resData.startDate),
-                    end: convertDate(resData.endDate),
+                    start: formatDate(resData.startDate),
+                    end: formatDate(resData.endDate),
                     productIds: resData.productIds,
                 };
                 setStartDateVal(resData.startDate.split('T')[0]);
