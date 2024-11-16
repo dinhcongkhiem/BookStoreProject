@@ -5,9 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,18 +19,23 @@ public class StatisticalController {
     @Autowired
     private RevenueService revenueService;
 
-    @GetMapping("/monthly-revenue-profit")
-    public List<Map<String, BigDecimal>> getMonthlyRevenueAndProfit() {
-        return revenueService.calculateMonthlyRevenueAndProfit();
+@GetMapping("/data")
+public ResponseEntity<Map<String, Object>> getStatisticsAndRevenueProfit(
+        @RequestParam String type) {
+    Map<String, Object> response = new HashMap<>();
+    Map<String, Object> statistics = revenueService.getOrderStatistics();
+    response.put("statistics", statistics);
+    List<Map<String, BigDecimal>> data;
+    if ("month".equalsIgnoreCase(type)) {
+        data = revenueService.calculateMonthlyRevenueAndProfit();
+    } else if ("week".equalsIgnoreCase(type)) {
+        data = revenueService.calculateDailyRevenueAndProfitForCurrentWeek();
+    } else {
+        return ResponseEntity.badRequest().body(Map.of("error", "Invalid type parameter. Use 'month' or 'week'."));
     }
 
-    @GetMapping("/current-week")
-    public List<Map<String, Object>> getDailyRevenueAndProfitForCurrentWeek() {
-        return revenueService.calculateDailyRevenueAndProfitForCurrentWeek();
-    }
+    response.put("data", data);
 
-    @GetMapping("/statistics")
-    public Map<String, Object> getOrderStatistics() {
-        return revenueService.getOrderStatistics();
-    }
+    return ResponseEntity.ok(response);
+}
 }

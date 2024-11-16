@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
+import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,8 +46,8 @@ public class RevenueService {
         return result;
     }
 
-    public List<Map<String, Object>> calculateDailyRevenueAndProfitForCurrentWeek() {
-        List<Map<String, Object>> result = new ArrayList<>();
+    public List<Map<String, BigDecimal>> calculateDailyRevenueAndProfitForCurrentWeek() {
+        List<Map<String, BigDecimal>> result = new ArrayList<>();
         LocalDate today = LocalDate.now();
         LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
@@ -70,7 +67,7 @@ public class RevenueService {
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
                 dailyProfit = dailyProfit.add(order.getTotalPrice().subtract(totalCost));
             }
-            Map<String, Object> dailyData = new HashMap<>();
+            Map<String, BigDecimal> dailyData = new HashMap<>();
             dailyData.put("revenue", dailyRevenue);
             dailyData.put("profit", dailyProfit);
             result.add(dailyData);
@@ -79,6 +76,7 @@ public class RevenueService {
 
         return result;
     }
+
 
     public Map<String, Object> getOrderStatistics() {
         Map<String, Object> statistics = new HashMap<>();
