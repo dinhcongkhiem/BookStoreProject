@@ -77,6 +77,7 @@ public class ProductController {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Dữ liệu JSON không hợp lệ");
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Có lỗi xảy ra");
         }
     }
