@@ -42,13 +42,15 @@ public class ImageProductService {
 
     public void uploadMultipleImageProduct(List<MultipartFile> images, Long productId, Integer indexThumbnail, List<Long> imagesId) {
         try {
-            if (images != null && images.size() > 0) {
+            if (images != null && !images.isEmpty()) {
                 for (int i = 0; i < images.size(); i++) {
                     MultipartFile image = images.get(i);
+                    Long imgId = imagesId != null ? imagesId.size() - 1 < i ? null : imagesId.get(i) : null;
                     this.uploadFileAsync(image,
                             productId,
                             indexThumbnail == i,
-                            imagesId.size() - 1 < i ? null : imagesId.get(i)).get();
+                            imgId
+                    ).get();
                 }
 
             }
@@ -101,9 +103,10 @@ public class ImageProductService {
                 .filter(image -> !listOldImg.contains(image.getId()))
                 .toList();
         repo.deleteAllById(imagesToDelete.stream().map(ImageProduct::getId).toList());
-        service.deleteFiles(imagesToDelete);    }
+        service.deleteFiles(imagesToDelete);
+    }
 
-    public void deleteImagesProduct(Long id){
+    public void deleteImagesProduct(Long id) {
         List<ImageProduct> currentImages = repo.findByProductIdOrderByIsThumbnailDesc(id);
         repo.deleteAllById(currentImages.stream().map(ImageProduct::getId).toList());
         service.deleteFiles(currentImages);
