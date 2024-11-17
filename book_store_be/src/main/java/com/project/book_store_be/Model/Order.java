@@ -41,6 +41,8 @@ public class Order {
     @Column(length = 11)
     private String buyerPhoneNum;
     private LocalDateTime orderDate;
-
+    @ManyToOne
+    @JoinColumn(name = "voucher_id")
+    private Voucher voucher;
 
 }
