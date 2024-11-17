@@ -17,6 +17,7 @@ public class OrderRequest {
     private String buyerName;
     private String buyerPhoneNum;
     private List<OrderDetailRequest> items;
+    private String voucherCode;
 
     @Data
     @Builder
