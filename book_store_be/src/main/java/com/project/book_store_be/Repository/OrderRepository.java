@@ -10,15 +10,18 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
+import java.util.Map;
 
 
 public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecificationExecutor<Order> {
     List<Order> findByStatus(OrderStatus status);
 
+    @Query("SELECT o FROM Order o WHERE  o.orderDate BETWEEN :startDate AND :endDate")
+    List<Order>DateRange(LocalDateTime startDate, LocalDateTime endDate);
+
+
     @Query("SELECT o FROM Order o WHERE o.status = :status AND o.orderDate BETWEEN :startDate AND :endDate")
     List<Order> findByStatusAndDateRange(OrderStatus status, LocalDateTime startDate, LocalDateTime endDate);
-    List<Order> findByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate);
 
 
     @Query(value = """
