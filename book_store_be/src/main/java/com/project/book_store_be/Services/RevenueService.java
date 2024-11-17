@@ -1,0 +1,105 @@
+package com.project.book_store_be.Services;
+
+import com.project.book_store_be.Enum.OrderStatus;
+import com.project.book_store_be.Model.Order;
+import com.project.book_store_be.Repository.OrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.*;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+@Service
+public class RevenueService {
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    public List<Map<String, BigDecimal>> calculateMonthlyRevenueAndProfit() {
+        List<Map<String, BigDecimal>> result = new ArrayList<>();
+        for (int month = 1; month <= 12; month++) {
+            YearMonth yearMonth = YearMonth.of(LocalDate.now().getYear(), month);
+            BigDecimal monthlyRevenue = BigDecimal.ZERO;
+            BigDecimal monthlyProfit = BigDecimal.ZERO;
+            List<Order> monthlyOrders = orderRepository.findByStatusAndDateRange(
+                    OrderStatus.COMPLETED,
+                    yearMonth.atDay(1).atStartOfDay(),
+                    yearMonth.atEndOfMonth().atTime(23, 59, 59)
+            );
+            for (Order order : monthlyOrders) {
+                monthlyRevenue = monthlyRevenue.add(order.getTotalPrice());
+                BigDecimal totalCost = order.getOrderDetails().stream()
+                        .map(detail -> detail.getProduct().getCost().multiply(new BigDecimal(detail.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                monthlyProfit = monthlyProfit.add(order.getTotalPrice().subtract(totalCost));
+            }
+            Map<String, BigDecimal> revenueProfitMap = new HashMap<>();
+            revenueProfitMap.put("revenue", monthlyRevenue);
+            revenueProfitMap.put("profit", monthlyProfit);
+
+            result.add(revenueProfitMap);
+        }
+        return result;
+    }
+
+    public List<Map<String, BigDecimal>> calculateDailyRevenueAndProfitForCurrentWeek() {
+        List<Map<String, BigDecimal>> result = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+        LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
+        LocalDate currentDay = startOfWeek;
+        while (!currentDay.isAfter(endOfWeek)) {
+            BigDecimal dailyRevenue = BigDecimal.ZERO;
+            BigDecimal dailyProfit = BigDecimal.ZERO;
+            List<Order> dailyOrders = orderRepository.findByStatusAndDateRange(
+                    OrderStatus.COMPLETED,
+                    currentDay.atStartOfDay(),
+                    currentDay.atTime(23, 59, 59)
+            );
+            for (Order order : dailyOrders) {
+                dailyRevenue = dailyRevenue.add(order.getTotalPrice());
+                BigDecimal totalCost = order.getOrderDetails().stream()
+                        .map(detail -> detail.getProduct().getCost().multiply(new BigDecimal(detail.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                dailyProfit = dailyProfit.add(order.getTotalPrice().subtract(totalCost));
+            }
+            Map<String, BigDecimal> dailyData = new HashMap<>();
+            dailyData.put("revenue", dailyRevenue);
+            dailyData.put("profit", dailyProfit);
+            result.add(dailyData);
+            currentDay = currentDay.plusDays(1);
+        }
+
+        return result;
+    }
+
+
+    public Map<String, Object> getOrderStatistics() {
+        Map<String, Object> statistics = new HashMap<>();
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(23, 59, 59);
+        List<Order> todaysOrders = orderRepository.findByOrderDateBetween(startOfDay, endOfDay);
+        int ordersPerDay = todaysOrders.size();
+        BigDecimal totalOrders = todaysOrders.stream()
+                .map(Order::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<Order> allOrders = orderRepository.findAll();
+        int todayRevenue = allOrders.size();
+        BigDecimal totalRevenue = allOrders.stream()
+                .map(Order::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        statistics.put("ordersPerDay", ordersPerDay);
+        statistics.put("totalOrders", totalOrders);
+        statistics.put("todayRevenue", todayRevenue);
+        statistics.put("totalRevenue", totalRevenue);
+        return statistics;
+    }
+
+
+
+}
