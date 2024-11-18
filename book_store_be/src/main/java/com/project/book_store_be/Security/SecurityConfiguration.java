@@ -52,12 +52,13 @@ public class SecurityConfiguration {
     private static final String[] WHITE_LIST_GET_METHOD = {
             "/api/v1/product", "/api/v1/product/available",
             "/api/v1/product/price-range", "/api/v1/product/attributes",
-            "/api/v1/publisher/**", "/api/v1/category/**", "api/v1/notifications/**"
+            "/api/v1/publisher/**", "/api/v1/category/**", "/api/v1/notifications/**",
+            "/api/v1/review/detail/**"
     };
 
     private static final String[] USER_LIST_URL = {
             "/api/v1/review/**", "/api/v1/cart/**",
-            "/api/v1/order"
+            "/api/v1/order", "/api/v1/order/status"
     };
 
     private static final String[] ADMIN_LIST_URL = {
@@ -76,6 +77,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(WHITE_LIST_URL).permitAll()
                         .requestMatchers(HttpMethod.GET, WHITE_LIST_GET_METHOD).permitAll()
+                        .requestMatchers("/api/v1/order/detail").hasAnyRole(USER.name(), ADMIN.name())
                         .requestMatchers(USER_LIST_URL).hasAnyRole(USER.name())
                         .requestMatchers(ADMIN_LIST_URL).hasAnyRole(ADMIN.name())
                         .anyRequest().authenticated()

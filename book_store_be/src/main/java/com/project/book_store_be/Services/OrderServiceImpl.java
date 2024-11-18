@@ -3,13 +3,16 @@ package com.project.book_store_be.Services;
 import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Enum.PaymentType;
+import com.project.book_store_be.Enum.VoucherType;
 import com.project.book_store_be.Interface.AddressService;
 import com.project.book_store_be.Interface.OrderService;
 import com.project.book_store_be.Interface.PaymentService;
+import com.project.book_store_be.Interface.VoucherService;
 import com.project.book_store_be.Model.*;
 import com.project.book_store_be.Repository.OrderDetailRepository;
 import com.project.book_store_be.Repository.OrderRepository;
 import com.project.book_store_be.Repository.Specification.OrderSpecification;
+import com.project.book_store_be.Repository.VoucherRepository;
 import com.project.book_store_be.Request.OrderRequest;
 import com.project.book_store_be.Request.PaymentRequest;
 import com.project.book_store_be.Response.OrderRes.*;
@@ -43,6 +46,7 @@ public class OrderServiceImpl implements OrderService {
     private final AddressService addressService;
     private final CartService cartService;
     private final NotificationService notificationService;
+    private final VoucherRepository voucherRepository;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
@@ -75,6 +79,8 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
         User u = userService.getCurrentUser();
         BigDecimal[] totalPrice = {BigDecimal.ZERO};
         Address address = request.getAddress() != null ? addressService.createAddress(request.getAddress()) : u.getAddress();
+        BigDecimal voucherDiscount = BigDecimal.ZERO;
+        Voucher voucher = null;
         Order order = Order.builder()
                 .paymentType(request.getPaymentType())
                 .shippingFee(request.getShippingFee())
@@ -85,40 +91,66 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
                 .address(address)
                 .buyerName(request.getBuyerName() != null ? request.getBuyerName() : u.getFullName())
                 .buyerPhoneNum(request.getBuyerPhoneNum() != null ? request.getBuyerPhoneNum() : u.getPhoneNum())
+                .voucher(voucher)
                 .build();
         orderRepository.save(order);
 
         request.getItems().forEach(item -> {
             Product product = productService.findProductById(item.getProductId());
             BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
-            totalPrice[0] = totalPrice[0].add(product.getPrice().subtract(discountVal).multiply(BigDecimal.valueOf(item.getQty())));
+            BigDecimal price = product.getOriginal_price().subtract(discountVal);
+            totalPrice[0] = totalPrice[0].add(price.multiply(BigDecimal.valueOf(item.getQty())));
+
             OrderDetail orderDetail = OrderDetail.builder()
                     .product(product)
                     .quantity(item.getQty())
                     .originalPriceAtPurchase(product.getOriginal_price())
-                    .priceAtPurchase(product.getPrice())
+                    .priceAtPurchase(price)
                     .order(order)
                     .discount(discountVal)
                     .build();
             orderDetailRepository.save(orderDetail);
             orderDetailList.add(orderDetail);
         });
+
+        if (request.getVoucherCode() != null) {
+            Optional<Voucher> optionalVoucher = voucherRepository.findByCode(request.getVoucherCode());
+            if (optionalVoucher.isEmpty()) {
+                throw new IllegalArgumentException("Voucher không hợp lệ.");
+            }
+            voucher = optionalVoucher.get();
+            if (voucher.getStartDate().isAfter(LocalDateTime.now()) || voucher.getEndDate().isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("Voucher đã hết hạn.");
+            }
+            if (voucher != null && voucher.getCondition() != null && totalPrice[0].compareTo(voucher.getCondition()) < 0) {
+                throw new IllegalArgumentException("Không đủ điều kiện để áp dụng voucher.");
+            }
+
+            if (voucher.getDiscountType() == VoucherType.PERCENT) {
+                voucherDiscount = voucher.getDiscountValue().multiply(totalPrice[0]).divide(BigDecimal.valueOf(100));
+                if (voucher.getMaxDiscountValue() != null) {
+                    voucherDiscount = voucherDiscount.min(voucher.getMaxDiscountValue());
+                }
+            } else if (voucher.getDiscountType() == VoucherType.CASH) {
+                voucherDiscount = voucher.getDiscountValue();
+            }
+            order.setVoucher(voucher);
+        }
+        BigDecimal finalPrice = totalPrice[0].subtract(voucherDiscount).add(order.getShippingFee());
+
         PaymentResponse paymentResponse = null;
         Long orderCode = 0L;
         if (order.getPaymentType() == PaymentType.bank_transfer) {
             try {
-
                 String currentTimeString = String.valueOf(new Date().getTime());
                 Long time = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
                 orderCode = Long.parseLong(order.getId() + String.valueOf(time));
                 paymentResponse = paymentService.PaymentRequest(PaymentRequest.builder()
                         .orderCode(orderCode)
-                        .amount(totalPrice[0].add(order.getShippingFee()))
+                        .amount(finalPrice)
                         .description("BB-" + currentTimeString.substring(currentTimeString.length() - 4))
                         .build()
-
                 );
-
                 scheduler.schedule(() -> {
                     Order currentOrder = orderRepository.findById(order.getId()).orElseThrow(
                             () -> new NoSuchElementException("Not found order id : " + order.getId())
@@ -136,12 +168,12 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
                 throw new RuntimeException(e);
             }
         } else {
-            String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), totalPrice[0].add(order.getShippingFee()));
+            String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), finalPrice);
             notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER);
         }
 
         order.setOrderDetails(orderDetailList);
-        order.setTotalPrice(totalPrice[0]);
+        order.setTotalPrice(finalPrice);
         orderRepository.save(order);
         request.getItems().forEach(item -> {
             Long cartId = item.getCartId();
@@ -150,10 +182,11 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
             }
         });
         return CreateOrderResponse.builder()
-                .finalPrice(totalPrice[0].add(order.getShippingFee()))
+                .finalPrice(finalPrice)
                 .orderCode(orderCode)
                 .orderStatus(order.getStatus())
                 .paymentType(order.getPaymentType())
+                .voucherId(voucher != null ? voucher.getId() : null)
                 .QRCodeURL(paymentResponse != null ? paymentResponse.getQRCodeURL() : "")
                 .build();
     }

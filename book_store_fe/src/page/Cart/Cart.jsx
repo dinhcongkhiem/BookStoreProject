@@ -31,6 +31,7 @@ import useDebounce from '../../hooks/useDebounce';
 import ConfirmModal from '../../component/Modal/ConfirmModal/ConfirmModal';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
 const cx = classNames.bind(style);
 
 function Cart() {
@@ -40,19 +41,12 @@ function Cart() {
     const [itemToDelete, setItemToDelete] = useState(null);
     const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedCount, setSelectedCount] = useState(0);
-    const [totalAmount, setTotalAmout] = useState(0);
-    const queryClient = useQueryClient();
-    useEffect(() => {
-        setSelectedCount(selectedItems.length);
-        const totalAmount = productsInCart?.cart?.reduce(
-            (acc, item) => acc + (selectedItems.includes(item.id) ? item.price * item.quantity : 0),
-            0,
-        );
-        setTotalAmout(totalAmount);
-    }, [selectedItems]);
 
-    const { data: productsInCart } = useQuery({
+    const [grandTotal, setGrandTotal] = useState(0);
+    const [totalDiscount, setTotalDiscount] = useState(0);
+    const queryClient = useQueryClient();
+
+    const { data: productsInCart, isLoading } = useQuery({
         queryKey: ['productsInCart'],
         queryFn: () =>
             CartService.getProductInCart({ page: 1 }).then((response) => {
@@ -64,7 +58,18 @@ function Cart() {
             }),
         retry: 1,
     });
-
+    useEffect(() => {
+        const grandTotal = productsInCart?.cart?.reduce(
+            (acc, item) => acc + (selectedItems.includes(item.id) ? item.original_price * item.quantity : 0),
+            0,
+        );
+        const totalDiscount = productsInCart?.cart?.reduce(
+            (acc, item) => acc + (selectedItems.includes(item.id) ? item.discount * item.quantity : 0),
+            0,
+        );
+        setTotalDiscount(totalDiscount);
+        setGrandTotal(grandTotal);
+    }, [selectedItems, productsInCart]);
     const updateCartMutation = useMutation({
         mutationFn: (data) => CartService.updateCartItem(data),
         onError: (error) => {
@@ -199,7 +204,10 @@ function Cart() {
                                             />
                                         </TableCell>
                                         <TableCell>
-                                            <Link to={`/product/detail?id=${item.productId}`} style={{ display: 'flex' }}>
+                                            <Link
+                                                to={`/product/detail?id=${item.productId}`}
+                                                style={{ display: 'flex' }}
+                                            >
                                                 <img
                                                     src={item.thumbnail_url}
                                                     alt="Banner"
@@ -209,7 +217,13 @@ function Cart() {
                                             </Link>
                                         </TableCell>
                                         <TableCell align="center">
-                                            {item.price.toLocaleString()} <span>₫</span>
+                                            {item.price.toLocaleString('vi-VN')} <span>₫</span>
+                                            {item.price !== item.original_price && (
+                                                <p className={cx('originalPrice')}>
+                                                    {item.original_price.toLocaleString('vi-VN')}
+                                                    <span>₫</span>
+                                                </p>
+                                            )}
                                         </TableCell>
 
                                         <TableCell align="center">
@@ -265,7 +279,7 @@ function Cart() {
                                             {isNaN(item.price * item.quantity)
                                                 ? 0
                                                 : (item.price * item.quantity)?.toLocaleString('vi-VN')}
-                                            <span>₫</span>
+                                            <span> ₫</span>
                                         </TableCell>
 
                                         <TableCell align="center">
@@ -300,26 +314,30 @@ function Cart() {
                     <div className={cx('summary-details')}>
                         <p>
                             Tạm tính:
-                            <strong>
-                                {totalAmount?.toLocaleString()} <span className={cx('currency-symbol')}>₫</span>
+                            <strong className="ms-3">
+                                {grandTotal?.toLocaleString('vi-VN')} <span className={cx('currency-symbol')}>₫</span>
                             </strong>
                         </p>
                         <p>
                             Giảm giá:
-                            <strong>
-                                0 <span className={cx('currency-symbol')}>₫</span>
+                            <strong className="ms-3" style={{ color: 'rgb(0, 171, 86)' }}>
+                                
+                                {selectedItems.length > 0 && '-'}
+                                {totalDiscount?.toLocaleString('vi-VN')}
+                                <span className={cx('currency-symbol')}>₫</span>
                             </strong>
                         </p>
                         <hr />
                         <p>
                             Thành tiền:
-                            <strong>
-                                {totalAmount?.toLocaleString()} <span className={cx('currency-symbol')}>₫</span>
+                            <strong className="ms-3">
+                                {(grandTotal - totalDiscount)?.toLocaleString('vi-VN')}
+                                <span className={cx('currency-symbol')}>₫</span>
                             </strong>
                         </p>
                     </div>
                     <Button variant="outlined" color="primary" className={cx('checkout-button')} onClick={handleSubmit}>
-                        Mua hàng ({selectedCount})
+                        Mua hàng ({selectedItems.length})
                     </Button>
                 </div>
             </div>
@@ -377,6 +395,7 @@ function Cart() {
                 message={'Xóa sản phẩm này khỏi giỏ hàng của bạn'}
                 type={'warn'}
             />
+            <ModalLoading isLoading={isLoading || updateCartMutation.isPending} />
         </div>
     );
 }

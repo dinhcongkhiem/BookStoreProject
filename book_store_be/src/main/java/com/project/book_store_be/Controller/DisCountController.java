@@ -16,18 +16,32 @@ import java.util.NoSuchElementException;
 public class DisCountController {
     @Autowired
     private DisCountService service;
+
     @GetMapping
-    public Page<Discount> getDiscounts(
+    public ResponseEntity<?> getDiscounts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return service.getDiscounts(page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "all") String orderBy,
+            @RequestParam(required = false, defaultValue = "") String keyword,
+            @RequestParam(required = false) Integer status) {
+        return ResponseEntity.ok().body(service.getDiscounts(page, size, orderBy, keyword, status));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getDiscounts(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok().body(service.getDiscountById(id));
+
+        }catch (NoSuchElementException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PostMapping
     public ResponseEntity<?> createDiscount(@RequestBody DisCountRequest disCountRequest) {
         try {
-            Discount createdDisCount = service.createDiscount(disCountRequest);
-            return new ResponseEntity<>(createdDisCount, HttpStatus.CREATED);
+            service.createDiscount(disCountRequest);
+            return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -36,7 +50,6 @@ public class DisCountController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateDiscount(@PathVariable Long id, @RequestBody DisCountRequest disCountRequest) {
         try {
-            // Gọi service để cập nhật Discount
             Discount updatedDiscount = service.updateDiscount(id, disCountRequest);
             return new ResponseEntity<>(updatedDiscount, HttpStatus.OK);
         } catch (RuntimeException e) {

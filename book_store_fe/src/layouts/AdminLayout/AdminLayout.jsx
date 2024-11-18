@@ -13,9 +13,11 @@ import {
     faChartLine,
     faChevronDown,
     faChevronUp,
+    faGifts,
+    faPercent,
+    faTicket,
     faUser,
 } from '@fortawesome/free-solid-svg-icons';
-import { adminRoutes } from '../../routes/routes';
 import { ListItemIcon, Menu, MenuItem } from '@mui/material';
 import { LibraryBooks, Logout, ManageAccounts } from '@mui/icons-material';
 const cx = classNames.bind(style);
@@ -138,7 +140,7 @@ function AdminLayout({ children }) {
                             color={'secondary'}
                             onClick={() => setIsShowOpenDiscount((prev) => !prev)}
                         >
-                            <FontAwesomeIcon icon={faBook} size="lg" />
+                            <FontAwesomeIcon icon={faGifts} size="lg" />
                             <p className="ms-3 fw-bold fs-3 me-4">Giảm giá</p>
                             {isShowOpenDiscount ? (
                                 <FontAwesomeIcon icon={faChevronUp} />
@@ -152,7 +154,7 @@ function AdminLayout({ children }) {
                                 sx={{ padding: '0.6rem 1.5rem' }}
                                 onClick={() => navigate('/admin/discount')}
                             >
-                                <FontAwesomeIcon icon={faChartLine} size="lg" />
+                            <FontAwesomeIcon icon={faPercent} size="lg" />
                                 <p className="ms-3 fw-bold fs-3">Đợt giảm giá</p>
                             </ListItemButton>
                             <ListItemButton
@@ -160,7 +162,7 @@ function AdminLayout({ children }) {
                                 sx={{ padding: '0.6rem 1.5rem' }}
                                 onClick={() => navigate('/admin/voucher')}
                             >
-                                <FontAwesomeIcon icon={faBarsStaggered} size="lg" />
+                                <FontAwesomeIcon icon={faTicket} size="lg" />
                                 <p className="ms-3 fw-bold fs-3">Phiếu giảm giá</p>
                             </ListItemButton>
                         </Collapse>

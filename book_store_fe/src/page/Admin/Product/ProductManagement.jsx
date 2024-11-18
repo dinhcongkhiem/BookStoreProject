@@ -89,21 +89,6 @@ const Product = () => {
         setPage(1);
         setSearchTerm(event.target.value);
     };
-    // const handleDeleteClick = (product) => {
-    //     setProductToDelete(product);
-    //     setDeleteConfirmOpen(true);
-    // };
-    // const handleConfirmDelete = () => {
-    //     if (productToDelete) {
-    //         deleteMutation.mutate(productToDelete.id);
-    //     }
-    //     setDeleteConfirmOpen(false);
-    //     setProductToDelete(null);
-    // };
-    // const handleDeleteCancel = () => {
-    //     setDeleteConfirmOpen(false);
-    //     setProductToDelete(null);
-    // };
     const handleToastClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;

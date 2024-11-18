@@ -16,7 +16,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<String> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         log.error("Invalid input format from controller - HttpMessageNotReadableException");
-
+        ex.printStackTrace();
         return new ResponseEntity<>("Invalid input format", HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(MissingServletRequestParameterException.class)

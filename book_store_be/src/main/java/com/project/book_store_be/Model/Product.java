@@ -41,17 +41,20 @@ public class Product {
     private String description;
     private BigDecimal cost;
     private BigDecimal original_price;
-    private BigDecimal price;
     private String manufacturer;
     @ManyToOne
     private Publisher publisher;
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Category> categories;
-
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Author> authors;
-    @ManyToOne
-    private Discount discount;
+    @ManyToMany
+    @JoinTable(
+            name = "product_discount",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "discount_id")
+    )
+    private List<Discount> discounts;
     @OneToMany(mappedBy = "product")
     private List<OrderDetail> orderDetails;
     private Date createDate;

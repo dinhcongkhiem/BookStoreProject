@@ -1,6 +1,5 @@
 package com.project.book_store_be.Model;
 
-import com.project.book_store_be.Enum.DiscountStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 
@@ -8,10 +7,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
-@Data
 
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
@@ -21,9 +20,12 @@ public class Discount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Date startDate;
-    private Date endDate;
+    private String name;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
     private Integer discountRate;
-    private DiscountStatus status;
+    private LocalDateTime createDate;
+    @ManyToMany(mappedBy = "discounts")
+    private List<Product> products;
 
 }

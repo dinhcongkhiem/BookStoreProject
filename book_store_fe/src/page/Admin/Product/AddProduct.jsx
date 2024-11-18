@@ -241,10 +241,14 @@ function AddProduct() {
         }
         files = files.filter((file) => {
             const isDuplicate = formik.values.selectedImages.some((img) => img.name === file.name);
+            const validFile = ['image/jpeg', 'image/png'].includes(file.type);
+            if (!validFile) {
+                toast.warn('Định dạng ảnh này không được hỗ trợ. Vui lòng thử lại!', { position: 'bottom-right' });
+            }
             if (isDuplicate) {
                 toast.warn('Vui lòng chọn các ảnh sản phẩm khác nhau!', { position: 'bottom-right' });
             }
-            return !isDuplicate;
+            return !isDuplicate && validFile;
         });
         files.forEach((file) => {
             file.preview = URL.createObjectURL(file);
@@ -662,7 +666,7 @@ function AddProduct() {
                         <Box className={cx('image-preview')}>
                             <input
                                 ref={inputImgRef}
-                                accept="image/*"
+                                accept="image/jpeg, image/png" // Chỉ nhận các định dạng jpg và png
                                 className={cx('input')}
                                 id="contained-button-file"
                                 multiple

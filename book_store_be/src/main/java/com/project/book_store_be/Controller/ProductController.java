@@ -53,8 +53,7 @@ public class ProductController {
     @GetMapping()
     public ResponseEntity<?> getProduct(@RequestParam Long id) {
         try {
-            Product product = productService.findProductById(id);
-            return ResponseEntity.ok(productService.findProductById(product));
+            return ResponseEntity.ok(productService.findProductDetailById(id));
         } catch (NoSuchElementException e) {
             return ResponseEntity.badRequest().body("No product found with id: " + id);
         }
@@ -78,6 +77,7 @@ public class ProductController {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Dữ liệu JSON không hợp lệ");
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Có lỗi xảy ra");
         }
     }

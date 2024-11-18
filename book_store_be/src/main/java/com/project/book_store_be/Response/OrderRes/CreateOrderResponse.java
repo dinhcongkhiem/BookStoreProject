@@ -15,5 +15,6 @@ public class CreateOrderResponse {
     private OrderStatus orderStatus;
     private PaymentType paymentType;
     private String QRCodeURL;
+    private Long voucherId;
 
 }

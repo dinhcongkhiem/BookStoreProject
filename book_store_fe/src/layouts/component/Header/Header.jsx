@@ -111,7 +111,7 @@ function Header() {
     });
 
     const markAsReadMutation = useMutation({
-        mutationFn: (orderCode) => NotificationsService.markAsRead(),
+        mutationFn: () => NotificationsService.markAsRead(),
         onError: (error) => {
             console.log(error);
         },

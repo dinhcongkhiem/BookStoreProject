@@ -17,10 +17,13 @@ import java.util.Map;
 
 
 public interface ProductRepository extends JpaRepository<Product, Long>, CrudRepository<Product, Long>, JpaSpecificationExecutor<Product> {
-    @Query("SELECT new map(MIN(p.price) as min, MAX(p.price) as max) FROM Product p")
+    @Query("SELECT new map(MIN(p.original_price) as min, MAX(p.original_price) as max) FROM Product p")
     Map<BigDecimal, BigDecimal> findMinAndMaxPrice();
 
-    @Query("SELECT p, COUNT(od.product.id) " +
+    @Query("SELECT p,   SUM(CASE " +
+            "WHEN o.status = 'COMPLETED' THEN 1" +
+            "ELSE 0 " +
+            "END) AS product_count " +
             "FROM Product p " +
             "JOIN p.authors a " +
             "LEFT JOIN p.orderDetails od " +
@@ -30,9 +33,27 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CrudRep
             "AND (o.status = 'COMPLETED' OR o.status IS NULL) " +
             "GROUP BY p.id")
     List<Tuple> findTop10ByAuthorsExceptCurrent(@Param("authors") List<Author> authors,
-                                                  @Param("productId") Long productId, Pageable pageable);
+                                                @Param("productId") Long productId, Pageable pageable);
 
     Page<Product> searchByNameContainingIgnoreCaseOrId(String name, Long id, Pageable pageable);
+
+    List<Product> findAllByIdNotIn(List<Long> ids);
+
+
+    @Query("""
+                SELECT p AS product,\s
+                       SUM(CASE\s
+                               WHEN o.status = 'COMPLETED' THEN 1\s
+                               ELSE 0\s
+                           END) AS product_count
+                FROM Product p
+                LEFT JOIN p.orderDetails od
+                LEFT JOIN od.order o
+                WHERE p.id = :productId
+                GROUP BY p.id
+            """)
+    Tuple findProductWithQtySold(@Param("productId") Long productId);
+
 
 }
 

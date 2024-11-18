@@ -12,6 +12,7 @@ import OrderService from '../../service/OrderService';
 import CartService from '../../service/CartService';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
 import { useNavigate } from 'react-router-dom';
+import { convertStatusOrderToVN, getStatusOrderClass, orderTabs } from '../../utills/ConvertData';
 const cx = classNames.bind(style);
 
 function Order() {
@@ -64,14 +65,6 @@ function Order() {
         },
         [orders],
     );
-    const tabs = [
-        { id: 'all', label: 'Tất cả đơn' },
-        { id: 'AWAITING_PAYMENT', label: 'Chờ thanh toán' },
-        { id: 'PROCESSING', label: 'Đang xử lý' },
-        { id: 'SHIPPING', label: 'Đang vận chuyển' },
-        { id: 'COMPLETED', label: 'Đã giao' },
-        { id: 'CANCELED', label: 'Đã huỷ ' },
-    ];
 
     const getStatusIcon = (status) => {
         switch (status) {
@@ -89,38 +82,7 @@ function Order() {
                 return null;
         }
     };
-    const convertStatusToVN = (status) => {
-        switch (status) {
-            case 'AWAITING_PAYMENT':
-                return 'Chờ thanh toán';
-            case 'PROCESSING':
-                return 'Đang xử lý';
-            case 'SHIPPING':
-                return 'Đang vận chuyển';
-            case 'COMPLETED':
-                return 'Đã giao';
-            case 'CANCELED':
-                return 'Đã hủy';
-            default:
-                return '';
-        }
-    };
-    const getStatusClass = (status) => {
-        switch (status) {
-            case 'AWAITING_PAYMENT':
-                return 'statusPending';
-            case 'PROCESSING':
-                return 'statusProcessing';
-            case 'SHIPPING':
-                return 'statusShipping';
-            case 'COMPLETED':
-                return 'statusDelivered';
-            case 'CANCELED':
-                return 'statusCancelled';
-            default:
-                return '';
-        }
-    };
+
 
     useEffect(() => {
         if (orders && page === 1) {
@@ -135,7 +97,7 @@ function Order() {
             <h1 className={cx('heading')}>Đơn hàng của tôi</h1>
 
             <div className={cx('tabs')}>
-                {tabs.map((tab) => (
+                {orderTabs.map((tab) => (
                     <div
                         key={tab.id}
                         className={cx('tab', { active: activeTab === tab.id })}
@@ -176,8 +138,8 @@ function Order() {
                     >
                         <div className={cx('orderHeader')}>
                             {getStatusIcon(order.status)}
-                            <span className={cx('orderStatus', getStatusClass(order.status))}>
-                                {convertStatusToVN(order.status)}
+                            <span className={cx('orderStatus', getStatusOrderClass(order.status))}>
+                                {convertStatusOrderToVN(order.status)}
                             </span>
                         </div>
                         <div className={cx('orderDetails')}>

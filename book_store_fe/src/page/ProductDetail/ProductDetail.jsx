@@ -212,7 +212,7 @@ function ProductDetail() {
                                         {product?.original_price?.toLocaleString('vi-VN')} ₫
                                     </span>
                                 )}
-                                {product?.discount_rate !== 0 && <span className={cx('discount-percent')}>{}%</span>}
+                                {product?.discount_rate !== 0 && <span className={cx('discount-percent')}>{product?.discount_rate}%</span>}
                             </p>
                         </div>
                     </div>
@@ -326,7 +326,7 @@ function ProductDetail() {
                                     <ProductsComponent
                                         product={p}
                                         className={cx('product')}
-                                        onClick={() => navigate(`/product/detail?id=${p.id}`)}
+                                        to={`/product/detail?id=${p.id}`}
                                     />
                                 );
                             })}
@@ -341,7 +341,7 @@ function ProductDetail() {
                     <div className="col-4 d-flex gap-3">
                         <div className="d-flex flex-column align-items-center gap-1">
                             <div className={cx('rating-average')}>
-                                {reviews?.metaData?.average}
+                                {reviews?.metaData?.average || 0}
                                 <span>/5</span>
                             </div>
                             <Rating
@@ -352,7 +352,7 @@ function ProductDetail() {
                                 sx={{ marginRight: '0.3rem' }}
                             />
 
-                            <span style={{ color: '#7a7e7f' }}>({reviews?.metaData?.totalCount} đánh giá)</span>
+                            <span style={{ color: '#7a7e7f' }}>({reviews?.metaData?.totalCount || 0} đánh giá)</span>
                         </div>
                         <div className="flex-grow-1">
                             <div className={'d-flex align-items-center'}>

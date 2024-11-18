@@ -12,11 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OrderSpecification {
-    public static Specification<Order> getOrders(User user,OrderStatus status, String keyword) {
+    public static Specification<Order> getOrders(User user, OrderStatus status, String keyword) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if(user != null) {
-                predicates.add(criteriaBuilder.equal(root.get("user"),user));
+            if (user != null) {
+                predicates.add(criteriaBuilder.equal(root.get("user"), user));
             }
             if (status != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));
@@ -26,8 +26,14 @@ public class OrderSpecification {
                 Join<Order, OrderDetail> orderDetailJoin = root.join("orderDetails", JoinType.INNER);
                 Join<OrderDetail, Product> productJoin = orderDetailJoin.join("product", JoinType.INNER);
 
-                predicates.add(criteriaBuilder.like(
-                        criteriaBuilder.lower(productJoin.get("name")), likePattern));
+                Predicate buyerName = criteriaBuilder.like(criteriaBuilder.lower(root.get("buyerName")), likePattern);
+                Predicate orderCode = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("id").as(String.class)),
+                        likePattern);
+                Predicate ProductName = criteriaBuilder.like(
+                        criteriaBuilder.lower(productJoin.get("name")), likePattern);
+                Predicate keywordPredicate = criteriaBuilder.or(buyerName, orderCode, ProductName);
+                predicates.add(keywordPredicate);
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
