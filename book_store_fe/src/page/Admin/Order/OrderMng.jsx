@@ -38,6 +38,9 @@ import { convertStatusOrderToVN, formatDate, getStatusOrderClass, orderTabs } fr
 import useDebounce from '../../../hooks/useDebounce';
 import OrderDetail from '../../OrderDetail/OrderDetail';
 import { useNavigate } from 'react-router-dom';
+import style1 from '../Admin.module.scss';
+
+const cx1 = classNames.bind(style1);
 const cx = classNames.bind(style);
 
 export default function OrderMng() {
@@ -215,7 +218,7 @@ export default function OrderMng() {
                                 <TableCell align="center">
                                     <Chip
                                         label={convertStatusOrderToVN(order.status)}
-                                        className={cx('statusChip', getStatusOrderClass(order.status))}
+                                        className={cx1('status', getStatusOrderClass(order.status))}
                                     />
                                 </TableCell>
                                 <TableCell align="center">

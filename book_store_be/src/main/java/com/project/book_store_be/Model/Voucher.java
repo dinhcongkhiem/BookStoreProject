@@ -25,18 +25,25 @@ public class Voucher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false, unique = true)
     private String code;
+    @Column(nullable = false)
     private String name;
+    private Integer quantity;
+    private VoucherType type;
+    private BigDecimal value;
+    private BigDecimal maxValue;
+    private BigDecimal condition;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private Integer quantity;
-    private VoucherType discountType;
-    private VoucherStatus status;
-    private BigDecimal discountValue;
-    private BigDecimal maxDiscountValue;
-    private BigDecimal condition;
     private LocalDateTime createDate;
     private LocalDateTime updateDate;
-    @OneToMany(mappedBy = "voucher")
-    private List<Order> orders;
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinTable(
+            name = "voucher_user",
+            joinColumns = @JoinColumn(name = "voucher_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> users;
+
 }

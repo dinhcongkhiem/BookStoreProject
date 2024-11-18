@@ -122,17 +122,17 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
             if (voucher.getStartDate().isAfter(LocalDateTime.now()) || voucher.getEndDate().isBefore(LocalDateTime.now())) {
                 throw new IllegalArgumentException("Voucher đã hết hạn.");
             }
-            if (voucher != null && voucher.getCondition() != null && totalPrice[0].compareTo(voucher.getCondition()) < 0) {
+            if (voucher.getCondition() != null && totalPrice[0].compareTo(voucher.getCondition()) < 0) {
                 throw new IllegalArgumentException("Không đủ điều kiện để áp dụng voucher.");
             }
 
-            if (voucher.getDiscountType() == VoucherType.PERCENT) {
-                voucherDiscount = voucher.getDiscountValue().multiply(totalPrice[0]).divide(BigDecimal.valueOf(100));
-                if (voucher.getMaxDiscountValue() != null) {
-                    voucherDiscount = voucherDiscount.min(voucher.getMaxDiscountValue());
+            if (voucher.getType() == VoucherType.PERCENT) {
+                voucherDiscount = voucher.getValue().multiply(totalPrice[0]).divide(BigDecimal.valueOf(100));
+                if (voucher.getMaxValue() != null) {
+                    voucherDiscount = voucherDiscount.min(voucher.getMaxValue());
                 }
-            } else if (voucher.getDiscountType() == VoucherType.CASH) {
-                voucherDiscount = voucher.getDiscountValue();
+            } else if (voucher.getType() == VoucherType.CASH) {
+                voucherDiscount = voucher.getValue();
             }
             order.setVoucher(voucher);
         }

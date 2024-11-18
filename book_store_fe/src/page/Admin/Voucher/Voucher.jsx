@@ -22,6 +22,11 @@ import {
     DialogContent,
     DialogActions,
     Grid,
+    FormControl,
+    MenuItem,
+    Select,
+    Pagination,
+    Chip,
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -31,44 +36,13 @@ import {
     Search as SearchIcon,
     Close as CloseIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import VoucherService from '../../../service/VoucherService';
+import style1 from '../Admin.module.scss';
+import useDebounce from '../../../hooks/useDebounce';
+const cx1 = classNames.bind(style1);
 const cx = classNames.bind(style);
-
-const initialVouchers = [
-    {
-        id: 1,
-        code: 'SUMMER10',
-        discountValue: 10,
-        startDate: '2023-06-01',
-        expirationDate: '2023-08-31',
-        status: 'Đang hoạt động',
-    },
-    {
-        id: 2,
-        code: 'NEWBOOK5',
-        discountValue: 5,
-        startDate: '2023-07-01',
-        expirationDate: '2023-12-31',
-        status: 'Đang hoạt động',
-    },
-    {
-        id: 3,
-        code: 'FALL20',
-        discountValue: 20,
-        startDate: '2023-09-01',
-        expirationDate: '2023-11-30',
-        status: 'Không hoạt động',
-    },
-    {
-        id: 4,
-        code: 'WINTER15',
-        discountValue: 15,
-        startDate: '2023-12-01',
-        expirationDate: '2023-12-31',
-        status: 'Đang hoạt động',
-    },
-];
 
 const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -77,131 +51,205 @@ const formatDate = (dateString) => {
 
 const Voucher = () => {
     const navigate = useNavigate();
-    const [detailOpen, setDetailOpen] = useState(false);
-    const [selectedVoucher, setSelectedVoucher] = useState(null);
-
-    const handleView = (voucher) => {
-        setSelectedVoucher(voucher);
-        setDetailOpen(true);
+    const [sort, setSort] = useState('');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [page, setPage] = useState(1);
+    const [status, setStatus] = useState(-2);
+    const [searchTerm, setSearchTerm] = useState('');
+    const searchDebounceVal = useDebounce(searchTerm, 500);
+    const handleChangePage = (event, value) => {
+        setPage(value);
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.set('p', value);
+        setSearchParams(Object.fromEntries(newSearchParams.entries()));
     };
 
-    const handleCloseDetail = () => {
-        setDetailOpen(false);
-        setSelectedVoucher(null);
+    const handleChangeSort = (prop) => {
+        if (sort.split('_')[0] !== prop) {
+            setSort(`${prop}_asc`);
+        } else {
+            setSort(`${prop}_${sort.split('_')[1] !== 'desc' ? 'desc' : 'asc'}`);
+        }
+        setPage(1);
     };
-
-    const handleEdit = (voucher) => {
-        navigate('/admin/voucher/edit', { state: { voucher } });
+    const convertStatus = (discount) => {
+        const startDate = new Date(discount.startDate);
+        const endDate = new Date(discount.endDate);
+        const today = new Date();
+        if (today < startDate) {
+            return { label: 'Sắp diễn ra', class: 'upcoming' };
+        } else if (today >= startDate && today <= endDate) {
+            return { label: 'Đang hoạt động', class: 'active' };
+        } else {
+            return { label: 'Đã kết thúc', class: 'inactive' };
+        }
     };
+    const {
+        data: vouchers,
+        error,
+        isLoading,
+    } = useQuery({
+        queryKey: ['vouchersMng', searchDebounceVal, status, sort, page],
+        queryFn: () =>
+            VoucherService.getAll({ page, keyword: searchDebounceVal, status, sort }).then((res) => res.data),
+        retry: 1,
+    });
 
     return (
         <div className={cx('voucher-management')}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography variant="h4" component="h1" className={cx('title')}>
-                    Quản lý mã giảm giá
+                    Quản lý phiếu giảm giá
                 </Typography>
             </Box>
 
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <TextField
-                    className={cx('search-input')}
-                    size="small"
-                    variant="outlined"
-                    placeholder="Tìm kiếm mã giảm giá..."
-                    InputProps={{
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <SearchIcon />
-                            </InputAdornment>
-                        ),
-                    }}
-                    sx={{ width: '30rem' }}
-                />
+                <div className="d-flex flex-grow-1 gap-5">
+                    <div className="d-flex gap-3 align-items-center">
+                        <label htmlFor="searchDiscount" className="fw-semibold">
+                            Tìm kiếm:
+                        </label>
+                        <TextField
+                            id="searchDiscount"
+                            className={cx('search-input')}
+                            size="small"
+                            variant="outlined"
+                            placeholder="Mã hoặc tên phiếu giảm giá"
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <SearchIcon />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ width: '30rem', backgroundColor: '#fff' }}
+                        />
+                    </div>
+                    <div className="d-flex gap-3 align-items-center">
+                        <label htmlFor="searchDiscount" className="fw-semibold">
+                            Trạng thái:
+                        </label>
+                        <FormControl fullWidth sx={{ width: '17rem', backgroundColor: '#fff' }}>
+                            <Select
+                                size="small"
+                                fullWidth
+                                id="select-status-discount"
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                            >
+                                <MenuItem value={-2}>Tất cả</MenuItem>
+                                <MenuItem value={0}>Sắp diễn ra</MenuItem>
+                                <MenuItem value={1}>Đang hoạt động</MenuItem>
+                                <MenuItem value={-1}>Đã kết thúc</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </div>
+                </div>
+
                 <Button
                     variant="outlined"
                     color="primary"
                     startIcon={<AddIcon />}
                     onClick={() => navigate('/admin/voucher/add')}
+                    className={cx('add-button')}
                 >
-                    Thêm mã giảm giá
+                    Thêm phiếu giảm giá
                 </Button>
             </Box>
 
-            <TableContainer component={Paper} className={cx('voucher-table')}>
+            <TableContainer component={Paper} className={cx('discount-table')}>
                 <Table>
                     <TableHead>
                         <TableRow>
                             <TableCell>
-                                <TableSortLabel>
-                                    <b>ID</b>
-                                </TableSortLabel>
+                                <b>ID</b>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel>
+                                <TableSortLabel
+                                    active={sort.split('_')[0] === 'code'}
+                                    direction={sort.split('_')[1]}
+                                    onClick={() => handleChangeSort('code')}
+                                >
                                     <b>Mã</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel>
-                                    <b>Giá trị</b>
+                                <TableSortLabel
+                                    active={sort.split('_')[0] === 'name'}
+                                    direction={sort.split('_')[1]}
+                                    onClick={() => handleChangeSort('name')}
+                                >
+                                    <b>Tên</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel>
+                                <b>Giá trị (%/₫)</b>
+                            </TableCell>
+                            <TableCell>
+                                <TableSortLabel
+                                    active={sort.split('_')[0] === 'start'}
+                                    direction={sort.split('_')[1]}
+                                    onClick={() => handleChangeSort('start')}
+                                >
                                     <b>Ngày bắt đầu</b>
                                 </TableSortLabel>
                             </TableCell>
                             <TableCell>
-                                <TableSortLabel>
+                                <TableSortLabel
+                                    active={sort.split('_')[0] === 'end'}
+                                    direction={sort.split('_')[1]}
+                                    onClick={() => handleChangeSort('end')}
+                                >
                                     <b>Ngày hết hạn</b>
                                 </TableSortLabel>
                             </TableCell>
-                            <TableCell>
-                                <TableSortLabel>
-                                    <b>Trạng thái</b>
-                                </TableSortLabel>
+
+                            <TableCell align="center">
+                                <b>Trạng thái</b>
                             </TableCell>
-                            <TableCell>
+                            <TableCell align="center">
                                 <b>Thao tác</b>
                             </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {initialVouchers.map((voucher) => (
+                        {vouchers?.content?.map((voucher) => (
                             <TableRow key={voucher.id}>
                                 <TableCell>{voucher.id}</TableCell>
                                 <TableCell>{voucher.code}</TableCell>
-                                <TableCell>{`${voucher.discountValue}%`}</TableCell>
-                                <TableCell>{formatDate(voucher.startDate)}</TableCell>
-                                <TableCell>{formatDate(voucher.expirationDate)}</TableCell>
+                                <TableCell>{voucher.name}</TableCell>
                                 <TableCell>
-                                    <div className={cx('status-container')}>
-                                        <span
-                                            className={cx('status', {
-                                                active: voucher.status === 'Đang hoạt động',
-                                                inactive: voucher.status === 'Không hoạt động',
-                                            })}
-                                        >
-                                            {voucher.status}
-                                        </span>
-                                    </div>
+                                    {voucher.discountType === 'PERCENT' ? (
+                                        <span>{voucher.discountValue}%</span>
+                                    ) : (
+                                        <span>{voucher.discountValue.toLocaleString('vi-VN')} ₫</span>
+                                    )}
+                                </TableCell>
+                                <TableCell>{new Date(voucher.startDate).toLocaleDateString()}</TableCell>
+                                <TableCell>{new Date(voucher.endDate).toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                    <Chip
+                                        label={convertStatus(voucher).label}
+                                        className={cx1('status', convertStatus(voucher).class)}
+                                    />
                                 </TableCell>
                                 <TableCell>
                                     <IconButton
-                                        onClick={() => handleView(voucher)}
-                                        aria-label="view"
-                                        sx={{ color: 'blue' }}
-                                    >
-                                        <VisibilityIcon />
-                                    </IconButton>
-                                    <IconButton
-                                        onClick={() => handleEdit(voucher)}
+                                        onClick={() => navigate(`/admin/voucher/update/${voucher.id}`)}
                                         aria-label="edit"
                                         sx={{ color: 'green' }}
                                     >
                                         <EditIcon />
                                     </IconButton>
-                                    <IconButton aria-label="delete" sx={{ color: 'red' }}>
+                                    <IconButton
+                                        aria-label="delete"
+                                        sx={{ color: 'red' }}
+                                        onClick={() => {
+                                            // setIdToRemove(voucher.id);
+                                            // setIsOpen(true);
+                                        }}
+                                    >
                                         <DeleteIcon />
                                     </IconButton>
                                 </TableCell>
@@ -210,91 +258,15 @@ const Voucher = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
-            <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={initialVouchers.length}
-                rowsPerPage={5}
-                page={0}
-            />
-
-            <Dialog open={detailOpen} onClose={handleCloseDetail} maxWidth="sm" fullWidth>
-                {selectedVoucher && (
-                    <>
-                        <DialogTitle>
-                            <Box display="flex" justifyContent="space-between" alignItems="center">
-                                <Typography variant="h6">Chi tiết mã giảm giá</Typography>
-                                <IconButton onClick={handleCloseDetail}>
-                                    <CloseIcon />
-                                </IconButton>
-                            </Box>
-                        </DialogTitle>
-                        <DialogContent dividers>
-                            <Grid container spacing={2}>
-                                <Grid item xs={4}>
-                                    <Typography variant="subtitle1">
-                                        <b>Mã:</b>
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={8}>
-                                    <Typography variant="body1">{selectedVoucher.code}</Typography>
-                                </Grid>
-                                <Grid item xs={4}>
-                                    <Typography variant="subtitle1">
-                                        <b>Giá trị giảm giá:</b>
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={8}>
-                                    <Typography variant="body1">{`${selectedVoucher.discountValue}%`}</Typography>
-                                </Grid>
-                                <Grid item xs={4}>
-                                    <Typography variant="subtitle1">
-                                        <b>Ngày bắt đầu:</b>
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={8}>
-                                    <Typography variant="body1">{formatDate(selectedVoucher.startDate)}</Typography>
-                                </Grid>
-                                <Grid item xs={4}>
-                                    <Typography variant="subtitle1">
-                                        <b>Ngày hết hạn:</b>
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={8}>
-                                    <Typography variant="body1">
-                                        {formatDate(selectedVoucher.expirationDate)}
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={4}>
-                                    <Typography variant="subtitle1">
-                                        <b>Trạng thái:</b>
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={8}>
-                                    <Box display="flex" alignItems="center">
-                                        <span
-                                            className={cx('status', {
-                                                active: selectedVoucher.status === 'Đang hoạt động',
-                                                inactive: selectedVoucher.status === 'Không hoạt động',
-                                            })}
-                                        >
-                                            {selectedVoucher.status}
-                                        </span>
-                                    </Box>
-                                </Grid>
-                            </Grid>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button onClick={handleCloseDetail} color="primary">
-                                Đóng
-                            </Button>
-                            <Button onClick={() => handleEdit(selectedVoucher)} color="primary" variant="contained">
-                                Chỉnh sửa
-                            </Button>
-                        </DialogActions>
-                    </>
-                )}
-            </Dialog>
+            <div className="d-flex justify-content-center mt-5 mb-3">
+                <Pagination
+                    color="primary"
+                    onChange={handleChangePage}
+                    variant="outlined"
+                    page={parseInt(page)}
+                    // count={discounts?.totalPages < 1 ? 1 : discounts?.totalPages}
+                />
+            </div>
         </div>
     );
 };

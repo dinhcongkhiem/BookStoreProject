@@ -1,0 +1,32 @@
+.status {
+    font-weight: 600;
+    border-radius: 2rem;
+    font-size: 1.1rem;
+    color: #505050;
+    cursor: default;
+
+    &.statusProcessing,
+    &.upcoming,
+    &.out-of-stock {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    &.statusShipping {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    &.statusDelivered,
+    &.active,
+    &.in-stock {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    &.statusCancelled,
+    &.inactive {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+}

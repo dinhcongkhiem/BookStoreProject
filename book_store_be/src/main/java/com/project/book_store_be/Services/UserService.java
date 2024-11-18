@@ -9,6 +9,9 @@ import com.project.book_store_be.Request.ChangePasswordRequest;
 import com.project.book_store_be.Request.UpdateUserRequest;
 import com.project.book_store_be.Response.UserResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,6 +48,7 @@ public class UserService {
 
     public UserResponse getUserInfor(User user) {
         return UserResponse.builder()
+                .id(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .address(user.getAddress())
@@ -95,4 +99,8 @@ public class UserService {
     }
 
 
+    public Page<?> getAllUser(int page, int size, String keyword) {
+        Pageable pageable = PageRequest.of(page, size);
+        return userRepository.searchByKeyword(keyword, pageable).map(this::getUserInfor);
+    }
 }

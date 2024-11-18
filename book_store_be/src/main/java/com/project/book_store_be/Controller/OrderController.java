@@ -8,6 +8,7 @@ import com.project.book_store_be.Services.OrderServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.NoSuchElementException;
@@ -53,7 +54,7 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     public ResponseEntity<?> getAllOrders(
             @RequestParam(defaultValue = "0") Integer page,

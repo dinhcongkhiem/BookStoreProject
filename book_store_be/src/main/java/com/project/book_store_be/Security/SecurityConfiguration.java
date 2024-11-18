@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -29,6 +31,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration {
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -58,13 +61,12 @@ public class SecurityConfiguration {
 
     private static final String[] USER_LIST_URL = {
             "/api/v1/review/**", "/api/v1/cart/**",
-            "/api/v1/order", "/api/v1/order/status"
     };
 
     private static final String[] ADMIN_LIST_URL = {
             "/api/v1/admin/**", "/api/v1/publisher/**",
             "/api/v1/category/**", "/api/v1/product/**",
-            "/api/v1/product/all","/api/v1/order/**", "/api/v1/order/all"
+            "/api/v1/product/all"
     };
 
     @Bean
@@ -77,7 +79,6 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(WHITE_LIST_URL).permitAll()
                         .requestMatchers(HttpMethod.GET, WHITE_LIST_GET_METHOD).permitAll()
-                        .requestMatchers("/api/v1/order/detail").hasAnyRole(USER.name(), ADMIN.name())
                         .requestMatchers(USER_LIST_URL).hasAnyRole(USER.name())
                         .requestMatchers(ADMIN_LIST_URL).hasAnyRole(ADMIN.name())
                         .anyRequest().authenticated()

@@ -95,6 +95,14 @@
         padding: 1rem;
         border: 1px dashed #007bff;
         border-radius: 0.5rem;
+        user-select: none;
+        transition: opacity 0.3s ease;
+        &:hover {
+            opacity: 0.5;
+        }
+        &:active {
+            opacity: 1;
+        }
 
         .discount-icon {
             font-size: 2rem;
@@ -179,159 +187,3 @@
         }
     }
 }
-
-.search-container {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin: 1rem 0;
-    position: relative;
-
-    .close-icon {
-        position: absolute;
-        right: 1%;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 1;
-    }
-
-    .search-button {
-        display: flex;
-        justify-content: end;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        color: #ffffff;
-        background: linear-gradient(135deg, #4a90e2 0%, #2c7ac3 100%);
-        border: none;
-        border-radius: 8px;
-        transition: transform 0.2s, background 0.3s;
-        position: relative;
-
-        &:hover {
-            background: linear-gradient(135deg, #357abd 0%, #1e5a89 100%);
-            transform: scale(1.05);
-        }
-
-        &:disabled {
-            background-color: #b0c4de;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-    }
-
-    .custom-textfield {
-        height: 3.6rem;
-        box-sizing: border-box;
-        width: 20rem;
-    }
-}
-
-.promo-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
-
-.promo-discount {
-    font-weight: bold;
-    font-size: 2.1rem;
-    color: #d32f2f;
-}
-
-.promo-description {
-    word-wrap: break-word;
-    white-space: normal;
-    width: 100%;
-}
-
-
-.promo-item {
-    margin-bottom: 16px;
-    padding: 12px;
-    position: relative;
-    padding-top: 1rem;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-    transition: transform 0.3s, box-shadow 0.4s;
-    margin-bottom: 1.5rem;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    position: relative;
-
-    &:hover {
-        transform: translateY(-6px);
-        box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.15);
-    }
-
-    
-    &::before {
-        content: '💸';
-        font-size: 22rem;
-        position: absolute;
-        top: -6rem;
-        left: 10rem;
-        color: rgba(255, 215, 0, 0.1);
-    }
-}
-
-.promo-info-icon {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-
-    .info-icon {
-        font-size: 1.2rem;
-        color: #4a90e2;
-        transition: color 0.3s;
-
-        &:hover {
-            color: #357abd;
-        }
-    }
-}
-
-.search-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.custom-textfield {
-    width: 100%;
-}
-
-.toggle-button {
-    color: #007bff;
-    font-weight: bold;
-
-    &:hover {
-        text-decoration: underline;
-    }
-}
-
-.show-more-button {
-    color: #007bff;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    margin-top: 1rem;
-}
-
-.apply-button {
-    font-size: 1rem;
-    background: linear-gradient(135deg, #4caf50, #388e3c);
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    transition: transform 0.2s, background-color 0.3s;
-    display: flex;
-    align-items: center;
-    &:hover {
-        background-color: #2e7d32;
-        transform: scale(1.05);
-    }
-}
-

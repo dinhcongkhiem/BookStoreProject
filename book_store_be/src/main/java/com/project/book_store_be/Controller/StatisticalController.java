@@ -14,28 +14,28 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/statistical")
+@RequestMapping("/api/v1/statistical")
 public class StatisticalController {
     @Autowired
     private RevenueService revenueService;
 
-@GetMapping("/data")
-public ResponseEntity<Map<String, Object>> getStatisticsAndRevenueProfit(
-        @RequestParam String type) {
-    Map<String, Object> response = new HashMap<>();
-    Map<String, Object> statistics = revenueService.getOrderStatistics();
-    response.put("statistics", statistics);
-    List<Map<String, BigDecimal>> data;
-    if ("month".equalsIgnoreCase(type)) {
-        data = revenueService.calculateMonthlyRevenueAndProfit();
-    } else if ("week".equalsIgnoreCase(type)) {
-        data = revenueService.calculateDailyRevenueAndProfitForCurrentWeek();
-    } else {
-        return ResponseEntity.badRequest().body(Map.of("error", "Invalid type parameter. Use 'month' or 'week'."));
+    @GetMapping()
+    public ResponseEntity<Map<String, Object>> getStatisticsAndRevenueProfit(
+            @RequestParam String type) {
+        Map<String, Object> response = new HashMap<>();
+        Map<String, Object> statistics = revenueService.getOrderStatistics();
+        response.put("statistics", statistics);
+        List<Map<String, BigDecimal>> data;
+        if ("month".equalsIgnoreCase(type)) {
+            data = revenueService.calculateMonthlyRevenueAndProfit();
+        } else if ("week".equalsIgnoreCase(type)) {
+            data = revenueService.calculateDailyRevenueAndProfitForCurrentWeek();
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid type parameter. Use 'month' or 'week'."));
+        }
+
+        response.put("data", data);
+
+        return ResponseEntity.ok(response);
     }
-
-    response.put("data", data);
-
-    return ResponseEntity.ok(response);
-}
 }

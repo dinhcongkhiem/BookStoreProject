@@ -3,7 +3,7 @@ import Attributes from './Attributes/Attributes';
 import OrderMng from './Order/OrderMng';
 import { AddProduct, DetailProduct, ProductManagement } from './Product';
 import { Discount, AddDiscount } from './Discount';
-import { Voucher, EditVoucher, AddVoucher } from './Voucher';
+import { Voucher, AddVoucher } from './Voucher';
 
 export {
     Dashboard,
@@ -14,7 +14,6 @@ export {
     Discount,
     AddDiscount,
     Voucher,
-    EditVoucher,
     AddVoucher,
     OrderMng,
 };
