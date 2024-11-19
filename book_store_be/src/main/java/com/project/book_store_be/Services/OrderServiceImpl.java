@@ -25,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.math.BigDecimal;
@@ -47,6 +48,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartService cartService;
     private final NotificationService notificationService;
     private final VoucherRepository voucherRepository;
+    private final VoucherService voucherService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
@@ -57,29 +59,31 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
 
-@Override
-public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-    Specification<Order> spec = OrderSpecification.getOrders(null, status, keyword);
-    Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
-    Page<GetAllOrderResponse> ordersPage = orderRepository.findAll(spec, pageable).map(this::convertToResMng);
-    Tuple count = orderRepository.countOrder();
-    OrderStatusResponse orderStatusCountDTO = new OrderStatusResponse(
-            count.get("awaiting_payment_count", Long.class),
-            count.get("processing_count", Long.class),
-            count.get("shipping_count", Long.class),
-            count.get("canceled_count", Long.class),
-            count.get("completed_count", Long.class),
-            count.get("all_count", Long.class)
-    );
-    return new OrderPageResponse(ordersPage, orderStatusCountDTO);
-}
     @Override
+    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword) {
+        Specification<Order> spec = OrderSpecification.getOrders(null, status, keyword);
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
+        Page<GetAllOrderResponse> ordersPage = orderRepository.findAll(spec, pageable).map(this::convertToResMng);
+        Tuple count = orderRepository.countOrder();
+        OrderStatusResponse orderStatusCountDTO = new OrderStatusResponse(
+                count.get("awaiting_payment_count", Long.class),
+                count.get("processing_count", Long.class),
+                count.get("shipping_count", Long.class),
+                count.get("canceled_count", Long.class),
+                count.get("completed_count", Long.class),
+                count.get("all_count", Long.class)
+        );
+        return new OrderPageResponse(ordersPage, orderStatusCountDTO);
+    }
+
+    @Override
+    @Transactional
     public CreateOrderResponse createOrder(OrderRequest request) {
         List<OrderDetail> orderDetailList = new ArrayList<>();
         User u = userService.getCurrentUser();
         BigDecimal[] totalPrice = {BigDecimal.ZERO};
         Address address = request.getAddress() != null ? addressService.createAddress(request.getAddress()) : u.getAddress();
-        BigDecimal voucherDiscount = BigDecimal.ZERO;
+        BigDecimal[] voucherDiscount = {BigDecimal.ZERO};
         Voucher voucher = null;
         Order order = Order.builder()
                 .paymentType(request.getPaymentType())
@@ -91,7 +95,6 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
                 .address(address)
                 .buyerName(request.getBuyerName() != null ? request.getBuyerName() : u.getFullName())
                 .buyerPhoneNum(request.getBuyerPhoneNum() != null ? request.getBuyerPhoneNum() : u.getPhoneNum())
-                .voucher(voucher)
                 .build();
         orderRepository.save(order);
 
@@ -126,17 +129,10 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
                 throw new IllegalArgumentException("Không đủ điều kiện để áp dụng voucher.");
             }
 
-            if (voucher.getType() == VoucherType.PERCENT) {
-                voucherDiscount = voucher.getValue().multiply(totalPrice[0]).divide(BigDecimal.valueOf(100));
-                if (voucher.getMaxValue() != null) {
-                    voucherDiscount = voucherDiscount.min(voucher.getMaxValue());
-                }
-            } else if (voucher.getType() == VoucherType.CASH) {
-                voucherDiscount = voucher.getValue();
-            }
+            voucherDiscount[0] = this.calculateVoucherDiscount(voucher, totalPrice[0], order.getShippingFee());
             order.setVoucher(voucher);
         }
-        BigDecimal finalPrice = totalPrice[0].subtract(voucherDiscount).add(order.getShippingFee());
+        BigDecimal finalPrice = totalPrice[0].add(order.getShippingFee()).subtract(voucherDiscount[0]);
 
         PaymentResponse paymentResponse = null;
         Long orderCode = 0L;
@@ -173,8 +169,10 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
         }
 
         order.setOrderDetails(orderDetailList);
-        order.setTotalPrice(finalPrice);
+        order.setTotalPrice(totalPrice[0]);
         orderRepository.save(order);
+
+        this.voucherService.updateQuantity(voucher.getId(), 1);
         request.getItems().forEach(item -> {
             Long cartId = item.getCartId();
             if (cartId != null) {
@@ -208,6 +206,7 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
         final BigDecimal[] grandTotal = {BigDecimal.ZERO};
         final BigDecimal[] originalSubtotal = {BigDecimal.ZERO};
         final BigDecimal[] totalDiscount = {BigDecimal.ZERO};
+        final BigDecimal[] discountWithVoucher = {BigDecimal.ZERO};
 
         List<OrderItemsDetailResponse> itemDetails = order.getOrderDetails().stream()
                 .map(detail -> {
@@ -218,11 +217,11 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
                     BigDecimal originalPriceAtPurchase = detail.getOriginalPriceAtPurchase();
                     BigDecimal priceAtPurchase = detail.getPriceAtPurchase();
                     originalSubtotal[0] = originalSubtotal[0].add(originalPriceAtPurchase.multiply(quantity));
-                    grandTotal[0] = grandTotal[0].add(priceAtPurchase.subtract(discount).multiply(quantity));
+                    grandTotal[0] = grandTotal[0].add(priceAtPurchase.multiply(quantity));
                     totalDiscount[0] = totalDiscount[0].add(discount.multiply(quantity));
 
                     return OrderItemsDetailResponse.builder()
-                            .productId(product.getId() )
+                            .productId(product.getId())
                             .productName(product.getName())
                             .originalPrice(originalPriceAtPurchase)
                             .discount(discount)
@@ -232,7 +231,17 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
                 })
                 .toList();
 
+
         grandTotal[0] = grandTotal[0].add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
+        Voucher voucher = order.getVoucher();
+        if (voucher != null) {
+            if (voucher.getType().equals(VoucherType.PERCENT)) {
+                discountWithVoucher[0] = grandTotal[0].multiply(voucher.getValue()).divide(BigDecimal.valueOf(100));
+            } else {
+                discountWithVoucher[0] = voucher.getValue();
+            }
+        }
+        grandTotal[0] = grandTotal[0].subtract(discountWithVoucher[0]);
         return OrderDetailResponse.builder()
                 .orderId(order.getId())
                 .status(order.getStatus())
@@ -242,6 +251,7 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
                 .paymentType(order.getPaymentType())
                 .originalSubtotal(originalSubtotal[0])
                 .totalDiscount(totalDiscount[0])
+                .discountWithVoucher(discountWithVoucher[0])
                 .shippingFee(order.getShippingFee())
                 .grandTotal(grandTotal[0])
                 .items(itemDetails)
@@ -249,15 +259,15 @@ public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStat
                 .build();
     }
 
-private GetAllOrderResponse convertToResMng(Order order) {
-    return GetAllOrderResponse.builder()
-            .orderId(order.getId())
-            .status(order.getStatus())
-            .buyerName(order.getBuyerName())
-            .finalPrice(order.getTotalPrice().add(order.getShippingFee()))
-            .orderDate(order.getOrderDate())
-            .build();
-}
+    private GetAllOrderResponse convertToResMng(Order order) {
+        return GetAllOrderResponse.builder()
+                .orderId(order.getId())
+                .status(order.getStatus())
+                .buyerName(order.getBuyerName())
+                .finalPrice(order.getTotalPrice().add(order.getShippingFee()))
+                .orderDate(order.getOrderDate())
+                .build();
+    }
 
     private OrderResponse convertOrderResponse(Order order) {
         List<OrderDetail> orderItems = order.getOrderDetails();
@@ -273,8 +283,11 @@ private GetAllOrderResponse convertToResMng(Order order) {
                     .thumbnail_url(imageProductService.getThumbnailProduct(product.getId()))
                     .build();
         }).toList();
+        Voucher voucher = order.getVoucher();
+        BigDecimal shippingFee = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
 
-        BigDecimal finalPrice = totalPrice.add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
+        BigDecimal voucherDiscount = this.calculateVoucherDiscount(voucher, totalPrice, shippingFee);
+        BigDecimal finalPrice = totalPrice.add(shippingFee).subtract(voucherDiscount);
 
         return OrderResponse.builder()
                 .orderId(order.getId())
@@ -301,4 +314,16 @@ private GetAllOrderResponse convertToResMng(Order order) {
                 .build();
     }
 
+    private BigDecimal calculateVoucherDiscount(Voucher voucher, BigDecimal totalPrice, BigDecimal shippingFee) {
+        BigDecimal voucherDiscount = BigDecimal.ZERO;
+        if(voucher == null) {
+            return voucherDiscount;
+        }
+        if (voucher.getType() == VoucherType.PERCENT) {
+            voucherDiscount = voucher.getValue().multiply(totalPrice.add(shippingFee)).divide(BigDecimal.valueOf(100));
+        } else if (voucher.getType() == VoucherType.CASH) {
+            voucherDiscount = voucher.getValue();
+        }
+        return voucherDiscount;
+    }
 }

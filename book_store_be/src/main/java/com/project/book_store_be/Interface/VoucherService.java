@@ -19,4 +19,5 @@ public interface VoucherService {
     void validateVoucherRequest(VoucherRequest voucherRequest);
     Page<?> searchVouchers(String keyword, Integer status, int page, int size, String sort);
     VoucherResponse mapToResponse(Voucher voucher);
+    void updateQuantity(Long id, Integer quantity);
 }

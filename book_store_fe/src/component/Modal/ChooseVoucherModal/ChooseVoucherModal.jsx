@@ -34,7 +34,7 @@ const CustomTooltip = styled(({ className, ...props }) => <Tooltip {...props} cl
     }),
 );
 
-function ChooseVoucherModal({ open, setOpen, setVoucher, discount }) {
+function ChooseVoucherModal({ open, setOpen, setVoucher, voucher, grandTotal }) {
     const [page, setPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [displayedPromos, setDisplayedPromos] = useState([]);
@@ -52,8 +52,13 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, discount }) {
     });
 
     const handleApplyPromo = (promo) => {
-        // setDiscount(promo);
-        setOpen(false);
+        if (promo.id === voucher?.id) {
+            setVoucher(null);
+            return;
+        } else {
+            setVoucher(promo);
+            setOpen(false);
+        }
     };
 
     return (
@@ -95,7 +100,13 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, discount }) {
                 {vouchers?.content.length > 0 ? (
                     <>
                         {vouchers?.content.map((promo, index) => (
-                            <div key={index} className={cx('promo-item')}>
+                            <div
+                                key={index}
+                                className={cx('promo-item', {
+                                    'selected-item': promo.id === voucher?.id,
+                                    disable: promo.condition > grandTotal,
+                                })}
+                            >
                                 <div className={cx('promo-content')}>
                                     <div className={cx('promo-info-icon')}>
                                         <CustomTooltip
@@ -141,14 +152,21 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, discount }) {
                                 </div>
                                 <div className={cx('promo-actions')}>
                                     <p className={cx('promo-expire')}>HSD: {formatDate(promo.endDate)}</p>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={() => handleApplyPromo(promo)}
-                                        className={cx('apply-button')}
-                                    >
-                                        Áp dụng
-                                    </Button>
+                                    {promo.condition > grandTotal ? (
+                                        <img
+                                            src="https://bookbazaar-project.s3.ap-southeast-1.amazonaws.com/unconditional.svg"
+                                            alt="unconditional"
+                                        />
+                                    ) : (
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={() => handleApplyPromo(promo)}
+                                            className={cx('apply-button')}
+                                        >
+                                            {promo.id === voucher?.id ? 'Bỏ chọn' : 'Áp dụng'}
+                                        </Button>
+                                     )} 
                                 </div>
                             </div>
                         ))}

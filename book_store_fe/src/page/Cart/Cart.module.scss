@@ -208,6 +208,8 @@
 
         p {
             margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between
         }
 
         strong {
@@ -232,6 +234,36 @@
         color: #333;
         margin-bottom: 1rem;
         padding-top: 1rem;
+    }
+
+    .selected-voucher {
+        p {
+            margin: 0;
+            user-select: none;
+        }
+        > div {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            > p {
+                max-width: 22rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                background-color: #b2d2f3;
+                display: block;
+                padding: 0.5rem 1.5rem;
+                font-weight: 600;
+                -webkit-mask-image: url('https://cdn0.fahasa.com/media/fahasa_web_image/discount_image_final.png');
+                -webkit-mask-size: cover;
+                -webkit-mask-repeat: no-repeat;
+                mask-image: url('https://cdn0.fahasa.com/media/fahasa_web_image/discount_image_final.png');
+                mask-size: cover;
+                mask-repeat: no-repeat;
+            }
+        }
     }
 
     .discount-content {

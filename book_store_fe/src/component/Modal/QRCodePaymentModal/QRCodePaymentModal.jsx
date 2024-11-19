@@ -27,6 +27,7 @@ const QRCodePaymentModal = ({ open, handleClose, data }) => {
             toast.success('Đã đặt hàng thành công!');
             handleClose();
             navigate('/order');
+            localStorage.removeItem('selectedVoucher');
         }
     }, [responseStatus]);
     const cancelPaymentMutation = useMutation({

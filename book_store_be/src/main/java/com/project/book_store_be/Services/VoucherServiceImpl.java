@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -124,6 +123,13 @@ public class VoucherServiceImpl implements VoucherService {
         voucher.setUsers(users);
 
         return voucherRepository.save(voucher);
+    }
+
+    @Override
+    public void updateQuantity(Long id, Integer quantity) {
+        Voucher voucher = getVoucherById(id);
+        voucher.setQuantity(voucher.getQuantity() - quantity);
+        voucherRepository.save(voucher);
     }
 
     @Override

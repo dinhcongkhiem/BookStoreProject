@@ -310,9 +310,17 @@ function OrderDetail() {
                         </Box>
                         {orderDataRes?.totalDiscount !== 0 && (
                             <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
-                                <Typography>Giảm giá</Typography>
+                                <Typography>Giảm giá từ Deal</Typography>
                                 <Typography noWrap className={cx('priceCell')}>
                                     -{orderDataRes?.totalDiscount.toLocaleString('vi-VN')} ₫
+                                </Typography>
+                            </Box>
+                        )}
+                        {orderDataRes?.discountWithVoucher !== 0 && (
+                            <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
+                                <Typography>Giảm giá từ mã khuyến mãi</Typography>
+                                <Typography noWrap className={cx('priceCell')}>
+                                    -{orderDataRes?.discountWithVoucher.toLocaleString('vi-VN')} ₫
                                 </Typography>
                             </Box>
                         )}

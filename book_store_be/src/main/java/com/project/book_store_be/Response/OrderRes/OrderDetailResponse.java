@@ -24,6 +24,7 @@ public class OrderDetailResponse {
     private PaymentType paymentType;
     private BigDecimal originalSubtotal;
     private BigDecimal totalDiscount;
+    private BigDecimal discountWithVoucher;
     private BigDecimal shippingFee;
     private BigDecimal grandTotal;
     private LocalDateTime orderDate;
