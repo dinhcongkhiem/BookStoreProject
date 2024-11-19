@@ -13,14 +13,6 @@ const theme = createTheme({
         htmlFontSize: 10,
         fontSize: 14,
     },
-    // palette: {
-    //     primary: {
-    //         main: '#4791db', // Mã màu custom cho primary
-    //     },
-    //     secondary: {
-    //         main: '#046bd8', // Mã màu custom cho secondary (tùy chọn)
-    //     },
-    // },
 });
 const queryClient = new QueryClient();
 const root = ReactDOM.createRoot(document.getElementById('root'));

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import classNames from 'classnames/bind';
 import style from './Discount.module.scss';
+import style1 from '../Admin.module.scss';
 import {
     Table,
     TableBody,
@@ -20,6 +21,7 @@ import {
     Select,
     MenuItem,
     Pagination,
+    Chip,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -31,6 +33,7 @@ import { toast } from 'react-toastify';
 import ConfirmModal from '../../../component/Modal/ConfirmModal/ConfirmModal';
 
 const cx = classNames.bind(style);
+const cx1 = classNames.bind(style1);
 
 const Discount = () => {
     const queryClient = useQueryClient();
@@ -78,10 +81,9 @@ const Discount = () => {
             console.log(error);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries(['discountMng']); 
+            queryClient.invalidateQueries(['discountMng']);
             toast.success('Đã xóa đợt giảm giá thành công');
         },
-        
     });
     const convertStatus = (discount) => {
         const startDate = new Date(discount.startDate);
@@ -216,12 +218,11 @@ const Discount = () => {
                                 <TableCell>{discount.discountRate}%</TableCell>
                                 <TableCell>{new Date(discount.startDate).toLocaleDateString()}</TableCell>
                                 <TableCell>{new Date(discount.endDate).toLocaleDateString()}</TableCell>
-                                <TableCell>
-                                    <div className={cx('status-container')}>
-                                        <span className={cx('status', convertStatus(discount).class)}>
-                                            {convertStatus(discount).label}
-                                        </span>
-                                    </div>
+                                <TableCell align='center'>
+                                    <Chip
+                                        label={convertStatus(discount).label}
+                                        className={cx1('status', convertStatus(discount).class)}
+                                    />
                                 </TableCell>
                                 <TableCell>
                                     <IconButton

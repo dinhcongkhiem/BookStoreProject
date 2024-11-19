@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -23,22 +24,21 @@ public class VoucherRequest {
 
     @Min(value = 1, message = "Quantity must be greater than 0")
     private Integer quantity;
-
-    private VoucherType discountType;
-
+    private VoucherType type;
     @NotNull(message = "Discount value cannot be null")
-    private BigDecimal discountValue;
-
-    private BigDecimal maxDiscountValue;
+    private BigDecimal value;
+    private BigDecimal maxValue;
     private BigDecimal condition;
+    private Boolean isAll;
+    private List<Long> userIds;
 
     @AssertTrue(message = "Discount value cannot exceed 30% for PERCENT type")
     public boolean isDiscountValueValid() {
-        if (discountType == VoucherType.PERCENT) {
-            if (discountValue == null || discountValue.compareTo(new BigDecimal("30")) > 0) {
+        if (type == VoucherType.PERCENT) {
+            if (value == null || value.compareTo(new BigDecimal("30")) > 0) {
                 return false;
             }
-            if (maxDiscountValue != null && discountValue.compareTo(maxDiscountValue) > 0) {
+            if (maxValue != null && value.compareTo(maxValue) > 0) {
                 return false;
             }
         }

@@ -1,6 +1,25 @@
 import httpRequest from '../utills/httpRequest';
 import { USER_URL } from './config';
 class UserServiceClass {
+    getAllUser = ({ page, size, keyword }) => {
+        let config = {
+            method: 'get',
+            url: USER_URL + '/all',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+            params: {
+                page: page - 1,
+                size,
+                keyword: keyword,
+            },
+        };
+        console.log('jâja');
+
+        return httpRequest.request(config);
+    };
+
     getUserInfo = () => {
         let config = {
             method: 'get',

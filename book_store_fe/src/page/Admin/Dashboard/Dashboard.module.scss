@@ -40,24 +40,28 @@
     }
 }
 
-.income-chart,
-.recent-order {
+.income-chart {
     h4 {
         font-size: 1.7rem;
         margin: 1rem 2rem;
     }
-    > div {
+    button {
+        text-transform: none;
+    }
+    :global {
+        button.MuiButtonBase-root.MuiButton-root.MuiButton-text.MuiButton-textSecondary.MuiButton-sizeSmall.MuiButton-textSizeSmall.MuiButton-colorSecondary.MuiButton-root.MuiButton-text.MuiButton-textSecondary.MuiButton-sizeSmall.MuiButton-textSizeSmall.MuiButton-colorSecondary.css-1v70ygc-MuiButtonBase-root-MuiButton-root {
+            color: black;
+            &:hover {
+                background-color: rgba(0, 0, 0, 0.1);
+            }
+        }
+    }
+    .chart {
         padding: 1rem;
         padding-top: 3rem;
         background-color: var(--white);
         border: 1px solid #cecece;
         border-radius: 1rem;
         box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
-    }
-}
-
-.recent-order {
-    > div {
-        padding: unset;
     }
 }

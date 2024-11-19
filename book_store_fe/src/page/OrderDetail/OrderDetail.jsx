@@ -72,7 +72,7 @@ function OrderDetail() {
     });
 
     function renderActionButtons(status) {
-        const isAdmin = pathname.startsWith('/admin');        
+        const isAdmin = pathname.startsWith('/admin');
         const buttons = {
             AWAITING_PAYMENT: isAdmin ? null : (
                 <>
@@ -124,14 +124,33 @@ function OrderDetail() {
                     Mua lại
                 </Button>
             ),
-            PROCESSING: (
+            PROCESSING: isAdmin ? (
+                <>
+                    <Button
+                        variant="contained"
+                        color="error"
+                        startIcon={<CancelIcon />}
+                        className={cx('actionButton', 'cancelButton')}
+                    >
+                        Hủy đơn hàng
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<ReplayIcon />}
+                        className={cx('actionButton', 'reorderButton')}
+                    >
+                        Xác nhận đơn hàng
+                    </Button>
+                </>
+            ) : (
                 <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<ReplayIcon />}
-                    className={cx('actionButton', 'reorderButton')}
+                    variant="contained"
+                    color="error"
+                    startIcon={<CancelIcon />}
+                    className={cx('actionButton', 'cancelButton')}
                 >
-                    Xác nhận đơn hàng
+                    Hủy đơn hàng
                 </Button>
             ),
         };
@@ -291,9 +310,17 @@ function OrderDetail() {
                         </Box>
                         {orderDataRes?.totalDiscount !== 0 && (
                             <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
-                                <Typography>Giảm giá</Typography>
+                                <Typography>Giảm giá từ Deal</Typography>
                                 <Typography noWrap className={cx('priceCell')}>
                                     -{orderDataRes?.totalDiscount.toLocaleString('vi-VN')} ₫
+                                </Typography>
+                            </Box>
+                        )}
+                        {orderDataRes?.discountWithVoucher !== 0 && (
+                            <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
+                                <Typography>Giảm giá từ mã khuyến mãi</Typography>
+                                <Typography noWrap className={cx('priceCell')}>
+                                    -{orderDataRes?.discountWithVoucher.toLocaleString('vi-VN')} ₫
                                 </Typography>
                             </Box>
                         )}

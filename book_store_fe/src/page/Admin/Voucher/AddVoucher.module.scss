@@ -1,11 +1,21 @@
 .form {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow:
+        0px 3px 3px -2px rgba(0, 0, 0, 0.2),
+        0px 3px 4px 0px rgba(0, 0, 0, 0.14),
+        0px 1px 8px 0px rgba(0, 0, 0, 0.12);
+    .wrapper {
+        display: flex;
+        > div {
+            flex: 1;
+        }
+    }
+
     .paper {
         padding: 2.4rem;
-        height: 100%;
-        border-radius: 1rem;
+        box-shadow: none;
+        border-radius: 0;
     }
 }
 
@@ -20,6 +30,7 @@
     justify-content: flex-end;
     gap: 1.62rem;
     margin-top: 3rem;
+    flex-direction: row-reverse;
 
     .submit-button {
         background-color: var(--primary);
@@ -41,5 +52,39 @@
             background-color: var(--hover-background-darker);
             color: white;
         }
+    }
+}
+
+.form-field {
+    margin-bottom: 1.6rem;
+}
+
+.currency-symbol {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-decoration: underline;
+    margin-left: 4px;
+}
+
+.input-date {
+    width: 100%;
+    position: relative;
+    >input[type='date'] {
+        position: absolute;
+        bottom: 0.8rem;
+        left: 0;
+        opacity: 1; /* Giữ độ trong suốt để không nhìn thấy input */
+        width: 100%;
+        height: 0rem;
+        z-index: -1; /* Đặt giá trị z-index cao hơn để nó nằm trên các phần tử khác */
+        cursor: pointer; /* Đảm bảo con trỏ chuột hiển thị khi di chuột lên input */
+    }
+}
+
+.custom-datepicker {
+    cursor: pointer;
+    color: #000;
+    > svg {
+        font-size: 1.7rem;
     }
 }

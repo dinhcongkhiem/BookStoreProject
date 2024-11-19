@@ -43,6 +43,9 @@ import ProductService from '../../../service/ProductService';
 import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 import useDebounce from '../../../hooks/useDebounce';
 import { toast } from 'react-toastify';
+
+import style1 from '../Admin.module.scss';
+const cx1 = classNames.bind(style1);
 const cx = classNames.bind(style);
 
 const Product = () => {
@@ -270,7 +273,7 @@ const Product = () => {
                                         label={product?.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
                                         color={product?.status === 'AVAILABLE' ? 'success' : 'error'}
                                         size="small"
-                                        className={cx('status', {
+                                        className={cx1('status', {
                                             'in-stock': product.status === 'AVAILABLE',
                                             'out-of-stock': product.status !== 'AVAILABLE',
                                         })}

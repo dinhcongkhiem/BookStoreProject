@@ -5,25 +5,16 @@ import {
     Button,
     Checkbox,
     IconButton,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    TextField,
-    InputAdornment,
-    Box,
     TableHead,
     TableRow,
     TableCell,
     TableBody,
     TableContainer,
 } from '@mui/material';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-import CancelIcon from '@mui/icons-material/Cancel';
 import { Table } from 'react-bootstrap';
 import CartService from '../../service/CartService';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -32,6 +23,9 @@ import ConfirmModal from '../../component/Modal/ConfirmModal/ConfirmModal';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
+import ChooseVoucherModal from '../../component/Modal/ChooseVoucherModal/ChooseVoucherModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronRight, faTicket } from '@fortawesome/free-solid-svg-icons';
 const cx = classNames.bind(style);
 
 function Cart() {
@@ -39,11 +33,13 @@ function Cart() {
     const [selectedItems, setSelectedItems] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
-    const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
+
+    const [voucherDialogOpen, setVoucherDialogOpen] = useState(false);
+    const [selectedVoucher, setSelectedVoucher] = useState(null);
 
     const [grandTotal, setGrandTotal] = useState(0);
     const [totalDiscount, setTotalDiscount] = useState(0);
+    const [voucherDiscount, setVoucherDiscount] = useState(0);
     const queryClient = useQueryClient();
 
     const { data: productsInCart, isLoading } = useQuery({
@@ -67,9 +63,13 @@ function Cart() {
             (acc, item) => acc + (selectedItems.includes(item.id) ? item.discount * item.quantity : 0),
             0,
         );
+        const voucherDiscount = selectedVoucher
+            ? (selectedItems.type = 'PERCENT' ? (grandTotal * selectedVoucher.value) / 100 : selectedVoucher.value)
+            : 0;
+        setVoucherDiscount(voucherDiscount);
         setTotalDiscount(totalDiscount);
         setGrandTotal(grandTotal);
-    }, [selectedItems, productsInCart]);
+    }, [selectedItems, productsInCart, selectedVoucher]);
     const updateCartMutation = useMutation({
         mutationFn: (data) => CartService.updateCartItem(data),
         onError: (error) => {
@@ -153,6 +153,7 @@ function Cart() {
             toast.info('Bạn chưa chọn sản phẩm nào để mua.');
             return;
         }
+        localStorage.setItem('selectedVoucher', JSON.stringify(selectedVoucher));
         localStorage.setItem('cartIdsForPayment', JSON.stringify(selectedItems));
         localStorage.removeItem('productForPayment');
         navigate('/payment', { state: { cartIds: selectedItems } });
@@ -306,32 +307,65 @@ function Cart() {
                 <div className={cx('cart-summary')}>
                     <div className={cx('discount-section')}>
                         <h3>BookBazaar Khuyến Mãi</h3>
-                        <div className={cx('discount-content')} onClick={() => setDiscountDialogOpen(true)}>
-                            <MonetizationOnIcon className={cx('discount-icon')} />
-                            <span>Chọn hoặc nhập mã khuyến mãi khác</span>
-                        </div>
+                        {selectedVoucher ? (
+                            <div className={cx('selected-voucher')}>
+                                <div>
+                                    <p>{`${selectedVoucher.name} giảm  ${
+                                        selectedVoucher.type === 'PERCENT'
+                                            ? ' ' + selectedVoucher.value + '% '
+                                            : ' ' + selectedVoucher.value.toLocaleString('vi-VN') + '₫ '
+                                    }`}</p>
+
+                                    <Button
+                                        variant="outlined"
+                                        size="small"
+                                        sx={{ textTransform: 'none' }}
+                                        onClick={() => setSelectedVoucher(null)}
+                                    >
+                                        <span className="fw-semibold">Bỏ chọn</span>
+                                    </Button>
+                                </div>
+                                <Button sx={{ textTransform: 'none' }} onClick={() => setVoucherDialogOpen(true)}>
+                                    <FontAwesomeIcon icon={faTicket} size="lg" />
+                                    <span className="mx-3">Chọn hoặc nhập mã khác</span>
+                                    <FontAwesomeIcon icon={faChevronRight} size="lg" />
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className={cx('discount-content')} onClick={() => setVoucherDialogOpen(true)}>
+                                <MonetizationOnIcon className={cx('discount-icon')} />
+                                Chọn hoặc nhập mã khuyến mãi.
+                            </div>
+                        )}
                     </div>
                     <div className={cx('summary-details')}>
                         <p>
-                            Tạm tính:
+                            <span>Tạm tính:</span>
                             <strong className="ms-3">
                                 {grandTotal?.toLocaleString('vi-VN')} <span className={cx('currency-symbol')}>₫</span>
                             </strong>
                         </p>
                         <p>
-                            Giảm giá:
+                            <span>Giảm giá từ Deal:</span>
                             <strong className="ms-3" style={{ color: 'rgb(0, 171, 86)' }}>
-                                
                                 {selectedItems.length > 0 && '-'}
                                 {totalDiscount?.toLocaleString('vi-VN')}
                                 <span className={cx('currency-symbol')}>₫</span>
                             </strong>
                         </p>
+                        <p>
+                            <span>Giảm giá từ khuyến mãi:</span>
+                            <strong className="ms-3" style={{ color: 'rgb(0, 171, 86)' }}>
+                                {selectedItems.length > 0 && '-'}
+                                {voucherDiscount?.toLocaleString('vi-VN')}
+                                <span className={cx('currency-symbol')}>₫</span>
+                            </strong>
+                        </p>
                         <hr />
                         <p>
-                            Thành tiền:
+                            <span>Thành tiền:</span>
                             <strong className="ms-3">
-                                {(grandTotal - totalDiscount)?.toLocaleString('vi-VN')}
+                                {(grandTotal - totalDiscount - voucherDiscount)?.toLocaleString('vi-VN')}
                                 <span className={cx('currency-symbol')}>₫</span>
                             </strong>
                         </p>
@@ -342,51 +376,6 @@ function Cart() {
                 </div>
             </div>
 
-            <Dialog open={discountDialogOpen} onClose={() => setDiscountDialogOpen(false)}>
-                <DialogTitle>Chọn mã giảm giá</DialogTitle>
-                <DialogContent>
-                    <div className={cx('search-container')}>
-                        <TextField
-                            placeholder="Tìm kiếm mã giảm giá..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <LocalOfferIcon />
-                                    </InputAdornment>
-                                ),
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        {searchTerm ? (
-                                            <IconButton onClick={() => setSearchTerm('')} className={cx('close-icon')}>
-                                                <CancelIcon />
-                                            </IconButton>
-                                        ) : (
-                                            <Box sx={{ width: '1.5rem' }} />
-                                        )}
-                                    </InputAdornment>
-                                ),
-                                classes: {
-                                    input: cx('custom-textfield'),
-                                },
-                                style: { width: '25rem' },
-                            }}
-                        />
-                        <Button className={cx('search-button')} variant="outlined" disabled={searchTerm === ''}>
-                            Xác nhận
-                        </Button>
-                    </div>
-                    <p>Chưa có mã giảm giá nào được áp dụng.</p>
-                </DialogContent>
-
-                <DialogActions>
-                    <Button variant="outlined" color="primary" onClick={() => setDiscountDialogOpen(false)}>
-                        Đóng
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
             <ConfirmModal
                 open={openDialog}
                 onClose={() => setOpenDialog(false)}
@@ -396,6 +385,13 @@ function Cart() {
                 type={'warn'}
             />
             <ModalLoading isLoading={isLoading || updateCartMutation.isPending} />
+            <ChooseVoucherModal
+                open={voucherDialogOpen}
+                setOpen={() => setVoucherDialogOpen(false)}
+                setVoucher={(v) => setSelectedVoucher(v)}
+                voucher={selectedVoucher}
+                grandTotal={grandTotal - totalDiscount}
+            />
         </div>
     );
 }
