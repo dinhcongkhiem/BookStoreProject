@@ -63,9 +63,16 @@ function Cart() {
             (acc, item) => acc + (selectedItems.includes(item.id) ? item.discount * item.quantity : 0),
             0,
         );
-        const voucherDiscount = selectedVoucher
-            ? (selectedItems.type = 'PERCENT' ? (grandTotal * selectedVoucher.value) / 100 : selectedVoucher.value)
-            : 0;
+        let voucherDiscount;
+        if (selectedVoucher) {
+            if (selectedItems.type === 'CASH') {
+                voucherDiscount = (grandTotal * selectedVoucher.value) / 100;
+            } else {
+                voucherDiscount = selectedVoucher.value;
+            }
+        } else {
+            voucherDiscount = 0;
+        }
         setVoucherDiscount(voucherDiscount);
         setTotalDiscount(totalDiscount);
         setGrandTotal(grandTotal);
@@ -310,11 +317,10 @@ function Cart() {
                         {selectedVoucher ? (
                             <div className={cx('selected-voucher')}>
                                 <div>
-                                    <p>{`${selectedVoucher.name} giảm  ${
-                                        selectedVoucher.type === 'PERCENT'
+                                    <p>{`${selectedVoucher.name} giảm  ${selectedVoucher.type === 'PERCENT'
                                             ? ' ' + selectedVoucher.value + '% '
                                             : ' ' + selectedVoucher.value.toLocaleString('vi-VN') + '₫ '
-                                    }`}</p>
+                                        }`}</p>
 
                                     <Button
                                         variant="outlined"
