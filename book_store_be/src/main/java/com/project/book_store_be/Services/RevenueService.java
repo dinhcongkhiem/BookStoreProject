@@ -88,7 +88,7 @@ public class RevenueService {
         LocalDate today = LocalDate.now();
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(23, 59, 59);
-        List<Order> todaysOrders = orderRepository.DateRange(startOfDay, endOfDay );
+        List<Order> todaysOrders = orderRepository.findByStatusAndDateRange(OrderStatus.COMPLETED,startOfDay, endOfDay );
         int ordersPerDay = todaysOrders.size();
         BigDecimal todayRevenue = todaysOrders.stream()
                 .map(Order::getTotalPrice)
