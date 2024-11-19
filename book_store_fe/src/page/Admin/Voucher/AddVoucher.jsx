@@ -310,6 +310,7 @@ function AddVoucher() {
                                     disabled={formik.values.type === 'CASH'}
                                     size="small"
                                     fullWidth
+                                    type="number"
                                     label="Giá trị tối đa"
                                     name="maxValue"
                                     margin="normal"

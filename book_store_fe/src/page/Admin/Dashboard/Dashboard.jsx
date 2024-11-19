@@ -170,7 +170,7 @@ function Dashboard() {
                     <ReactApexChart options={options} series={series} type="area" height={500} />
                 </div>
             </div>
-            <div className={cx('recent-order', 'mt-5')}>
+            {/* <div className={cx('recent-order', 'mt-5')}>
                 <h4>Đơn đặt hàng gần đây</h4>
                 <div>
                     <TableContainer
@@ -217,7 +217,7 @@ function Dashboard() {
                         </Table>
                     </TableContainer>
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 }

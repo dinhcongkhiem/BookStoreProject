@@ -53,6 +53,53 @@ class OrderServiceClass {
         return httpRequest.request(config);
     };
 
+
+    createCounterSellOrder = () => {
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: ORDERS_URL + '/counter-sell',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+        };
+
+        return httpRequest.request(config);
+    };
+
+    createOrderDetail = ({items, orderId}) => {        
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: ORDERS_URL + '/order-detail',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            params: {orderId: orderId},
+            data: items,
+            withCredentials: true,
+        };
+
+        return httpRequest.request(config);
+    };
+
+    rePaymentOrder = ({orderId, paymentType}) => {
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: ORDERS_URL + '/re-payment',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+            params: {orderId: orderId, paymentType: paymentType},
+        };
+
+        return httpRequest.request(config);
+    };
+
+
     getOrderDetailByID = (id) => {
         let config = {
             method: 'get',
