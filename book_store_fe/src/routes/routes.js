@@ -30,6 +30,7 @@ const adminRoutes = [
     { path: '/admin/product/add', component: Pages.AddProduct },
     { path: '/admin/product/update/:productId', component: Pages.AddProduct },
     { path: '/admin/detailproduct', component: Pages.DetailProduct },
+    { path: '/admin/sell', component: Pages.Sell, label: 'Bán hàng' },
     { path: '/admin/orderMng', component: Pages.OrderMng, label: 'Đơn hàng' },
     { path: '/admin/orderMng/:orderIdPath', component: Pages.OrderMng, label: 'Đơn hàng' },
     { path: '/admin/voucher', component: Pages.Voucher, label: 'Mã giảm giá' },
