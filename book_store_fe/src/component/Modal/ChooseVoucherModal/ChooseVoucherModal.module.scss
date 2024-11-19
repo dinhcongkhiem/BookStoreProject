@@ -48,6 +48,7 @@
 }
 
 .promo-actions {
+    min-height: 3rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -56,8 +57,19 @@
         font-size: 1.4rem;
         color: #787878;
     }
+    img {
+        position: absolute;
+        right: 10px;
+        width: 116px;
+    }
 }
-
+.selected-item {
+    border: 1px solid var(--primary) !important;
+}
+.disable {
+    pointer-events: none;
+    opacity: 0.5;
+}
 .promo-title {
     font-weight: bold;
     font-size: 2.1rem;
@@ -69,6 +81,7 @@
 }
 
 .promo-item {
+    user-select: none;
     margin-bottom: 16px;
     padding: 12px;
     position: relative;
@@ -170,7 +183,7 @@
         span {
             color: #787878;
             flex-basis: 10rem;
-            width: 10rem;    
+            width: 10rem;
         }
     }
 }

@@ -42,7 +42,8 @@ public class Voucher {
     @JoinTable(
             name = "voucher_user",
             joinColumns = @JoinColumn(name = "voucher_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
+            inverseJoinColumns = @JoinColumn(name = "user_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"voucher_id", "user_id"})
     )
     private List<User> users;
 

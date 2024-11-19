@@ -12,7 +12,15 @@ import java.util.Optional;
 
 public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     Optional<Voucher> findByCode(String code);
-    Page<Voucher> findByUsersIs(User user, Pageable pageable);
+
+
+    @Query(value = """
+            SELECT *\s
+            FROM voucher v 
+            JOIN voucher_user vu ON v.id = vu.voucher_id
+            where vu.user_id = :user_id
+                    """, nativeQuery = true)
+    Page<Voucher> findByUsersIs(Long user_id, Pageable pageable);
 
     @Query(value = """
             SELECT *\s

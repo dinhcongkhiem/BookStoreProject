@@ -2,19 +2,15 @@ import classNames from 'classnames/bind';
 
 import style from './Payment.module.scss';
 import {
-    Box, Button, FormControl, FormControlLabel, Radio, RadioGroup, Typography,
-    IconButton,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    TextField,
-    InputAdornment, Tooltip
+    Box,
+    Button,
+    FormControl,
+    FormControlLabel,
+    Radio,
+    RadioGroup,
+    Typography,
 } from '@mui/material';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
-import CancelIcon from '@mui/icons-material/Cancel';
-import InfoIcon from '@mui/icons-material/Info';
 import { useContext, useEffect, useState } from 'react';
 import bank_transfer_icon from '../../assets/icons/bank_transfer_icon.png';
 import cash_on_delivery_icon from '../../assets/icons/cash_on_delivery_icon.png';
@@ -29,6 +25,8 @@ import OrderService from '../../service/OrderService';
 import { toast } from 'react-toastify';
 import QRCodePaymentModal from '../../component/Modal/QRCodePaymentModal/QRCodePaymentModal';
 import ChooseVoucherModal from '../../component/Modal/ChooseVoucherModal/ChooseVoucherModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronRight, faTicket } from '@fortawesome/free-solid-svg-icons';
 
 const cx = classNames.bind(style);
 
@@ -42,10 +40,16 @@ function Payment() {
     const [paymentType, setPaymentType] = useState('cash_on_delivery');
     const [paymentData, setPaymentData] = useState('');
     const [voucherDialogOpen, setVoucherDialogOpen] = useState(false);
+    const [selectedVoucher, setSelectedVoucher] = useState(null);
+
     const cartIdsFromState = location.state?.cartIds || null;
     const productFromState = location.state?.product || null;
     const cartIds = cartIdsFromState || JSON.parse(localStorage.getItem('cartIdsForPayment'));
     const product = productFromState || JSON.parse(localStorage.getItem('productForPayment'));
+    const selectVoucherInStorage = JSON.parse(localStorage.getItem('selectedVoucher'));
+    useEffect(() => {
+        setSelectedVoucher(selectVoucherInStorage);
+    }, [selectVoucherInStorage]);
     const {
         data: userInfo,
         error,
@@ -92,6 +96,7 @@ function Payment() {
         }
         setAddressOption(e.target.value);
     };
+
     useEffect(() => {
         setUser(userInfo);
     }, [userInfo]);
@@ -103,6 +108,7 @@ function Payment() {
             if (data.data.paymentType === 'cash_on_delivery') {
                 localStorage.removeItem('cartIdsForPayment');
                 localStorage.removeItem('productForPayment');
+                localStorage.removeItem('selectedVoucher');
                 toast.success('Đã đặt hàng thành công!');
                 navigate('/order');
                 return;
@@ -121,12 +127,11 @@ function Payment() {
             paymentType: paymentType,
             buyerName: diffAddress ? diffAddress.fullName : null,
             buyerPhoneNum: diffAddress ? diffAddress.phoneNum : null,
+            voucherCode: selectedVoucher?.code,
             items: checkoutData?.items.map((i) => ({ cartId: i.cartId, productId: i.productId, qty: i.quantity })),
         };
         createOrderMutation.mutate(data);
     };
-
-
 
     return (
         <div className={cx('d-flex justify-content-center', 'wrapper')}>
@@ -145,7 +150,7 @@ function Payment() {
                                     </p>
                                     {checkout.price !== checkout.original_price && (
                                         <p className={cx('originalPrice')}>
-                                            {(checkout.original_price).toLocaleString('vi-VN')}
+                                            {checkout.original_price.toLocaleString('vi-VN')}
                                             <span>₫</span>
                                         </p>
                                     )}
@@ -253,16 +258,45 @@ function Payment() {
                 </div>
                 <div className={cx('section')}>
                     <h4>BookBazaar Khuyến Mãi</h4>
-                    <div className={cx('discount-content')} onClick={() => setVoucherDialogOpen(true)}>
-                        <MonetizationOnIcon className={cx('discount-icon')} />
-                        Chọn hoặc nhập mã khuyến mãi.
-                    </div>
+
+                    {selectedVoucher ? (
+                        <div className={cx('selected-voucher')}>
+                            <div>
+                                <p>{`${selectedVoucher.name} giảm  ${
+                                    selectedVoucher.type === 'PERCENT'
+                                        ? ' ' + selectedVoucher.value + '% '
+                                        : ' ' + selectedVoucher.value.toLocaleString('vi-VN') + '₫ '
+                                }`}</p>
+
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{ textTransform: 'none' }}
+                                    onClick={() => setSelectedVoucher(null)}
+                                >
+                                    <span className="fw-semibold">Bỏ chọn</span>
+                                </Button>
+                            </div>
+                            <Button sx={{ textTransform: 'none' }} onClick={() => setVoucherDialogOpen(true)}>
+                                <FontAwesomeIcon icon={faTicket} size="lg" />
+                                <span className="mx-3">Chọn hoặc nhập mã khác</span>
+                                <FontAwesomeIcon icon={faChevronRight} size="lg" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className={cx('discount-content')} onClick={() => setVoucherDialogOpen(true)}>
+                            <MonetizationOnIcon className={cx('discount-icon')} />
+                            Chọn hoặc nhập mã khuyến mãi.
+                        </div>
+                    )}
                 </div>
                 <div className={cx('section', 'order-price')}>
                     <div className={cx('head')}>
                         <div>
                             <h4>Đơn hàng</h4>
-                            <span>{checkoutData?.items.reduce((total, item) => total + item.quantity, 0)} sản phẩm</span>
+                            <span>
+                                {checkoutData?.items.reduce((total, item) => total + item.quantity, 0)} sản phẩm
+                            </span>
                         </div>
                         <Link to="/cart">Thay đổi</Link>
                     </div>
@@ -271,7 +305,7 @@ function Payment() {
                             <p className={cx('label')}>Tạm tính</p>
                             <p>
                                 {checkoutData?.originalSubtotal.toLocaleString('vi-VN')}
-                                <span>₫</span>
+                                <span> ₫</span>
                             </p>
                         </div>
                         <div className="d-flex justify-content-between">
@@ -289,19 +323,34 @@ function Payment() {
                             </div>
                         )}
 
-                        {/* {appliedPromo && (
+                        {selectedVoucher && (
                             <div className="d-flex justify-content-between">
                                 <p className={cx('label')}>Giảm giá từ mã khuyến mãi</p>
-                                <p className={cx('discount')}>{appliedPromo.discount}</p>
+                                <p className={cx('discount')}>
+                                    -
+                                    {(selectedVoucher.type === 'PERCENT'
+                                        ? (checkoutData?.grandTotal * selectedVoucher.value) / 100
+                                        : selectedVoucher.value
+                                    ).toLocaleString('vi-VN')}
+                                    <span>₫</span>
+                                </p>
                             </div>
-                        )} */}
+                        )}
                     </div>
                     <div className={cx('order-total-price')}>
                         <div className="d-flex justify-content-between">
-                            <h5>Tổng tiền</h5>
+                            <h4>Tổng tiền</h4>
                             <div>
                                 <p className={cx('total')}>
-                                    {checkoutData?.grandTotal.toLocaleString('vi-VN')} <span>₫</span>
+                                    {selectedVoucher
+                                        ? (
+                                              checkoutData?.grandTotal -
+                                              (selectedVoucher?.type === 'PERCENT'
+                                                  ? (checkoutData?.grandTotal * selectedVoucher.value) / 100
+                                                  : selectedVoucher?.value)
+                                          ).toLocaleString('vi-VN')
+                                        : checkoutData?.grandTotal.toLocaleString('vi-VN')}
+                                    <span>₫</span>
                                 </p>
                             </div>
                         </div>
@@ -329,8 +378,13 @@ function Payment() {
                     data={paymentData}
                 />
             )}
-            <ChooseVoucherModal open={voucherDialogOpen} setOpen={() => setVoucherDialogOpen(false)}/>
-
+            <ChooseVoucherModal
+                open={voucherDialogOpen}
+                setOpen={() => setVoucherDialogOpen(false)}
+                setVoucher={(v) => setSelectedVoucher(v)}
+                voucher={selectedVoucher}
+                grandTotal={checkoutData?.grandTotal}
+            />
         </div>
     );
 }

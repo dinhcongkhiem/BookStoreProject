@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -127,6 +126,13 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    public void updateQuantity(Long id, Integer quantity) {
+        Voucher voucher = getVoucherById(id);
+        voucher.setQuantity(voucher.getQuantity() - quantity);
+        voucherRepository.save(voucher);
+    }
+
+    @Override
     public Voucher getVoucherById(Long id) {
         return voucherRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Voucher không tìm thấy với id: " + id));
@@ -135,7 +141,7 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public Page<?> getByUser(Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
-        return voucherRepository.findByUsersIs(userService.getCurrentUser(),pageable).map(this::mapToResponse);
+        return voucherRepository.findByUsersIs(userService.getCurrentUser().getId(),pageable).map(this::mapToResponse);
     }
     @Override
     public void deleteVoucher(Long id) {
