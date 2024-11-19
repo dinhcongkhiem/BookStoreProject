@@ -81,6 +81,7 @@ function OrderDetail() {
                         color="primary"
                         startIcon={<PaymentIcon />}
                         className={cx('actionButton', 'payButton')}
+                        onClick={() => navigate(`/payment/repayment/${orderDataRes?.orderId}`)}
                     >
                         Thanh toán lại
                     </Button>
@@ -95,16 +96,6 @@ function OrderDetail() {
                 </>
             ),
             COMPLETED: !isAdmin && (
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<ReplayIcon />}
-                    className={cx('actionButton', 'reorderButton')}
-                >
-                    Mua lại
-                </Button>
-            ),
-            CANCELED: (
                 <Button
                     variant="outlined"
                     color="primary"
@@ -209,7 +200,7 @@ function OrderDetail() {
                         <Typography variant="body2">
                             Ngày đặt hàng: {new Date(orderDataRes?.orderDate).toLocaleDateString('vi-VN')}
                         </Typography>
-                        <Typography variant="body2">Mã giảm giá: {orderDataRes?.discountCode || 'Không có'}</Typography>
+                        <Typography variant="body2">Mã giảm giá: {orderDataRes?.voucher.code || 'Không có'}</Typography>
                     </StyledPaper>
                 </Grid>
             </Grid>
@@ -316,11 +307,11 @@ function OrderDetail() {
                                 </Typography>
                             </Box>
                         )}
-                        {orderDataRes?.discountWithVoucher !== 0 && (
+                        {orderDataRes?.voucher.value !== 0 && (
                             <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
                                 <Typography>Giảm giá từ mã khuyến mãi</Typography>
                                 <Typography noWrap className={cx('priceCell')}>
-                                    -{orderDataRes?.discountWithVoucher.toLocaleString('vi-VN')} ₫
+                                    -{orderDataRes?.voucher.value.toLocaleString('vi-VN')} ₫
                                 </Typography>
                             </Box>
                         )}

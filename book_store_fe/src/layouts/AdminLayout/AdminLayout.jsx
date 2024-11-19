@@ -96,6 +96,15 @@ function AdminLayout({ children }) {
                             <p className="ms-3 fw-bold fs-3">Thống kê</p>
                         </ListItemButton>
                         <ListItemButton
+                            selected={pathname === '/admin/sell'}
+                            sx={{ padding: '0.6rem 1.5rem' }}
+                            color={'secondary'}
+                            onClick={() => navigate('/admin/sell')}
+                        >
+                            <img src="https://bookbazaar-project.s3.ap-southeast-1.amazonaws.com/sell.svg" alt="icon" width={22} />
+                            <p className="ms-3 fw-bold fs-3">Bán hàng tại quầy</p>
+                        </ListItemButton>
+                        <ListItemButton
                             selected={pathname === '/admin/orderMng'}
                             sx={{ padding: '0.6rem 1.5rem' }}
                             color={'secondary'}
