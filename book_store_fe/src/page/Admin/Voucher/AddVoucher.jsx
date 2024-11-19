@@ -38,7 +38,7 @@ import VoucherService from '../../../service/VoucherService';
 const cx = classNames.bind(style);
 
 function AddVoucher() {
-    const { discountId } = useParams();
+    const { voucherId } = useParams();
 
     const navigate = useNavigate();
     const startDateRef = useRef(null);
@@ -110,7 +110,7 @@ function AddVoucher() {
                 const startDate = parseDate(value);
                 const currentDate = new Date();
                 currentDate.setHours(0, 0, 0, 0);
-                return discountId ? true : startDate >= currentDate;
+                return voucherId ? true : startDate >= currentDate;
             }),
         end: Yup.string()
             .required('Vui lòng nhập ngày kết thúc.')
@@ -126,7 +126,6 @@ function AddVoucher() {
             .min(1, 'Bạn phải chọn ít nhất một người dùng')
             .required('Bạn phải chọn ít nhất một người dùng'),
     });
-
     // useQuery({
     //     queryKey: ['discountById'],
     //     queryFn: () =>
@@ -440,7 +439,7 @@ function AddVoucher() {
                                     className={cx('submit-button')}
                                     onClick={formik.handleSubmit}
                                 >
-                                    {discountId ? 'Cập nhật' : 'Thêm'}
+                                    {voucherId ? 'Cập nhật' : 'Thêm'}
                                 </Button>
                             </Box>
                         </Paper>

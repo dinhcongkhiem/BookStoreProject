@@ -58,7 +58,7 @@ public class VoucherController {
     }
 
     //    @PatchMapping("/api/v1/admin/voucher/{id}")
-    @PatchMapping()
+    @PatchMapping("/{id}")
     public ResponseEntity<?> updateVoucher(
             @PathVariable Long id,
             @RequestBody VoucherRequest voucherRequest) {

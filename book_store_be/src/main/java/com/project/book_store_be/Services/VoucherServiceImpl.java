@@ -141,7 +141,7 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public Page<?> getByUser(Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
-        return voucherRepository.findByUsersIs(userService.getCurrentUser(),pageable).map(this::mapToResponse);
+        return voucherRepository.findByUsersIs(userService.getCurrentUser().getId(),pageable).map(this::mapToResponse);
     }
     @Override
     public void deleteVoucher(Long id) {

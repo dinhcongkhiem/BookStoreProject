@@ -3,6 +3,7 @@ package com.project.book_store_be.Response.OrderRes;
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Enum.PaymentType;
 import com.project.book_store_be.Model.Address;
+import com.project.book_store_be.Response.VoucherRes.VoucherInOrderResponse;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +25,7 @@ public class OrderDetailResponse {
     private PaymentType paymentType;
     private BigDecimal originalSubtotal;
     private BigDecimal totalDiscount;
-    private BigDecimal discountWithVoucher;
+    private VoucherInOrderResponse voucher;
     private BigDecimal shippingFee;
     private BigDecimal grandTotal;
     private LocalDateTime orderDate;

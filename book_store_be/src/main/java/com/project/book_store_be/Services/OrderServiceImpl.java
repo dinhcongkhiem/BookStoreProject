@@ -17,6 +17,7 @@ import com.project.book_store_be.Request.OrderRequest;
 import com.project.book_store_be.Request.PaymentRequest;
 import com.project.book_store_be.Response.OrderRes.*;
 import com.project.book_store_be.Response.PaymentResponse;
+import com.project.book_store_be.Response.VoucherRes.VoucherInOrderResponse;
 import jakarta.persistence.Tuple;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -113,6 +114,7 @@ public class OrderServiceImpl implements OrderService {
                     .discount(discountVal)
                     .build();
             orderDetailRepository.save(orderDetail);
+            productService.updateQuantity(product, product.getQuantity() - item.getQty());
             orderDetailList.add(orderDetail);
         });
 
@@ -251,7 +253,10 @@ public class OrderServiceImpl implements OrderService {
                 .paymentType(order.getPaymentType())
                 .originalSubtotal(originalSubtotal[0])
                 .totalDiscount(totalDiscount[0])
-                .discountWithVoucher(discountWithVoucher[0])
+                .voucher(voucher != null ? VoucherInOrderResponse.builder()
+                        .code(voucher.getCode())
+                        .value(voucher.getValue())
+                        .build() : null)
                 .shippingFee(order.getShippingFee())
                 .grandTotal(grandTotal[0])
                 .items(itemDetails)

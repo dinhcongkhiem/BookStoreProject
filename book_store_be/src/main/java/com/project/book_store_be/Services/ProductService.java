@@ -152,6 +152,11 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
+    public void updateQuantity( Product product, Integer quantity) {
+        product.setQuantity(quantity);
+        productRepository.save(product);
+    }
+
     public void updateProduct(Long productId, ProductRequest request, List<MultipartFile> images, Integer indexThumbnail, List<Long> listOldImg) {
         Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
 

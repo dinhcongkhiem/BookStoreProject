@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import classNames from 'classnames/bind';
 import style from './Voucher.module.scss';
 import {
@@ -13,15 +13,9 @@ import {
     IconButton,
     Typography,
     Box,
-    TablePagination,
     TableSortLabel,
     TextField,
     InputAdornment,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Grid,
     FormControl,
     MenuItem,
     Select,
@@ -32,22 +26,15 @@ import {
     Add as AddIcon,
     Edit as EditIcon,
     Delete as DeleteIcon,
-    Visibility as VisibilityIcon,
     Search as SearchIcon,
-    Close as CloseIcon,
 } from '@mui/icons-material';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import VoucherService from '../../../service/VoucherService';
 import style1 from '../Admin.module.scss';
 import useDebounce from '../../../hooks/useDebounce';
 const cx1 = classNames.bind(style1);
 const cx = classNames.bind(style);
-
-const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', { year: 'numeric', month: '2-digit', day: '2-digit' });
-};
 
 const Voucher = () => {
     const navigate = useNavigate();
@@ -94,7 +81,6 @@ const Voucher = () => {
             VoucherService.getAll({ page, keyword: searchDebounceVal, status, sort }).then((res) => res.data),
         retry: 1,
     });
-
     return (
         <div className={cx('voucher-management')}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -220,10 +206,10 @@ const Voucher = () => {
                                 <TableCell>{voucher.code}</TableCell>
                                 <TableCell>{voucher.name}</TableCell>
                                 <TableCell>
-                                    {voucher.discountType === 'PERCENT' ? (
-                                        <span>{voucher.discountValue}%</span>
+                                    {voucher.type === 'PERCENT' ? (
+                                        <span>{voucher.value}%</span>
                                     ) : (
-                                        <span>{voucher.discountValue.toLocaleString('vi-VN')} ₫</span>
+                                        <span>{voucher.value.toLocaleString('vi-VN')} ₫</span>
                                     )}
                                 </TableCell>
                                 <TableCell>{new Date(voucher.startDate).toLocaleDateString()}</TableCell>
