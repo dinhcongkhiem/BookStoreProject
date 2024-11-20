@@ -120,9 +120,9 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody UpdateOrderRequest resquest) {
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody UpdateOrderRequest request) {
         try {
-            orderService.updateOrderStatus(id, resquest);
+            orderService.updateOrderStatus(id, request);
             return ResponseEntity.ok().build();
         } catch (NoSuchElementException e) {
             e.printStackTrace();

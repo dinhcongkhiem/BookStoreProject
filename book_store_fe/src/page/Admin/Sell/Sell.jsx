@@ -291,6 +291,7 @@ export default function Sell() {
             OrderService.updateStatusOrder(activeInvoice, {
                 status: 'COMPLETED',
                 userId: selectedUser ? selectedUser.id : -1,
+                amountPaid: totalUserPayment,
             }),
         onError: (error) => console.log(error),
         onSuccess: (data) => {

@@ -472,6 +472,7 @@ public class OrderServiceImpl implements OrderService {
         order.setBuyerName(user != null ? user.getFullName() : null);
         order.setBuyerPhoneNum(user != null ? user.getPhoneNum() : null);
         order.setStatus(status);
+        order.setAmountPaid(request.getAmountPaid());
         order.setUser(user);
         orderRepository.save(order);
     }

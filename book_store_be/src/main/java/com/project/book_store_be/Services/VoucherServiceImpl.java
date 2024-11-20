@@ -86,12 +86,11 @@ public class VoucherServiceImpl implements VoucherService {
     public Voucher createVoucher(VoucherRequest voucherRequest) {
         validateVoucherRequest(voucherRequest);
         List<User> users = getUsersForVoucher(voucherRequest);
-        System.out.println(users.size());
         Voucher voucher = Voucher.builder()
                 .code(voucherRequest.getCode())
                 .name(voucherRequest.getName())
                 .startDate(voucherRequest.getStartDate())
-                .endDate(voucherRequest.getEndDate())
+                .endDate(voucherRequest.getEndDate().withHour(23).withMinute(59).withSecond(59).withNano(999999999))
                 .quantity(voucherRequest.getQuantity())
                 .type(voucherRequest.getType())
                 .value(voucherRequest.getValue())
@@ -113,7 +112,7 @@ public class VoucherServiceImpl implements VoucherService {
         voucher.setCode(voucherRequest.getCode());
         voucher.setName(voucherRequest.getName());
         voucher.setStartDate(voucherRequest.getStartDate());
-        voucher.setEndDate(voucherRequest.getEndDate());
+        voucher.setEndDate(voucherRequest.getEndDate().withHour(23).withMinute(59).withSecond(59).withNano(999999999));
         voucher.setQuantity(voucherRequest.getQuantity());
         voucher.setType(voucherRequest.getType());
         voucher.setValue(voucherRequest.getValue());
