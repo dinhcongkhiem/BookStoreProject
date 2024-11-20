@@ -1,20 +1,12 @@
 import classNames from 'classnames/bind';
 
 import style from './Payment.module.scss';
-import {
-    Box,
-    Button,
-    FormControl,
-    FormControlLabel,
-    Radio,
-    RadioGroup,
-    Typography,
-} from '@mui/material';
+import { Box, Button, FormControl, FormControlLabel, Radio, RadioGroup, Typography } from '@mui/material';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import { useContext, useEffect, useState } from 'react';
 import bank_transfer_icon from '../../assets/icons/bank_transfer_icon.png';
 import cash_on_delivery_icon from '../../assets/icons/cash_on_delivery_icon.png';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { AuthenticationContext } from '../../context/AuthenticationProvider';
 import UserService from '../../service/UserService';
@@ -34,6 +26,7 @@ function Payment() {
     const { authentication } = useContext(AuthenticationContext);
     const navigate = useNavigate();
     const location = useLocation();
+    const { orderId } = useParams();
     const [user, setUser] = useState();
     const [diffAddress, setDiffAddress] = useState();
     const [addressOption, setAddressOption] = useState('default');
@@ -80,15 +73,27 @@ function Payment() {
         error: checkoutErr,
         isLoading: checkoutLoading,
     } = useQuery({
-        queryKey: ['checkoutData', cartIds, product, diffAddress, addressOption],
-        queryFn: () =>
-            CheckoutService.getCheckoutData({
-                cartIds,
-                productId: product?.pid,
-                qty: product?.qty,
-                address: addressOption === 'new' ? diffAddress : null,
-            }).then((res) => res.data),
+        queryKey: ['checkoutData', cartIds, product, diffAddress, addressOption, orderId],
+        queryFn: () => {
+            if (orderId) {
+                return CheckoutService.getReCheckoutData(orderId).then((res) => res.data);
+            } else {
+                return CheckoutService.getCheckoutData({
+                    orderId: orderId,
+                    cartIds,
+                    productId: product?.pid,
+                    qty: product?.qty,
+                    address: addressOption === 'new' ? diffAddress : null,
+                }).then((res) => res.data);
+            }
+        },
     });
+
+    useEffect(() => {
+        if (checkoutData && orderId) {
+            setSelectedVoucher(checkoutData.voucher);
+        }
+    }, [checkoutData]);
     const [isOpen, setIsOpen] = useState(false);
     const handleChangeAddressOption = (e) => {
         if (!diffAddress && e.target.value === 'new') {
@@ -120,7 +125,32 @@ function Payment() {
             });
         },
     });
+
+    const rePaymentOrderMutation = useMutation({
+        mutationFn: (data) => OrderService.rePaymentOrder(data),
+        onError: (error) => console.log(error),
+        onSuccess: (data) => {
+            if (data.data.paymentType === 'cash_on_delivery') {
+                localStorage.removeItem('cartIdsForPayment');
+                localStorage.removeItem('productForPayment');
+                localStorage.removeItem('selectedVoucher');
+                toast.success('Đã đặt hàng thành công!');
+                navigate('/order');
+                return;
+            }
+            setPaymentData({
+                orderCode: data.data.orderCode,
+                qrcodeURL: data.data.qrcodeURL,
+                finalPrice: data.data.finalPrice,
+            });
+        },
+    });
+
     const handleOrder = () => {
+        if(orderId) {
+            rePaymentOrderMutation.mutate({orderId: orderId, paymentType: paymentType});
+            return;
+        }
         const data = {
             address: diffAddress ? diffAddress.address : null,
             shippingFee: checkoutData?.shippingFee,
@@ -166,12 +196,12 @@ function Payment() {
                 </div>
                 <div className={cx('section')}>
                     <h4 className={cx('mt-5')}>Giao hàng tới</h4>
-                    <FormControl>
+                    <FormControl className={cx({ disable: orderId })}>
                         <RadioGroup value={addressOption} onChange={handleChangeAddressOption}>
                             <FormControlLabel
                                 sx={{ alignItems: 'flex-start' }}
                                 value="default"
-                                control={<Radio size="small" />}
+                                control={<Radio size="small" disable />}
                                 label={
                                     <div className={cx('option-value')}>
                                         <p className={cx('title')}>Địa chỉ mặc định: </p>
@@ -260,7 +290,7 @@ function Payment() {
                     <h4>BookBazaar Khuyến Mãi</h4>
 
                     {selectedVoucher ? (
-                        <div className={cx('selected-voucher')}>
+                        <div className={cx('selected-voucher', { disable: orderId })}>
                             <div>
                                 <p>{`${selectedVoucher.name} giảm  ${
                                     selectedVoucher.type === 'PERCENT'
@@ -284,7 +314,10 @@ function Payment() {
                             </Button>
                         </div>
                     ) : (
-                        <div className={cx('discount-content')} onClick={() => setVoucherDialogOpen(true)}>
+                        <div
+                            className={cx('discount-content', { disable: orderId })}
+                            onClick={() => setVoucherDialogOpen(true)}
+                        >
                             <MonetizationOnIcon className={cx('discount-icon')} />
                             Chọn hoặc nhập mã khuyến mãi.
                         </div>
@@ -298,7 +331,7 @@ function Payment() {
                                 {checkoutData?.items.reduce((total, item) => total + item.quantity, 0)} sản phẩm
                             </span>
                         </div>
-                        <Link to="/cart">Thay đổi</Link>
+                        <Link to="/cart" className={cx({'disable': orderId})} >Thay đổi</Link>
                     </div>
                     <div>
                         <div className="d-flex justify-content-between">

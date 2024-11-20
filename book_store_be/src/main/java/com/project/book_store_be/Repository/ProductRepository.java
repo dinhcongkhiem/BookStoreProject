@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 
 public interface ProductRepository extends JpaRepository<Product, Long>, CrudRepository<Product, Long>, JpaSpecificationExecutor<Product> {
@@ -38,7 +39,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CrudRep
     Page<Product> searchByNameContainingIgnoreCaseOrId(String name, Long id, Pageable pageable);
 
     List<Product> findAllByIdNotIn(List<Long> ids);
-
+    Optional<Product> findByProductCode(Long productCode);
 
     @Query("""
                 SELECT p AS product,\s

@@ -353,7 +353,7 @@ function AddDiscount() {
                         className={cx('search-input')}
                         size="small"
                         variant="outlined"
-                        placeholder="Tìm kiếm khuyến mãi..."
+                        placeholder="Tìm kiếm sản phẩm..."
                         onChange={(e) => setSearchTerm(e.target.value)}
                         InputProps={{
                             endAdornment: (

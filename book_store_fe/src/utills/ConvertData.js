@@ -18,6 +18,8 @@ export const formatDate = (dateString) => {
 
 export const convertStatusOrderToVN = (status) => {
     switch (status) {
+        case 'PENDING':
+            return 'Chờ';
         case 'AWAITING_PAYMENT':
             return 'Chờ thanh toán';
         case 'PROCESSING':

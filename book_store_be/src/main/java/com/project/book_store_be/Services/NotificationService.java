@@ -46,8 +46,7 @@ public class NotificationService {
     }
 
     public void test() {
-        Notification notification = this.createNotification(userService.getCurrentUser(), "Test Notification version 1", "Đây là thông báo thử nghiệm lần thứ không biết hihii test test test test", NotificationType.PROMOTION);
-        messagingTemplate.convertAndSendToUser(userService.getCurrentUser().getEmail(), "/notifications", this.convertToRes(notification));
+        messagingTemplate.convertAndSend("/stream/barcode", true);
     }
 
     public void sendNotification(User user, String title, String message, NotificationType type) {

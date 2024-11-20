@@ -30,8 +30,8 @@ public class UserService {
     private final AddressService addressService;
     private final SendMailService sendMailService;
 
-    public User findById(Long id) {
-        return userRepository.findById(id).orElseThrow(NoSuchElementException::new);
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
     }
 
     public User getCurrentUser() {

@@ -40,6 +40,7 @@ public class Order {
     private String buyerName;
     @Column(length = 11)
     private String buyerPhoneNum;
+    private BigDecimal amountPaid;
     private LocalDateTime orderDate;
     @ManyToOne
     @JoinColumn(name = "voucher_id")

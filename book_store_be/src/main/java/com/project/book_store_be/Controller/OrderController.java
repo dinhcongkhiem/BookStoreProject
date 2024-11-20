@@ -1,8 +1,10 @@
 package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Enum.OrderStatus;
+import com.project.book_store_be.Enum.PaymentType;
 import com.project.book_store_be.Interface.OrderService;
 import com.project.book_store_be.Request.OrderRequest;
+import com.project.book_store_be.Request.UpdateOrderRequest;
 import com.project.book_store_be.Response.OrderRes.OrderStatusResponse;
 import com.project.book_store_be.Services.OrderServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -19,6 +23,27 @@ import java.util.NoSuchElementException;
 public class OrderController {
     private final OrderService orderService;
 
+    @PostMapping("/counter-sell")
+    public ResponseEntity<?> createCounterSellOrder() {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrderCounterSales());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+        }
+    }
+
+    @PostMapping("/order-detail")
+    public ResponseEntity<?> createOrderDetail(@RequestParam Long orderId,
+                                               @RequestBody List<OrderRequest.OrderDetailRequest> items) {
+        try {
+            orderService.createOrderDetail(items, orderId);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+        }
+    }
     @PostMapping()
     public ResponseEntity<?> createOrder(@RequestBody OrderRequest request) {
         try {
@@ -29,21 +54,32 @@ public class OrderController {
         }
     }
 
-    @GetMapping("/status")
-    public ResponseEntity<?> checkStatusOrder(@RequestParam Long orderCode) {
+    @PostMapping("/re-payment")
+    public ResponseEntity<?> rePaymentOrder(@RequestParam Long orderId, @RequestParam PaymentType paymentType) {
         try {
-            return ResponseEntity.ok(orderService.checkStatus(orderCode));
-        }catch (NoSuchElementException e){
+            return ResponseEntity.status(HttpStatus.OK).body(orderService.rePaymentOrder(orderId, paymentType));
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
+
+    @GetMapping("/status")
+    public ResponseEntity<?> checkStatusOrder(@RequestParam Long orderCode) {
+        try {
+            return ResponseEntity.ok(orderService.checkStatus(orderCode));
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+        }
+    }
+
     @GetMapping()
     public ResponseEntity<?> getOrderByUser(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "15") Integer pageSize,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false)  OrderStatus status
+            @RequestParam(required = false) OrderStatus status
     ) {
         try {
             return ResponseEntity.status(HttpStatus.OK)
@@ -54,13 +90,14 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     public ResponseEntity<?> getAllOrders(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "15") Integer pageSize,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false)  OrderStatus status
+            @RequestParam(required = false) OrderStatus status
     ) {
         try {
             return ResponseEntity.status(HttpStatus.OK)
@@ -71,6 +108,7 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
+
     @GetMapping("/detail")
     public ResponseEntity<?> getOrderDetailById(@RequestParam Long id) {
         try {
@@ -81,10 +119,34 @@ public class OrderController {
         }
     }
 
-    @PatchMapping("update-order/{id}")
-    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody OrderStatus status) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody UpdateOrderRequest request) {
         try {
-            return ResponseEntity.ok(orderService.updateOrderStatus(id,status));
+            orderService.updateOrderStatus(id, request);
+            return ResponseEntity.ok().build();
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+        }
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("detail-qty/{id}")
+    public ResponseEntity<?> updateOrderDetailQuantity(@PathVariable Long id, @RequestBody Integer quantity) {
+        try {
+            orderService.updateQuantity(quantity, id);
+            return ResponseEntity.ok().build();
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("detail/{id}")
+    public ResponseEntity<?> deleteOrderDetail(@PathVariable Long id) {
+        try {
+            orderService.deleteOrderDetail(id);
+            return ResponseEntity.ok().build();
         } catch (NoSuchElementException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");

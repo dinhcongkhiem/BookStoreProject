@@ -44,4 +44,9 @@ public class CheckoutController {
         }
     }
 
+    @GetMapping("/re-checkout")
+    private ResponseEntity<?> reCheckout(@RequestParam(required = false) Long orderId) {
+        return ResponseEntity.ok(checkoutService.reCheckout(orderId));
+    }
+
 }

@@ -17,15 +17,6 @@ public class BarcodeController {
     @Autowired
     private BarcodeService barcodeService;
 
-    @PostMapping("/read")
-    public ResponseEntity<?> readBarcode(@RequestParam("file") MultipartFile file) {
-        try {
-            String barcodeText = barcodeService.readBarcode(file.getInputStream());
-            return ResponseEntity.ok(barcodeText);
-        } catch (IOException | NotFoundException e) {
-            return ResponseEntity.badRequest().body("Không thể đọc barcode: " + e.getMessage());
-        }
-    }
     @GetMapping("/generate-barcode")
     public ResponseEntity<byte[]> generateBarcode(@RequestParam String text){
         try {

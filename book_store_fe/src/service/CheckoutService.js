@@ -23,6 +23,18 @@ class CheckoutServiceClass {
 
         return httpRequest.request(config);
     };
+
+    getReCheckoutData = (orderId) => {
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: CHECKOUT_URL + "/re-checkout",
+            withCredentials: true,
+            params: { orderId},
+        };
+
+        return httpRequest.request(config);
+    };
 }
 const CheckoutService = new CheckoutServiceClass();
 export default CheckoutService;

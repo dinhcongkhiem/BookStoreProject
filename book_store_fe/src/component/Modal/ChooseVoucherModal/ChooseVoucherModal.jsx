@@ -46,7 +46,7 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, voucher, grandTotal }) 
         error,
         isLoading,
     } = useQuery({
-        queryKey: 'vouchers',
+        queryKey: ['vouchers'],
         queryFn: () => VoucherService.getByUser(page).then((res) => res.data),
         retry: 1,
     });
