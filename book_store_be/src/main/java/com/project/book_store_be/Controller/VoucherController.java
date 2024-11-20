@@ -26,21 +26,23 @@ public class VoucherController {
     public ResponseEntity<?> createVoucher(@RequestBody VoucherRequest voucherRequest) {
         try {
             Voucher voucher = voucherService.createVoucher(voucherRequest);
-            VoucherResponse response = voucherService.mapToResponse(voucher);
+            VoucherResponse response = voucherService.mapToResponse(voucher, false);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (IllegalStateException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         }
     }
 
-    //    @GetMapping("/api/v1/voucher/{id}")
     @GetMapping("/by-user")
-    public ResponseEntity<?> getVoucherById(
+    public ResponseEntity<?> getVoucherByUser(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort
     ) {
         try {
-            return ResponseEntity.ok(voucherService.getByUser(page, size));
+            return ResponseEntity.ok(voucherService.searchVouchers(keyword, status, page, size, sort, true));
         } catch (NoSuchElementException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Voucher not found.");
         }
@@ -54,17 +56,16 @@ public class VoucherController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String sort) {
-        return ResponseEntity.ok(voucherService.searchVouchers(keyword, status, page, size, sort));
+        return ResponseEntity.ok(voucherService.searchVouchers(keyword, status, page, size, sort, false));
     }
-
-    //    @PatchMapping("/api/v1/admin/voucher/{id}")
-    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
     public ResponseEntity<?> updateVoucher(
             @PathVariable Long id,
             @RequestBody VoucherRequest voucherRequest) {
         try {
             Voucher voucher = voucherService.updateVoucher(id, voucherRequest);
-            VoucherResponse response = voucherService.mapToResponse(voucher);
+            VoucherResponse response = voucherService.mapToResponse(voucher, false);
             return ResponseEntity.ok(response);
         } catch (NoSuchElementException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Voucher not found.");
@@ -73,8 +74,20 @@ public class VoucherController {
         }
     }
 
-    //    @DeleteMapping("/api/v1/admin/voucher/{id}")
-    @DeleteMapping()
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("detail")
+    public ResponseEntity<?> getVoucherById(@RequestParam Long id) {
+        try {
+            Voucher voucher = voucherService.getVoucherById(id);
+            VoucherResponse response = voucherService.mapToResponse(voucher, true);
+            return ResponseEntity.ok(response);
+        } catch (NoSuchElementException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Voucher not found.");
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteVoucher(@PathVariable Long id) {
         try {
             voucherService.deleteVoucher(id);

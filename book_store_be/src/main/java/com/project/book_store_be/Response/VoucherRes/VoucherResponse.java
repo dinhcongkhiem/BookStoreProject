@@ -6,6 +6,8 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+
 @Data
 @Builder
 public class VoucherResponse {
@@ -19,4 +21,5 @@ public class VoucherResponse {
     private BigDecimal condition;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private List<Long> userIds;
 }

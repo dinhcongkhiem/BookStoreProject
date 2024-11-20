@@ -23,16 +23,19 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     Page<Voucher> findByUsersIs(Long user_id, Pageable pageable);
 
     @Query(value = """
-            SELECT *\s
-            FROM voucher v
-            where\s
-               (:keyword IS NULL OR
-                           UPPER(v.code) LIKE concat('%', UPPER(:keyword), '%')
-                           OR UPPER(v.name) LIKE concat('%', UPPER(:keyword), '%'))
-                  AND ((:status IS NULL)
-                              OR (:status = 0 AND v.start_date  > current_date)
-                              OR (:status = 1 AND v.start_date  <= current_date AND v.end_date  >= current_date)
-                              OR (:status = -1 AND v.end_date < current_date))
-                    """, nativeQuery = true)
-    Page<Voucher> searchVoucher(String keyword, Integer status, Pageable pageable);
+            SELECT v.*
+                      FROM voucher v
+                      JOIN voucher_user vu ON v.id = vu.voucher_id\s
+                      where\s
+                         (:keyword IS NULL OR
+                                     UPPER(v.code) LIKE concat('%', UPPER(:keyword), '%')
+                                     OR UPPER(v.name) LIKE concat('%', UPPER(:keyword), '%'))
+                            AND ((:status IS NULL)
+                                        OR (:status = 0 AND v.start_date  > current_date)
+                                        OR (:status = 1 AND v.start_date  <= current_date AND v.end_date  >= current_date)
+                                        OR (:status = -1 AND v.end_date < current_date))
+                            and ((:user_id is NULL) or (vu.user_id = :user_id))
+                            group by  v.id
+                              """, nativeQuery = true)
+    Page<Voucher> searchVoucher(String keyword, Integer status,Long user_id, Pageable pageable);
 }

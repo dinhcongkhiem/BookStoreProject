@@ -21,27 +21,43 @@ import {
     Select,
     Pagination,
     Chip,
+    Tooltip,
+    styled,
+    tooltipClasses,
 } from '@mui/material';
-import {
-    Add as AddIcon,
-    Edit as EditIcon,
-    Delete as DeleteIcon,
-    Search as SearchIcon,
-} from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import VoucherService from '../../../service/VoucherService';
 import style1 from '../Admin.module.scss';
 import useDebounce from '../../../hooks/useDebounce';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import { toast } from 'react-toastify';
+import ConfirmModal from '../../../component/Modal/ConfirmModal/ConfirmModal';
 const cx1 = classNames.bind(style1);
 const cx = classNames.bind(style);
 
+const CustomTooltip = styled(({ className, ...props }) => <Tooltip {...props} classes={{ popper: className }} />)(
+    ({ theme }) => ({
+        [`& .${tooltipClasses.tooltip}`]: {
+            backgroundColor: '#f5f5f9',
+            color: 'rgba(0, 0, 0, 0.87)',
+            maxWidth: 550,
+            fontSize: theme.typography.pxToRem(12),
+            border: '1px solid #dadde9',
+        },
+    }),
+);
 const Voucher = () => {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const [sort, setSort] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
     const [page, setPage] = useState(1);
     const [status, setStatus] = useState(-2);
+    const [idToRemove, setIdToRemove] = useState(null);
+    const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const searchDebounceVal = useDebounce(searchTerm, 500);
     const handleChangePage = (event, value) => {
@@ -80,6 +96,16 @@ const Voucher = () => {
         queryFn: () =>
             VoucherService.getAll({ page, keyword: searchDebounceVal, status, sort }).then((res) => res.data),
         retry: 1,
+    });
+    const deleteVoucherMutation = useMutation({
+        mutationFn: () => VoucherService.delete(idToRemove),
+        onError: (error) => {
+            console.log(error);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['discountMng']);
+            toast.success('Đã xóa đợt giảm giá thành công');
+        },
     });
     return (
         <div className={cx('voucher-management')}>
@@ -222,6 +248,7 @@ const Voucher = () => {
                                 </TableCell>
                                 <TableCell>
                                     <IconButton
+                                        size="small"
                                         onClick={() => navigate(`/admin/voucher/update/${voucher.id}`)}
                                         aria-label="edit"
                                         sx={{ color: 'green' }}
@@ -229,15 +256,42 @@ const Voucher = () => {
                                         <EditIcon />
                                     </IconButton>
                                     <IconButton
+                                        size="small"
                                         aria-label="delete"
                                         sx={{ color: 'red' }}
                                         onClick={() => {
-                                            // setIdToRemove(voucher.id);
-                                            // setIsOpen(true);
+                                            setIdToRemove(voucher.id);
+                                            setIsOpen(true);
                                         }}
                                     >
                                         <DeleteIcon />
                                     </IconButton>
+                                    <CustomTooltip
+                                        arrow={false}
+                                        title={
+                                            <div className={cx('tool-tip')}>
+                                                <div>
+                                                    <span>Số lượng: </span> {voucher.quantity} <br />
+                                                </div>
+                                                <hr />
+                                                <div>
+                                                    <span>Điều kiện: </span>
+                                                    {`
+                                                        Giảm  ${
+                                                            voucher.type === 'PERCENT'
+                                                                ? ' ' + voucher.value + '% '
+                                                                : ' ' + voucher.value.toLocaleString('vi-VN') + '₫ '
+                                                        }
+                                                        Cho đơn hàng từ ${voucher.condition.toLocaleString('vi-VN')} ₫
+                                                        `}
+                                                </div>
+                                            </div>
+                                        }
+                                    >
+                                        <IconButton size="small">
+                                            <FontAwesomeIcon icon={faCircleInfo} />
+                                        </IconButton>
+                                    </CustomTooltip>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -250,9 +304,22 @@ const Voucher = () => {
                     onChange={handleChangePage}
                     variant="outlined"
                     page={parseInt(page)}
-                    // count={discounts?.totalPages < 1 ? 1 : discounts?.totalPages}
+                    count={vouchers?.totalPages < 1 ? 1 : vouchers?.totalPages}
                 />
             </div>
+            {isOpen && (
+                <ConfirmModal
+                    open={isOpen}
+                    onClose={() => setIsOpen(false)}
+                    onConfirm={() => {
+                        setIsOpen(false);
+                        deleteVoucherMutation.mutate();
+                    }}
+                    title={'Xác nhận'}
+                    message={'Bạn có chắn muốn xóa phiếu giảm giá này?'}
+                    type="warn"
+                />
+            )}
         </div>
     );
 };

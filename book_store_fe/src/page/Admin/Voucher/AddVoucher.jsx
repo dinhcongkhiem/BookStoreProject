@@ -22,15 +22,15 @@ import {
     Checkbox,
     FormHelperText,
     IconButton,
+    Tooltip,
 } from '@mui/material';
 import { CalendarToday, Percent, Search, South } from '@mui/icons-material';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import ProductService from '../../../service/ProductService';
 import useDebounce from '../../../hooks/useDebounce';
 import DiscountService from '../../../service/DiscountService';
 import { toast } from 'react-toastify';
 import { formatDate } from '../../../utills/ConvertData';
-import { faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import UserService from '../../../service/UserService';
 import VoucherService from '../../../service/VoucherService';
@@ -126,27 +126,6 @@ function AddVoucher() {
             .min(1, 'Bạn phải chọn ít nhất một người dùng')
             .required('Bạn phải chọn ít nhất một người dùng'),
     });
-    // useQuery({
-    //     queryKey: ['discountById'],
-    //     queryFn: () =>
-    //         DiscountService.getDiscountByID(discountId).then((res) => {
-    //             const resData = res.data;
-    //             const formikMappingVal = {
-    //                 name: resData.name,
-    //                 value: resData.discountRate,
-    //                 start: formatDate(resData.startDate),
-    //                 end: formatDate(resData.endDate),
-    //                 userIds: resData.userIds,
-    //             };
-    //             setStartDateVal(resData.startDate.split('T')[0]);
-    //             setEndDateVal(resData.endDate.split('T')[0]);
-
-    //             formik.setValues(formikMappingVal);
-    //             return null;
-    //         }),
-    //     retry: 1,
-    //     enabled: !!discountId,
-    // });
 
     const convertToISOString = (dateString) => {
         const [day, month, year] = dateString.split('/');
@@ -164,13 +143,13 @@ function AddVoucher() {
     });
 
     const updateiscountMutation = useMutation({
-        mutationFn: ({ id, data }) => DiscountService.updateDiscount(id, data),
+        mutationFn: ({ id, data }) => VoucherService.update({ id, data }),
         onError: (error) => {
             console.log(error);
         },
         onSuccess: () => {
             toast.success('Thành công');
-            navigate('/admin/discount');
+            navigate('/admin/voucher');
         },
     });
 
@@ -208,14 +187,40 @@ function AddVoucher() {
                 isAll: isAll,
             };
 
-            // if (discountId) {
-                // updateiscountMutation.mutate({ id: discountId, data });
-            // } else {
+            if (voucherId) {
+                updateiscountMutation.mutate({ id: voucherId, data });
+            } else {
                 createVoucherMutation.mutate({ data });
-            // }
+            }
         },
         validateOnBlur: false,
         validateOnChange: false,
+    });
+    useQuery({
+        queryKey: ['discountById'],
+        queryFn: () =>
+            VoucherService.getById(voucherId).then((res) => {
+                const resData = res.data;
+                const formikMappingVal = {
+                    code: resData.code,
+                    name: resData.name,
+                    value: resData.value,
+                    type: resData.type,
+                    quantity: resData.quantity,
+                    maxValue: resData.maxValue,
+                    start: formatDate(resData.startDate),
+                    end: formatDate(resData.endDate),
+                    userIds: resData.userIds,
+                    condition: resData.condition,
+                };
+                setStartDateVal(resData.startDate.split('T')[0]);
+                setEndDateVal(resData.endDate.split('T')[0]);
+
+                formik.setValues(formikMappingVal);
+                return null;
+            }),
+        retry: 1,
+        enabled: !!voucherId,
     });
 
     return (

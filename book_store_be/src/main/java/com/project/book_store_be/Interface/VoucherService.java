@@ -12,12 +12,10 @@ import java.math.BigDecimal;
 public interface VoucherService {
     Voucher createVoucher(VoucherRequest voucherRequest);
     Voucher getVoucherById(Long id);
-
-    Page<?> getByUser(Integer page, Integer size);
     Voucher updateVoucher(Long id, VoucherRequest voucherRequest);
     void deleteVoucher(Long id);
     void validateVoucherRequest(VoucherRequest voucherRequest);
-    Page<?> searchVouchers(String keyword, Integer status, int page, int size, String sort);
-    VoucherResponse mapToResponse(Voucher voucher);
+    Page<?> searchVouchers(String keyword, Integer status, int page, int size, String sort, Boolean forUser);
+    VoucherResponse mapToResponse(Voucher voucher, Boolean isDetail);
     void updateQuantity(Long id, Integer quantity);
 }

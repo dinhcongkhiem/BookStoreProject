@@ -73,7 +73,7 @@ public class CheckoutServiceImpl implements CheckoutService {
                 "totalDiscount", totalDiscount[0],
                 "shippingFee", shippingFee,
                 "grandTotal", grandTotal[0],
-                "voucher", voucherService.mapToResponse(order.getVoucher())
+                "voucher", voucherService.mapToResponse(order.getVoucher(), false)
 
         );
     }

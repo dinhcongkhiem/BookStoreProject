@@ -15,10 +15,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +31,7 @@ public class VoucherServiceImpl implements VoucherService {
     private final UserService userService;
 
     @Override
-    public Page<?> searchVouchers(String keyword, Integer status, int page, int size, String sort) {
+    public Page<?> searchVouchers(String keyword, Integer status, int page, int size, String sort, Boolean forUser) {
         Sort c = switch (sort) {
             case "code_asc" -> Sort.by(Sort.Direction.ASC, "code");
             case "code_desc" -> Sort.by(Sort.Direction.DESC, "code");
@@ -42,7 +44,9 @@ public class VoucherServiceImpl implements VoucherService {
             default -> Sort.by(Sort.Direction.DESC, "create_date");
         };
         Pageable pageable = PageRequest.of(page, size, c);
-        return voucherRepository.searchVoucher(keyword, status, pageable).map(this::mapToResponse);
+        return voucherRepository.searchVoucher(keyword, status,
+                forUser ? userService.getCurrentUser().getId() : null, pageable)
+                .map(p -> this.mapToResponse(p,false));
     }
 
     @Override
@@ -70,6 +74,7 @@ public class VoucherServiceImpl implements VoucherService {
             }
         }
     }
+
     private List<User> getUsersForVoucher(VoucherRequest voucherRequest) {
         if (voucherRequest.getIsAll()) {
             if (voucherRequest.getUserIds().isEmpty()) {
@@ -83,8 +88,14 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @Transactional
     public Voucher createVoucher(VoucherRequest voucherRequest) {
         validateVoucherRequest(voucherRequest);
+
+        Optional<Voucher> voucherOptional = voucherRepository.findByCode(voucherRequest.getCode());
+        if (voucherOptional.isPresent()) {
+            throw new IllegalArgumentException("Mã voucher " + voucherRequest.getCode() + " đã tồn tại");
+        }
         List<User> users = getUsersForVoucher(voucherRequest);
         Voucher voucher = Voucher.builder()
                 .code(voucherRequest.getCode())
@@ -104,11 +115,15 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @Transactional
     public Voucher updateVoucher(Long id, VoucherRequest voucherRequest) {
         Voucher voucher = getVoucherById(id);
         validateVoucherRequest(voucherRequest);
         List<User> users = getUsersForVoucher(voucherRequest);
-
+        Optional<Voucher> voucherOptional = voucherRepository.findByCode(voucherRequest.getCode());
+        if (voucherOptional.isPresent() && !voucherOptional.get().getId().equals(id)) {
+            throw new IllegalArgumentException("Mã voucher " + voucherRequest.getCode() + " đã tồn tại");
+        }
         voucher.setCode(voucherRequest.getCode());
         voucher.setName(voucherRequest.getName());
         voucher.setStartDate(voucherRequest.getStartDate());
@@ -137,11 +152,7 @@ public class VoucherServiceImpl implements VoucherService {
                 .orElseThrow(() -> new IllegalArgumentException("Voucher không tìm thấy với id: " + id));
     }
 
-    @Override
-    public Page<?> getByUser(Integer page, Integer size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return voucherRepository.findByUsersIs(userService.getCurrentUser().getId(),pageable).map(this::mapToResponse);
-    }
+
     @Override
     public void deleteVoucher(Long id) {
         Voucher voucher = getVoucherById(id);
@@ -150,7 +161,7 @@ public class VoucherServiceImpl implements VoucherService {
 
 
     @Override
-    public VoucherResponse mapToResponse(Voucher voucher) {
+    public VoucherResponse mapToResponse(Voucher voucher, Boolean isDetail) {
         return VoucherResponse.builder()
                 .id(voucher.getId())
                 .code(voucher.getCode())
@@ -162,6 +173,7 @@ public class VoucherServiceImpl implements VoucherService {
                 .type(voucher.getType())
                 .maxValue(voucher.getMaxValue())
                 .condition(voucher.getCondition())
+                .userIds(isDetail ? voucher.getUsers().stream().map(User::getId).toList() : null)
                 .build();
     }
 }
