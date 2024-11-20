@@ -13,6 +13,7 @@ import java.util.Date;
 public class ProductsForManagerResponse {
     private Long id;
     private String name;
+    private BigDecimal originalPrice;
     private BigDecimal price;
     private Integer quantity;
     private ProductStatus status;

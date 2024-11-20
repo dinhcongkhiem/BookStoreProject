@@ -15,16 +15,19 @@ import com.project.book_store_be.Repository.Specification.OrderSpecification;
 import com.project.book_store_be.Repository.VoucherRepository;
 import com.project.book_store_be.Request.OrderRequest;
 import com.project.book_store_be.Request.PaymentRequest;
+import com.project.book_store_be.Request.UpdateOrderRequest;
 import com.project.book_store_be.Response.OrderRes.*;
 import com.project.book_store_be.Response.PaymentResponse;
 import com.project.book_store_be.Response.VoucherRes.VoucherInOrderResponse;
 import jakarta.persistence.Tuple;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
@@ -50,6 +54,8 @@ public class OrderServiceImpl implements OrderService {
     private final NotificationService notificationService;
     private final VoucherRepository voucherRepository;
     private final VoucherService voucherService;
+    private final SimpMessagingTemplate messagingTemplate;
+
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
@@ -75,6 +81,117 @@ public class OrderServiceImpl implements OrderService {
                 count.get("all_count", Long.class)
         );
         return new OrderPageResponse(ordersPage, orderStatusCountDTO);
+    }
+
+    @Override
+    @Transactional
+    public Map<?, ?> createOrderCounterSales() {
+        Order order = Order.builder()
+                .status(OrderStatus.PENDING)
+                .shippingFee(BigDecimal.ZERO)
+                .orderDate(LocalDateTime.now())
+                .totalPrice(BigDecimal.ZERO)
+                .build();
+        orderRepository.save(order);
+        return Map.of("orderId", order.getId(), "orderDate", order.getOrderDate());
+    }
+
+    @Transactional
+    public void createOrderDetailByBarcode(Long productCode, Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NoSuchElementException("Order not found with ID: " + orderId));
+        Product product = productService.findProductByCode(productCode);
+        BigDecimal[] totalPrice = {order.getTotalPrice()};
+        List<OrderDetail> orderDetailList = order.getOrderDetails();
+
+        OrderDetail orderDetailContains = orderDetailRepository.findByOrderIdAndProductId(orderId, product.getId()).orElse(null);
+
+        if (orderDetailContains != null) {
+            totalPrice[0] = totalPrice[0].add(orderDetailContains.getPriceAtPurchase());
+            orderDetailContains.setQuantity(orderDetailContains.getQuantity() + 1);
+            orderDetailRepository.save(orderDetailContains);
+        } else {
+            BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
+            BigDecimal price = product.getOriginal_price().subtract(discountVal);
+
+            OrderDetail orderDetail = OrderDetail.builder()
+                    .product(product)
+                    .quantity(1)
+                    .originalPriceAtPurchase(product.getOriginal_price())
+                    .priceAtPurchase(price)
+                    .order(order)
+                    .discount(discountVal)
+                    .build();
+            orderDetailList.add(orderDetail);
+            orderDetailRepository.save(orderDetail);
+        }
+        order.setOrderDetails(orderDetailList);
+        order.setTotalPrice(totalPrice[0]);
+        orderRepository.save(order);
+
+        log.info("Successfully read barcode: " + productCode);
+        messagingTemplate.convertAndSend("/stream/barcode", true);
+    }
+
+    @Transactional
+    @Override
+    public void updateQuantity(Integer quantity, Long orderDetailId) {
+        OrderDetail orderDetail = orderDetailRepository.findById(orderDetailId)
+                .orElseThrow(() -> new NoSuchElementException("Order detail not found with ID: " + orderDetailId));
+        if (quantity < 1) {
+            throw new IllegalArgumentException("Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1.");
+        }
+        if (quantity > orderDetail.getProduct().getQuantity()) {
+            throw new IllegalArgumentException("Số lượng không hợp lệ. Phải nhỏ hơn hoặc bằng số lượng có sẵn.");
+        }
+        orderDetail.setQuantity(quantity);
+        orderDetailRepository.save(orderDetail);
+    }
+
+    @Transactional
+    @Override
+    public void deleteOrderDetail(Long orderDetailId) {
+        OrderDetail orderDetail = orderDetailRepository.findById(orderDetailId)
+                .orElseThrow(() -> new NoSuchElementException("Order detail not found with ID: " + orderDetailId));
+        orderDetailRepository.delete(orderDetail);
+    }
+
+    @Transactional
+    @Override
+    public void createOrderDetail(List<OrderRequest.OrderDetailRequest> request, Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NoSuchElementException("Order not found with ID: " + orderId));
+        BigDecimal[] totalPrice = {order.getTotalPrice()};
+        List<OrderDetail> orderDetailList = order.getOrderDetails();
+
+        request.forEach(item -> {
+            Product product = productService.findProductById(item.getProductId());
+            OrderDetail orderDetailContains = orderDetailRepository.findByOrderIdAndProductId(orderId, item.getProductId()).orElse(null);
+            if (orderDetailContains != null) {
+                orderDetailContains.setQuantity(orderDetailContains.getQuantity() + item.getQty());
+                orderDetailRepository.save(orderDetailContains);
+                return;
+            } else {
+                BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
+                BigDecimal price = product.getOriginal_price().subtract(discountVal);
+                totalPrice[0] = totalPrice[0].add(price.multiply(BigDecimal.valueOf(item.getQty())));
+
+                OrderDetail orderDetail = OrderDetail.builder()
+                        .product(product)
+                        .quantity(item.getQty())
+                        .originalPriceAtPurchase(product.getOriginal_price())
+                        .priceAtPurchase(price)
+                        .order(order)
+                        .discount(discountVal)
+                        .build();
+
+                orderDetailRepository.save(orderDetail);
+                orderDetailList.add(orderDetail);
+            }
+            productService.updateQuantity(product, product.getQuantity() - item.getQty());
+        });
+        order.setTotalPrice(totalPrice[0]);
+        orderRepository.save(order);
     }
 
     @Override
@@ -137,34 +254,8 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal finalPrice = totalPrice[0].add(order.getShippingFee()).subtract(voucherDiscount[0]);
 
         PaymentResponse paymentResponse = null;
-        Long orderCode = 0L;
         if (order.getPaymentType() == PaymentType.bank_transfer) {
-            try {
-                String currentTimeString = String.valueOf(new Date().getTime());
-                Long time = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
-                orderCode = Long.parseLong(order.getId() + String.valueOf(time));
-                paymentResponse = paymentService.PaymentRequest(PaymentRequest.builder()
-                        .orderCode(orderCode)
-                        .amount(finalPrice)
-                        .description("BB-" + currentTimeString.substring(currentTimeString.length() - 4))
-                        .build()
-                );
-                scheduler.schedule(() -> {
-                    Order currentOrder = orderRepository.findById(order.getId()).orElseThrow(
-                            () -> new NoSuchElementException("Not found order id : " + order.getId())
-                    );
-                    String title = "Hủy đơn hàng vì quá thời hạn thanh toán.";
-                    String message = String.format("Đơn hàng bị hủy do quá thời hạn thanh toán #%s đã bị hủy vì chưa được thanh toán!", currentOrder.getId());
-                    notificationService.sendNotification(currentOrder.getUser(), title, message, NotificationType.ORDER);
-                    if (currentOrder.getStatus().equals(OrderStatus.AWAITING_PAYMENT)) {
-                        currentOrder.setStatus(OrderStatus.CANCELED);
-                        orderRepository.save(currentOrder);
-                    }
-                }, 3, TimeUnit.HOURS);
-
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            paymentResponse = this.handlePaymentRequest(order, finalPrice);
         } else {
             String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), finalPrice);
             notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER);
@@ -174,7 +265,9 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalPrice(totalPrice[0]);
         orderRepository.save(order);
 
-        this.voucherService.updateQuantity(voucher.getId(), 1);
+        if (voucher != null) {
+            this.voucherService.updateQuantity(voucher.getId(), 1);
+        }
         request.getItems().forEach(item -> {
             Long cartId = item.getCartId();
             if (cartId != null) {
@@ -183,12 +276,74 @@ public class OrderServiceImpl implements OrderService {
         });
         return CreateOrderResponse.builder()
                 .finalPrice(finalPrice)
-                .orderCode(orderCode)
+                .orderCode(paymentResponse != null ? paymentResponse.getOrderCode() : null)
                 .orderStatus(order.getStatus())
                 .paymentType(order.getPaymentType())
                 .voucherId(voucher != null ? voucher.getId() : null)
                 .QRCodeURL(paymentResponse != null ? paymentResponse.getQRCodeURL() : "")
                 .build();
+    }
+
+    @Transactional
+    @Override
+    public CreateOrderResponse rePaymentOrder(Long orderId, PaymentType paymentType) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new NoSuchElementException("Order not found"));
+        BigDecimal totalPrice = order.getTotalPrice();
+        BigDecimal voucherDiscount = this.calculateVoucherDiscount(order.getVoucher(), totalPrice, order.getShippingFee());
+
+        BigDecimal finalPrice = totalPrice.add(order.getShippingFee()).subtract(voucherDiscount);
+
+        PaymentResponse paymentResponse = null;
+        if (paymentType == PaymentType.bank_transfer) {
+            order.setStatus(OrderStatus.AWAITING_PAYMENT);
+            paymentResponse = this.handlePaymentRequest(order, finalPrice);
+        } else {
+            order.setStatus(OrderStatus.PROCESSING);
+            String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), finalPrice);
+            notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER);
+        }
+
+
+        order.setPaymentType(paymentType);
+        orderRepository.save(order);
+
+        return CreateOrderResponse.builder()
+                .finalPrice(finalPrice)
+                .orderCode(paymentResponse != null ? paymentResponse.getOrderCode() : null)
+                .orderStatus(order.getStatus())
+                .paymentType(order.getPaymentType())
+                .voucherId(order.getVoucher() != null ? order.getVoucher().getId() : null)
+                .QRCodeURL(paymentResponse != null ? paymentResponse.getQRCodeURL() : "")
+                .build();
+    }
+
+    private PaymentResponse handlePaymentRequest(Order order, BigDecimal finalPrice) {
+        try {
+            String currentTimeString = String.valueOf(new Date().getTime());
+            Long time = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
+            Long orderCode = Long.parseLong(order.getId() + String.valueOf(time));
+            PaymentResponse paymentResponse = paymentService.PaymentRequest(PaymentRequest.builder()
+                    .orderCode(orderCode)
+                    .amount(finalPrice)
+                    .description("BB-" + currentTimeString.substring(currentTimeString.length() - 4))
+                    .build()
+            );
+            scheduler.schedule(() -> {
+                Order currentOrder = orderRepository.findById(order.getId()).orElseThrow(
+                        () -> new NoSuchElementException("Not found order id : " + order.getId())
+                );
+                String title = "Hủy đơn hàng vì quá thời hạn thanh toán.";
+                String message = String.format("Đơn hàng bị hủy do quá thời hạn thanh toán #%s đã bị hủy vì chưa được thanh toán!", currentOrder.getId());
+                notificationService.sendNotification(currentOrder.getUser(), title, message, NotificationType.ORDER);
+                if (currentOrder.getStatus().equals(OrderStatus.AWAITING_PAYMENT)) {
+                    currentOrder.setStatus(OrderStatus.CANCELED);
+                    orderRepository.save(currentOrder);
+                }
+            }, 3, TimeUnit.HOURS);
+            return paymentResponse;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -223,8 +378,10 @@ public class OrderServiceImpl implements OrderService {
                     totalDiscount[0] = totalDiscount[0].add(discount.multiply(quantity));
 
                     return OrderItemsDetailResponse.builder()
+                            .id(detail.getId())
                             .productId(product.getId())
                             .productName(product.getName())
+                            .productQuantity(product.getQuantity())
                             .originalPrice(originalPriceAtPurchase)
                             .discount(discount)
                             .quantity(detail.getQuantity())
@@ -255,7 +412,7 @@ public class OrderServiceImpl implements OrderService {
                 .totalDiscount(totalDiscount[0])
                 .voucher(voucher != null ? VoucherInOrderResponse.builder()
                         .code(voucher.getCode())
-                        .value(voucher.getValue())
+                        .value(discountWithVoucher[0])
                         .build() : null)
                 .shippingFee(order.getShippingFee())
                 .grandTotal(grandTotal[0])
@@ -303,25 +460,26 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponse updateOrderStatus(Long id, OrderStatus status) {
+    public void updateOrderStatus(Long id, UpdateOrderRequest request) {
+        OrderStatus status = OrderStatus.valueOf(request.getStatus());
+        User user = userService.findById(request.getUserId()).orElse(null);
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Order not found"));
 
-        if (order.getStatus().canTransitionTo(status)) {
-            order.setStatus(status);
-            orderRepository.save(order);
-        } else {
+        if (!order.getStatus().canTransitionTo(status)) {
             throw new IllegalArgumentException("Invalid status transition from " + order.getStatus() + " to " + status);
         }
-
-        return OrderResponse.builder()
-                .status(order.getStatus())
-                .build();
+        order.setBuyerName(user != null ? user.getFullName() : null);
+        order.setBuyerPhoneNum(user != null ? user.getPhoneNum() : null);
+        order.setStatus(status);
+        order.setAmountPaid(request.getAmountPaid());
+        order.setUser(user);
+        orderRepository.save(order);
     }
 
     private BigDecimal calculateVoucherDiscount(Voucher voucher, BigDecimal totalPrice, BigDecimal shippingFee) {
         BigDecimal voucherDiscount = BigDecimal.ZERO;
-        if(voucher == null) {
+        if (voucher == null) {
             return voucherDiscount;
         }
         if (voucher.getType() == VoucherType.PERCENT) {

@@ -127,4 +127,11 @@ public class ReviewService {
                 .createDate(review.getUpdateTime())
                 .build();
     }
+    public Map<Long, Boolean> checkUserReviewedProducts(Long userId, List<Long> productIds) {
+        List<Long> reviewedProductIds = reviewRepository.findReviewedProductIdsByUser(userId, productIds);
+        Map<Long, Boolean> isReviewedMap = productIds.stream()
+                .collect(Collectors.toMap(productId -> productId, productId -> false));
+        reviewedProductIds.forEach(productId -> isReviewedMap.put(productId, true));
+        return isReviewedMap;
+    }
 }
