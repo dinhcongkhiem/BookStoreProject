@@ -263,6 +263,7 @@ public class ProductService {
         return ProductsForManagerResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
+                .originalPrice(product.getOriginal_price())
                 .price(product.getOriginal_price().subtract(discountVal))
                 .quantity(product.getQuantity())
                 .status(product.getStatus())
@@ -288,6 +289,11 @@ public class ProductService {
     public Product findProductById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No product found with id: " + id));
+    }
+
+    public Product findProductByCode(Long productCode) {
+        return productRepository.findByProductCode(productCode)
+                .orElseThrow(() -> new NoSuchElementException("No product found with code: " + productCode));
     }
 
 }

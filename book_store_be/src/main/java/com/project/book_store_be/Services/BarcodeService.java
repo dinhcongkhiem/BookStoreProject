@@ -18,8 +18,7 @@ import java.nio.file.Path;
 
 @Service
 public class BarcodeService {
-    public String readBarcode(InputStream imageInputStream) throws IOException, NotFoundException {
-        BufferedImage bufferedImage = ImageIO.read(imageInputStream);
+    public String readBarcode( BufferedImage bufferedImage) throws IOException, NotFoundException {
         LuminanceSource source = new BufferedImageLuminanceSource(bufferedImage);
         BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 
