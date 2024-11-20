@@ -3,7 +3,7 @@ import { PUBLISHER_URL } from './config';
 
 class PublisherServiceClass {
     // Lấy tất cả nhà xuất bản
-    getAll = () => {
+    getAll = ({ keyword }) => {
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
@@ -12,6 +12,7 @@ class PublisherServiceClass {
                 'Content-Type': 'application/json',
             },
             withCredentials: true,
+            params: { keyword: keyword.length > 0 ? keyword : null },
         };
 
         return axios.request(config);

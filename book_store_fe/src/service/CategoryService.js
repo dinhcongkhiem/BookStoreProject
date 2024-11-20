@@ -1,12 +1,13 @@
 import axios from 'axios';
 import { CATEGORY_URL } from './config';
 class CategoryServiceClass {
-    getAll = () => {
+    getAll = ({keyword}) => {
         const config = {
             method: 'get',
             maxBodyLength: Infinity,
             url: CATEGORY_URL,
             withCredentials: true,
+            params: { keyword: keyword.length > 0 ? keyword : null },
         };
         return axios.request(config);
     };
