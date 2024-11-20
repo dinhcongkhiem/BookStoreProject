@@ -290,4 +290,10 @@ public class ProductService {
                 .orElseThrow(() -> new NoSuchElementException("No product found with id: " + id));
     }
 
+    public Long generateUniqueLong() {
+        long timestamp = System.currentTimeMillis();
+        String uniqueNumber = String.format("%016d", timestamp);
+        return Long.parseLong(uniqueNumber);
+    }
+
 }

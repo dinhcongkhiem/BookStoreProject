@@ -5,7 +5,6 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.HybridBinarizer;
-import org.apache.logging.log4j.util.Base64Util;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
