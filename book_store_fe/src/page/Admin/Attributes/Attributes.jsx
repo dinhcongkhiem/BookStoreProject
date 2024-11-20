@@ -19,6 +19,7 @@ import {
     DialogActions,
     TextField,
     Button,
+    InputAdornment
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
@@ -28,16 +29,20 @@ import {
     Business as BusinessIcon,
     Category as CategoryIcon,
     Close as CloseIcon,
-    Save as SaveIcon,
+    Search as SearchIcon
 } from '@mui/icons-material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import classNames from 'classnames/bind';
+import { useSearchParams } from 'react-router-dom';
 import styles from './Attributes.module.scss';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import authorService from '../../../service/AuthorService';
 import publisherService from '../../../service/Publisher';
 import CategoryService from '../../../service/CategoryService';
+import useDebounce from '../../../hooks/useDebounce';
+import { Formik, Form, Field } from 'formik';
+import * as Yup from 'yup';
 
 const cx = classNames.bind(styles);
 
@@ -45,24 +50,41 @@ function Attributes() {
     const [openModal, setOpenModal] = useState(false);
     const [modalType, setModalType] = useState('');
     const [selectedAttribute, setSelectedAttribute] = useState(null);
-    const [newAttributeName, setNewAttributeName] = useState('');
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState(null);
     const [confirmSaveDialogOpen, setConfirmSaveDialogOpen] = useState(false);
     const [saveAction, setSaveAction] = useState(null);
     const queryClient = useQueryClient();
+    const [authorSearchTerm, setAuthorSearchTerm] = useState('');
+    const [publisherSearchTerm, setPublisherSearchTerm] = useState('');
+    const [categorySearchTerm, setCategorySearchTerm] = useState('');
+    const authorSearchDebounceVal = useDebounce(authorSearchTerm, 500);
+    const publisherSearchDebounceVal = useDebounce(publisherSearchTerm, 500);
+    const categorySearchDebounceVal = useDebounce(categorySearchTerm, 500);
+
+    const validationSchema = Yup.object().shape({
+        name: Yup.string()
+            .required('Tên là bắt buộc')
+            .min(2, 'Tên phải có ít nhất 2 ký tự')
+            .max(50, 'Tên không được vượt quá 50 ký tự')
+            .matches(/^[a-zA-Z\s\u00C0-\u1EF9]+$/, 'Tên chỉ được chứa chữ cái và khoảng trắng')
+            .test('no-leading-trailing-spaces', 'Tên không được bắt đầu hoặc kết thúc bằng khoảng trắng', 
+                value => value && value.trim() === value)
+            .test('no-consecutive-spaces', 'Tên không được chứa nhiều khoảng trắng liên tiếp', 
+                value => value && !value.includes('  '))
+            .test('not-only-spaces', 'Tên không thể chỉ chứa khoảng trắng',
+                value => value && value.trim().length > 0)
+    });
 
     const handleOpenModal = (type, attribute = null) => {
         setModalType(type);
         setSelectedAttribute(attribute);
-        setNewAttributeName(attribute ? attribute.name : '');
         setOpenModal(true);
     };
 
     const handleCloseModal = () => {
         setOpenModal(false);
         setSelectedAttribute(null);
-        setNewAttributeName('');
     };
 
     const {
@@ -70,8 +92,8 @@ function Attributes() {
         isLoading: loadingAuthors,
         isError: errorAuthors,
     } = useQuery({
-        queryKey: ['authors'],
-        queryFn: () => authorService.getAll().then((response) => response.data),
+        queryKey: ['authors', authorSearchDebounceVal],
+        queryFn: () => authorService.getAll({ keyword: authorSearchDebounceVal }).then((response) => response.data),
     });
 
     const {
@@ -79,8 +101,8 @@ function Attributes() {
         isLoading: loadingPublishers,
         isError: errorPublishers,
     } = useQuery({
-        queryKey: ['publishers'],
-        queryFn: () => publisherService.getAll().then((response) => response.data),
+        queryKey: ['publishers', publisherSearchDebounceVal],
+        queryFn: () => publisherService.getAll({ keyword: publisherSearchDebounceVal }).then((response) => response.data),
     });
 
     const {
@@ -88,49 +110,48 @@ function Attributes() {
         isLoading: loadingCategories,
         isError: errorCategories,
     } = useQuery({
-        queryKey: ['categories'],
-        queryFn: () => CategoryService.getAll().then((response) => response.data),
+        queryKey: ['categories', categorySearchDebounceVal],
+        queryFn: () => CategoryService.getAll({ keyword: categorySearchDebounceVal }).then((response) => response.data),
     });
 
-    const handleSave = async () => {
+    const handleSave = async (values, { setSubmitting, resetForm }) => {
         setConfirmSaveDialogOpen(false);
         try {
             if (modalType === 'addPublisher') {
-                const response = await publisherService.create({ name: newAttributeName });
+                await publisherService.create({ name: values.name });
                 queryClient.invalidateQueries(['publishers']);
                 toast.success('Nhà xuất bản đã được thêm thành công!');
             } else if (modalType === 'addAuthor') {
-                const response = await authorService.create({ name: newAttributeName });
+                await authorService.create({ name: values.name });
                 queryClient.invalidateQueries(['authors']);
                 toast.success('Tác giả đã được thêm thành công!');
             } else if (modalType === 'addGenre') {
-                const response = await CategoryService.create({ name: newAttributeName });
+                await CategoryService.create({ name: values.name });
                 queryClient.invalidateQueries(['categories']);
                 toast.success('Thể loại đã được thêm thành công!');
             }
             handleCloseModal();
+            resetForm();
         } catch (error) {
             toast.error('Đã xảy ra lỗi khi thêm mới!');
+        } finally {
+            setSubmitting(false);
         }
-    };
-
-    const handleUpdate = () => {
-        setConfirmSaveDialogOpen(true);
     };
 
     const handleConfirmUpdate = async () => {
         setConfirmSaveDialogOpen(false);
         try {
             if (modalType === 'editAuthor' && selectedAttribute?.id) {
-                await authorService.update(selectedAttribute.id, { name: newAttributeName });
+                await authorService.update(selectedAttribute.id, { name: selectedAttribute.name });
                 queryClient.invalidateQueries(['authors']);
                 toast.success('Tác giả đã được cập nhật thành công!');
             } else if (modalType === 'editPublisher' && selectedAttribute?.id) {
-                await publisherService.update(selectedAttribute.id, { name: newAttributeName });
+                await publisherService.update(selectedAttribute.id, { name: selectedAttribute.name });
                 queryClient.invalidateQueries(['publishers']);
                 toast.success('Nhà xuất bản đã được cập nhật thành công!');
             } else if (modalType === 'editGenre' && selectedAttribute?.id) {
-                await CategoryService.update(selectedAttribute.id, { name: newAttributeName });
+                await CategoryService.update(selectedAttribute.id, { name: selectedAttribute.name });
                 queryClient.invalidateQueries(['categories']);
                 toast.success('Thể loại đã được cập nhật thành công!');
             }
@@ -197,11 +218,6 @@ function Attributes() {
         setConfirmDialogOpen(false);
     };
 
-    const handleConfirmSave = (action) => {
-        setSaveAction(action);
-        setConfirmSaveDialogOpen(true);
-    };
-
     return (
         <div className={cx('pageWrapper')}>
             <Container className={cx('attributesContainer')}>
@@ -230,6 +246,23 @@ function Attributes() {
                                     </IconButton>
                                 </Tooltip>
                             </div>
+                            <TextField
+                                id="searchAuthor"
+                                size='small'
+                                fullWidth
+                                variant="outlined"
+                                placeholder="Tìm kiếm tác giả..."
+                                value={authorSearchTerm}
+                                onChange={(e) => setAuthorSearchTerm(e.target.value)}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <SearchIcon />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                                className={cx('searchField')}
+                            />
                             <TableContainer className={cx('attributeList')}>
                                 <Table>
                                     <TableBody>
@@ -301,6 +334,23 @@ function Attributes() {
                                     </IconButton>
                                 </Tooltip>
                             </div>
+                            <TextField
+                                id="searchPublisher"
+                                size='small'
+                                fullWidth
+                                variant="outlined"
+                                placeholder="Tìm kiếm nhà xuất bản..."
+                                value={publisherSearchTerm}
+                                onChange={(e) => setPublisherSearchTerm(e.target.value)}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <SearchIcon />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                                className={cx('searchField')}
+                            />
                             <TableContainer className={cx('attributeList')}>
                                 <Table>
                                     <TableBody>
@@ -376,6 +426,23 @@ function Attributes() {
                                     </IconButton>
                                 </Tooltip>
                             </div>
+                            <TextField
+                                id="searchCategory"
+                                size='small'
+                                fullWidth
+                                variant="outlined"
+                                placeholder="Tìm kiếm thể loại..."
+                                value={categorySearchTerm}
+                                onChange={(e) => setCategorySearchTerm(e.target.value)}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <SearchIcon />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                                className={cx('searchField')}
+                            />
                             <TableContainer className={cx('attributeList')}>
                                 <Table>
                                     <TableBody>
@@ -445,57 +512,64 @@ function Attributes() {
                             {modalType.includes('Author')
                                 ? 'Tác giả'
                                 : modalType.includes('Publisher')
-                                  ? 'Nhà xuất bản'
-                                  : 'Thể loại'}
+                                    ? 'Nhà xuất bản'
+                                    : 'Thể loại'}
                         </Typography>
                         <IconButton aria-label="close" onClick={handleCloseModal} className={cx('closeButton')}>
                             <CloseIcon />
                         </IconButton>
                     </DialogTitle>
-                    <DialogContent className={cx('modalBody')}>
-                        <TextField
-                            size="small"
-                            autoFocus
-                            margin="dense"
-                            label="Tên"
-                            type="text"
-                            fullWidth
-                            variant="outlined"
-                            value={newAttributeName}
-                            onChange={(e) => setNewAttributeName(e.target.value)}
-                            className={cx('inputField')}
-                            InputProps={{
-                                classes: {
-                                    root: cx('inputRoot'),
-                                    focused: cx('inputFocused'),
-                                },
-                            }}
-                            InputLabelProps={{
-                                classes: {
-                                    root: cx('inputLabel'),
-                                    focused: cx('inputLabelFocused'),
-                                },
-                            }}
-                        />
-                    </DialogContent>
-                    <DialogActions className={cx('modalFooter')}>
-                        <Button onClick={handleCloseModal} className={cx('cancelButton')} variant="outlined">
-                            Hủy
-                        </Button>
-                        {modalType.startsWith('add') ? (
-                            <Button
-                                onClick={() => handleConfirmSave('add')}
-                                variant="contained"
-                                className={cx('confirmButton')}
-                            >
-                                Thêm
-                            </Button>
-                        ) : (
-                            <Button onClick={handleUpdate} variant="contained" className={cx('confirmButton')}>
-                                Lưu
-                            </Button>
+                    <Formik
+                        initialValues={{ name: '' }}
+                        validationSchema={validationSchema}
+                        onSubmit={handleSave}
+                    >
+                        {({ errors, touched, isSubmitting }) => (
+                            <Form>
+                                <DialogContent className={cx('modalBody')}>
+                                    <Field
+                                        as={TextField}
+                                        name="name"
+                                        size="small"
+                                        autoFocus
+                                        margin="dense"
+                                        label="Tên"
+                                        type="text"
+                                        fullWidth
+                                        variant="outlined"
+                                        error={touched.name && errors.name}
+                                        helperText={touched.name && errors.name}
+                                        className={cx('inputField')}
+                                        InputProps={{
+                                            classes: {
+                                                root: cx('inputRoot'),
+                                                focused: cx('inputFocused'),
+                                            },
+                                        }}
+                                        InputLabelProps={{
+                                            classes: {
+                                                root: cx('inputLabel'),
+                                                focused: cx('inputLabelFocused'),
+                                            },
+                                        }}
+                                    />
+                                </DialogContent>
+                                <DialogActions className={cx('modalFooter')}>
+                                    <Button onClick={handleCloseModal} className={cx('cancelButton')} variant="outlined">
+                                        Hủy
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        variant="contained"
+                                        className={cx('confirmButton')}
+                                        disabled={isSubmitting}
+                                    >
+                                        {modalType.startsWith('add') ? 'Thêm' : 'Lưu'}
+                                    </Button>
+                                </DialogActions>
+                            </Form>
                         )}
-                    </DialogActions>
+                    </Formik>
                 </Dialog>
 
                 <Dialog
