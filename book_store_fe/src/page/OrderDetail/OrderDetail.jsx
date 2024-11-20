@@ -200,7 +200,7 @@ function OrderDetail() {
                         <Typography variant="body2">
                             Ngày đặt hàng: {new Date(orderDataRes?.orderDate).toLocaleDateString('vi-VN')}
                         </Typography>
-                        <Typography variant="body2">Mã giảm giá: {orderDataRes?.voucher.code || 'Không có'}</Typography>
+                        <Typography variant="body2">Mã giảm giá: {orderDataRes?.voucher?.code || 'Không có'}</Typography>
                     </StyledPaper>
                 </Grid>
             </Grid>
@@ -242,6 +242,7 @@ function OrderDetail() {
                                             </Typography>
                                             {orderDataRes?.status === 'COMPLETED' && !pathname.startsWith('/admin') && (
                                                 <Button
+                                                    disabled={product.isReviewed}
                                                     color="primary"
                                                     startIcon={<RateReviewIcon />}
                                                     className={cx('actionButtonCompleted')}
@@ -307,11 +308,11 @@ function OrderDetail() {
                                 </Typography>
                             </Box>
                         )}
-                        {orderDataRes?.voucher.value !== 0 && (
+                        {orderDataRes?.voucher?.value !== 0 && (
                             <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
                                 <Typography>Giảm giá từ mã khuyến mãi</Typography>
                                 <Typography noWrap className={cx('priceCell')}>
-                                    -{orderDataRes?.voucher.value.toLocaleString('vi-VN')} ₫
+                                    -{orderDataRes?.voucher?.value.toLocaleString('vi-VN')} ₫
                                 </Typography>
                             </Box>
                         )}

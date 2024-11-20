@@ -17,4 +17,5 @@ public class OrderItemsDetailResponse {
     private BigDecimal discount;
     private Integer quantity;
     private String thumbnailUrl;
+    private Boolean isReviewed;
 }

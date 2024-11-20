@@ -54,6 +54,7 @@ public class OrderServiceImpl implements OrderService {
     private final NotificationService notificationService;
     private final VoucherRepository voucherRepository;
     private final VoucherService voucherService;
+    private final ReviewService reviewService;
     private final SimpMessagingTemplate messagingTemplate;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -365,6 +366,9 @@ public class OrderServiceImpl implements OrderService {
         final BigDecimal[] totalDiscount = {BigDecimal.ZERO};
         final BigDecimal[] discountWithVoucher = {BigDecimal.ZERO};
 
+        Map<Long,Boolean> mapCheckReviewed = reviewService.checkUserReviewedProducts(userService.getCurrentUser().getId(),
+                order.getOrderDetails().stream().map(detail -> detail.getProduct().getId()).toList());
+
         List<OrderItemsDetailResponse> itemDetails = order.getOrderDetails().stream()
                 .map(detail -> {
                     Product product = detail.getProduct();
@@ -386,6 +390,7 @@ public class OrderServiceImpl implements OrderService {
                             .discount(discount)
                             .quantity(detail.getQuantity())
                             .thumbnailUrl(imageProductService.getThumbnailProduct(product.getId()))
+                            .isReviewed(mapCheckReviewed.get(product.getId()))
                             .build();
                 })
                 .toList();
