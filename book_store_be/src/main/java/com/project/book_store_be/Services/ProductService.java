@@ -122,7 +122,10 @@ public class ProductService {
     public void addProduct(ProductRequest request, List<MultipartFile> images, Integer indexThumbnail) {
         Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
 
+
+
         Product product = Product.builder()
+                .productCode(generateUniqueLong())
                 .name(request.getName())
                 .publisher(publisherService.getPublisherById(request.getPublisherId()).orElse(null))
                 .number_of_pages(request.getNumberOfPages())
@@ -291,9 +294,17 @@ public class ProductService {
                 .orElseThrow(() -> new NoSuchElementException("No product found with id: " + id));
     }
 
+    public Long generateUniqueLong() {
+        long timestamp = System.currentTimeMillis();
+        String uniqueNumber = String.format("%016d", timestamp);
+        return Long.parseLong(uniqueNumber);
+    }
+
+
     public Product findProductByCode(Long productCode) {
         return productRepository.findByProductCode(productCode)
                 .orElseThrow(() -> new NoSuchElementException("No product found with code: " + productCode));
-    }
 
+
+    }
 }
