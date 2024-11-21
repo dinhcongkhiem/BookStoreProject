@@ -26,6 +26,7 @@ import {
     Pagination,
     Snackbar,
     Alert,
+    Checkbox,
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -34,6 +35,7 @@ import {
     Visibility as VisibilityIcon,
     Search as SearchIcon,
     Close as CloseIcon,
+    QrCode,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { Gallery, Item } from 'react-photoswipe-gallery';
@@ -55,7 +57,8 @@ const Product = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [page, setPage] = useState(1);
     const [orderBy, setOrderBy] = useState('newest');
-    const [productToDelete, setProductToDelete] = useState(null);
+    const [productIds, setProductIds] = useState([]);
+    const [isClicked, setIsClicked] = useState(false); // Trạng thái kiểm tra nút đã click hay chưa
     const [toastOpen, setToastOpen] = useState(false);
     const [toastMessage] = useState('');
     const [toastSeverity] = useState('success');
@@ -128,6 +131,40 @@ const Product = () => {
             toast.error('Có lỗi xảy ra khi xóa sản phẩm');
         },
     });
+
+    useQuery({
+        queryKey: ['barcodes'],
+        queryFn: () => {
+            setIsClicked(false);
+            let isAll = false;
+            let productIdsReq = [...productIds];
+            if (productIdsReq[0] === -1) {
+                productIdsReq.shift();
+                isAll = true;
+            }
+            ProductService.getBarcodes({ productIds: productIdsReq, isAll: isAll }).then(async res => {
+                if (res.status !== 200) {
+                    throw new Error('Failed to fetch PDF');
+                  }
+
+                  const url = URL.createObjectURL(res.data);
+                  const iframe = document.createElement('iframe');
+                  iframe.style.display = 'none';
+                  iframe.src = url;
+                  document.body.appendChild(iframe);
+              
+                  URL.revokeObjectURL(url);
+              
+                  iframe.onload = () => {
+                    iframe.contentWindow?.print();
+                  };
+            });
+          
+        },
+        enabled: isClicked,
+        retry: 1,
+    });
+
     useEffect(() => {
         if (productRes) {
             window.scrollTo({ top: 0, behavior: 'instant' });
@@ -158,19 +195,46 @@ const Product = () => {
                     }}
                     sx={{ width: '30rem' }}
                 />
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<AddIcon />}
-                    onClick={() => navigate('/admin/product/add')}
-                >
-                    Thêm sách
-                </Button>
+                <div className="d-flex gap-3">
+                    <Button
+                        disabled={productIds.length === 0}
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<QrCode />}
+                        onClick={() => setIsClicked(true)}
+                    >
+                        In mã vạch
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<AddIcon />}
+                        onClick={() => navigate('/admin/product/add')}
+                    >
+                        Thêm sách
+                    </Button>
+                </div>
             </Box>
             <TableContainer component={Paper} className={cx('product-table')}>
                 <Table>
                     <TableHead>
                         <TableRow>
+                            <TableCell size="small" sx={{ paddingRight: '.5rem' }}>
+                                <Checkbox
+                                    checked={
+                                        Array.isArray(productIds) && productIds[0] === -1 && productIds.length === 1
+                                    }
+                                    onChange={() => {
+                                        const updatedProductIds = Array.isArray(productIds)
+                                            ? productIds.includes(-1)
+                                                ? []
+                                                : [-1]
+                                            : [-1];
+
+                                        setProductIds(updatedProductIds);
+                                    }}
+                                />
+                            </TableCell>
                             <TableCell size="small" sx={{ paddingRight: '.5rem', width: '78px' }}>
                                 <TableSortLabel
                                     active={orderBy.split('_')[0] === 'id'}
@@ -241,6 +305,24 @@ const Product = () => {
                     <TableBody>
                         {productRes?.content.map((product) => (
                             <TableRow key={product.id}>
+                                <TableCell>
+                                    <Checkbox
+                                        checked={
+                                            Array.isArray(productIds) && productIds[0] === -1
+                                                ? !productIds.includes(product.id)
+                                                : productIds.includes(product.id)
+                                        }
+                                        onChange={() => {
+                                            const updatedProductIds = Array.isArray(productIds)
+                                                ? productIds.includes(product.id)
+                                                    ? productIds.filter((id) => id !== product.id)
+                                                    : [...productIds, product.id]
+                                                : [product.id];
+
+                                            setProductIds(updatedProductIds);
+                                        }}
+                                    />
+                                </TableCell>
                                 <TableCell size="small" sx={{ paddingRight: '.5rem', width: '78px' }}>
                                     {product.id}
                                 </TableCell>

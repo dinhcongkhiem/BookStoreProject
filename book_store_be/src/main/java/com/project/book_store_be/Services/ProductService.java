@@ -40,6 +40,8 @@ public class ProductService {
     private final ImageProductService imageProductService;
     private final ReviewService reviewService;
     private final ProductRepositoryCustom productRepositoryCustom;
+    private final BarcodeService barcodeService;
+
 
     public Page<ProductResponse> getProductsAvailable(
             int page, int pageSize, Long category, List<BigDecimal> price,
@@ -116,12 +118,11 @@ public class ProductService {
         Tuple productTuple = productRepository.findProductWithQtySold(id);
         Product product = productTuple.get(0, Product.class);
         Long qtySold = productTuple.get(1, Long.class);
-        return this.convertToProductDetailResponse(product,qtySold.intValue());
+        return this.convertToProductDetailResponse(product, qtySold.intValue());
     }
 
     public void addProduct(ProductRequest request, List<MultipartFile> images, Integer indexThumbnail) {
         Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
-
 
 
         Product product = Product.builder()
@@ -155,7 +156,7 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public void updateQuantity( Product product, Integer quantity) {
+    public void updateQuantity(Product product, Integer quantity) {
         product.setQuantity(quantity);
         productRepository.save(product);
     }
@@ -305,6 +306,20 @@ public class ProductService {
         return productRepository.findByProductCode(productCode)
                 .orElseThrow(() -> new NoSuchElementException("No product found with code: " + productCode));
 
+    }
+
+    public byte[] getBarcodes(List<Long> productIds, Boolean isAllProduct) {
+        try {
+            List<Product> products;
+            if (isAllProduct) {
+                products = productIds.isEmpty() ? productRepository.findAll() : productRepository.findAllByIdNotIn(productIds);
+            } else {
+                products = productRepository.findAllById(productIds);
+            }
+            return this.barcodeService.generateBarcodePdf(products, 300, 100);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
     }
 }

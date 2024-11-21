@@ -158,6 +158,23 @@ class ProductServiceClass {
         };
         return httpRequest.request(config);
     };
+
+    getBarcodes = ({ productIds, isAll }) => {
+        let config = {
+            method: 'get',
+            url: PRODUCT_URL + '/generate-barcode',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            params: {
+                productIds: productIds.join(','),
+                isAllProduct: isAll,
+            },
+            responseType: 'blob',
+            withCredentials: true,
+        };
+        return httpRequest.request(config);
+    };
 }
 const ProductService = new ProductServiceClass();
 export default ProductService;

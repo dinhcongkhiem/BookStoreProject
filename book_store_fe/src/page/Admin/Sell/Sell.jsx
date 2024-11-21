@@ -128,6 +128,14 @@ export default function Sell() {
         },
     });
 
+    const cancelOrder = useMutation({
+        mutationFn: (id) => OrderService.cancelOrderInCounter(id),
+        onError: (error) => console.log(error),
+        onSuccess: (data, id) => {
+            deleteInvoice(id);
+            toast.success('Đã hủy đơn hàng');
+        },
+    });
     const deleteInvoice = (invoiceId) => {
         setInvoices((prevInvoices) => prevInvoices.filter((invoice) => invoice.orderId !== invoiceId));
         if (invoices.length === 1) {
@@ -363,7 +371,7 @@ export default function Sell() {
                                                 size="small"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    deleteInvoice(invoice.orderId);
+                                                    cancelOrder.mutate(invoice.orderId);
                                                 }}
                                                 className={cx('deleteIcon')}
                                             >
@@ -456,9 +464,9 @@ export default function Sell() {
                                                         </div>
                                                         <div className={cx('stock-remaining')}>
                                                             Số lượng còn lại:
-                                                            {isNaN(item.productQuantity - item.quantity)
-                                                                ? 0
-                                                                : item.productQuantity - item.quantity}
+                                                            {item.productQuantity +
+                                                                item.initialQuantity -
+                                                                item.quantity}
                                                         </div>
                                                     </TableCell>
                                                     <TableCell align="right">

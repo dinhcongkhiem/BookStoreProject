@@ -105,7 +105,7 @@ function OrderDetail() {
                     Mua lại
                 </Button>
             ),
-            CANCELED: (
+            CANCELED: !isAdmin && (
                 <Button
                     variant="outlined"
                     color="primary"
@@ -163,32 +163,39 @@ function OrderDetail() {
             <Grid container spacing={3} className={cx('infoSections')}>
                 <Grid item xs={12} md={4}>
                     <SectionTitle className={cx('addressTitle')} variant="h6">
-                        Địa chỉ người nhận
+                        Thông tin khách hàng
                     </SectionTitle>
                     <StyledPaper>
                         <Typography variant="body1" gutterBottom>
                             {orderDataRes?.fullname}
                         </Typography>
-                        <Typography variant="body2" className={cx('address')}>
-                            Địa chỉ:
-                            {`${orderDataRes?.address.addressDetail}, ${orderDataRes?.address.commune.label}, ${orderDataRes?.address.district.label}, ${orderDataRes?.address.province.label}`}
-                        </Typography>
-                        <Typography variant="body2">Điện thoại: {orderDataRes?.phoneNum}</Typography>
+                        {orderDataRes?.address !== null && (
+                            <Typography variant="body2" className={cx('address')}>
+                                Địa chỉ:
+                                {`${orderDataRes?.address?.addressDetail}, ${orderDataRes?.address?.commune.label}, ${orderDataRes?.address?.district.label}, ${orderDataRes?.address?.province.label}`}
+                            </Typography>
+                        )}
+
+                        {orderDataRes?.phoneNum !== null && (
+                            <Typography variant="body2">Điện thoại: {orderDataRes?.phoneNum}</Typography>
+                        )}
                     </StyledPaper>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
-                    <SectionTitle className={cx('paymentTitle')} variant="h6">
-                        Hình thức thanh toán
-                    </SectionTitle>
-                    <StyledPaper>
-                        <Typography variant="body1" gutterBottom>
-                            {orderDataRes?.paymentType === 'bank_transfer'
-                                ? 'Chuyển khoản ngân hàng'
-                                : 'Tiền mặt khi nhận hàng'}
-                        </Typography>
-                    </StyledPaper>
-                </Grid>
+                {orderDataRes?.paymentType !== null && (
+                    <Grid item xs={12} md={4}>
+                        <SectionTitle className={cx('paymentTitle')} variant="h6">
+                            Hình thức thanh toán
+                        </SectionTitle>
+                        <StyledPaper>
+                            <Typography variant="body1" gutterBottom>
+                                {orderDataRes?.paymentType === 'bank_transfer'
+                                    ? 'Chuyển khoản ngân hàng'
+                                    : 'Tiền mặt khi nhận hàng'}
+                            </Typography>
+                        </StyledPaper>
+                    </Grid>
+                )}
                 <Grid item xs={12} md={4}>
                     <SectionTitle className={cx('orderInfoTitle')} variant="h6">
                         Thông tin đơn hàng
@@ -200,7 +207,9 @@ function OrderDetail() {
                         <Typography variant="body2">
                             Ngày đặt hàng: {new Date(orderDataRes?.orderDate).toLocaleDateString('vi-VN')}
                         </Typography>
-                        <Typography variant="body2">Mã giảm giá: {orderDataRes?.voucher?.code || 'Không có'}</Typography>
+                        <Typography variant="body2">
+                            Mã giảm giá: {orderDataRes?.voucher?.code || 'Không có'}
+                        </Typography>
                     </StyledPaper>
                 </Grid>
             </Grid>

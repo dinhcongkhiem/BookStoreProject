@@ -152,4 +152,16 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("cancel/{id}")
+    public ResponseEntity<?> cancelOrderInCounter(@PathVariable Long id) {
+        try {
+            orderService.cancelOrderInCounter(id);
+            return ResponseEntity.ok().build();
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+        }
+    }
+
 }

@@ -5,13 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Request.ProductFilterRequest;
 import com.project.book_store_be.Request.ProductRequest;
+import com.project.book_store_be.Services.BarcodeService;
 import com.project.book_store_be.Services.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,7 +26,6 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v1/product")
 public class ProductController {
     private final ProductService productService;
-
     @GetMapping("/available")
     public ResponseEntity<Page<?>> getAvailableProducts(
             @RequestParam(defaultValue = "0") int page,
@@ -128,4 +128,23 @@ public class ProductController {
     public ResponseEntity<?> getAtributes() {
         return ResponseEntity.ok(productService.getAttributes());
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value = "/generate-barcode", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> generateBarcodePdf(@RequestParam List<Long> productIds, @RequestParam Boolean isAllProduct) {
+        try {
+            byte[] pdfFile = productService.getBarcodes(productIds, isAllProduct);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDisposition(ContentDisposition.attachment().filename("barcodes.pdf").build());
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
 }

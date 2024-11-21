@@ -48,7 +48,8 @@
 
 .invoicePaper {
     flex-direction: column;
-    height: calc(100vh - 140px);
+    height: 73.4rem;
+    max-height: 73.4rem;
 }
 
 .sectionTitle {
@@ -80,7 +81,7 @@
     border: 1px solid #e0e0e0;
     border-radius: 0.8rem;
     padding: 0;
-    max-height: calc(5 * 72px);
+    max-height: 59rem;
     scrollbar-width: thin;
     scrollbar-color: #4a69bd #f0f0f0;
 

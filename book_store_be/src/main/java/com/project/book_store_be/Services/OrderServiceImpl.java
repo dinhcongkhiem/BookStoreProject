@@ -145,6 +145,8 @@ public class OrderServiceImpl implements OrderService {
         if (quantity > orderDetail.getProduct().getQuantity()) {
             throw new IllegalArgumentException("Số lượng không hợp lệ. Phải nhỏ hơn hoặc bằng số lượng có sẵn.");
         }
+        Product product = orderDetail.getProduct();
+        productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity()  - quantity);
         orderDetail.setQuantity(quantity);
         orderDetailRepository.save(orderDetail);
     }
@@ -155,6 +157,9 @@ public class OrderServiceImpl implements OrderService {
         OrderDetail orderDetail = orderDetailRepository.findById(orderDetailId)
                 .orElseThrow(() -> new NoSuchElementException("Order detail not found with ID: " + orderDetailId));
         orderDetailRepository.delete(orderDetail);
+        Product product = orderDetail.getProduct();
+        productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity());
+
     }
 
     @Transactional
@@ -474,11 +479,25 @@ public class OrderServiceImpl implements OrderService {
         if (!order.getStatus().canTransitionTo(status)) {
             throw new IllegalArgumentException("Invalid status transition from " + order.getStatus() + " to " + status);
         }
-        order.setBuyerName(user != null ? user.getFullName() : null);
+        order.setBuyerName(user != null ? user.getFullName() : "Khách lẻ");
         order.setBuyerPhoneNum(user != null ? user.getPhoneNum() : null);
         order.setStatus(status);
         order.setAmountPaid(request.getAmountPaid());
         order.setUser(user);
+        orderRepository.save(order);
+    }
+
+    @Override
+    public void cancelOrderInCounter(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NoSuchElementException("Order not found with ID: " + orderId));
+        order.setStatus(OrderStatus.CANCELED);
+        order.setBuyerName("Khách lẻ");
+        order.getOrderDetails().forEach(orderDetail -> {
+            Product product = orderDetail.getProduct();
+            productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity());
+        });
+
         orderRepository.save(order);
     }
 

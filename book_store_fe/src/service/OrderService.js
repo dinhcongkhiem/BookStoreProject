@@ -185,6 +185,20 @@ class OrderServiceClass {
 
         return httpRequest.request(config);
     };
+
+    cancelOrderInCounter = (id) => {
+        let config = {
+            method: 'delete',
+            maxBodyLength: Infinity,
+            url: ORDERS_URL + `/cancel/${id}`,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+        };
+
+        return httpRequest.request(config);
+    }
 }
 const OrderService = new OrderServiceClass();
 export default OrderService;
