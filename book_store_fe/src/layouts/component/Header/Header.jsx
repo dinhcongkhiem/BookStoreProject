@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { Fragment, memo, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell, faComment, faSearch, faShoppingCart, faTicketSimple, faUser } from '@fortawesome/free-solid-svg-icons';
@@ -475,4 +475,4 @@ function Header() {
     );
 }
 
-export default Header;
+export default memo(Header);

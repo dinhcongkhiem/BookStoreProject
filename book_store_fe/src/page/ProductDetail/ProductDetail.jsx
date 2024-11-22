@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames/bind';
 import Slider from 'react-slick';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -7,8 +7,6 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import ProductsComponent from '../../component/ProductsComponent/ProductsComponent';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
 
 import NextArrow from '../../component/ReactSlickComponent/NextArrow';
 import PrevArrow from '../../component/ReactSlickComponent/PrevArrow';
@@ -17,14 +15,17 @@ import style from './ProductDetail.module.scss';
 import ProductService from '../../service/ProductService';
 import DetailInfoProductComponent from '../../component/DetailInfoProductComponent/DetailInfoProductComponent';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
-import UpdateAddressModal from '../../component/Modal/UpdateAddressModal/UpdateAddressModal';
 import { Gallery, Item } from 'react-photoswipe-gallery';
 import CartService from '../../service/CartService';
 import { toast } from 'react-toastify';
 import ReviewService from '../../service/ReviewService';
+import { ThumbUpAlt, ThumbUpOffAlt } from '@mui/icons-material';
+import { AuthenticationContext } from '../../context/AuthenticationProvider';
 
 const cx = classNames.bind(style);
 function ProductDetail() {
+    const { authentication, loading } = useContext(AuthenticationContext);
+
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [searchParams] = useSearchParams();
@@ -41,7 +42,7 @@ function ProductDetail() {
     });
 
     const { data: reviews, isLoadingReviews } = useQuery({
-        queryKey: ['reviews'],
+        queryKey: ['reviews', searchParams.get('id')],
         queryFn: () => ReviewService.getReviews(searchParams.get('id')).then((response) => response.data),
         retry: 1,
     });
@@ -90,17 +91,8 @@ function ProductDetail() {
         onError: (error) => {
             console.log(error);
         },
-        onSuccess: (data, reviewId) => {
-            queryClient.setQueryData(['reviews'], (oldData) => {
-                const newData = { ...oldData };
-                newData.data = oldData.data.map((review) => {
-                    if (review.id === reviewId) {
-                        review.likeCount += 1;
-                    }
-                    return review;
-                });
-                return newData;
-            });
+        onSuccess: (data) => {
+            queryClient.invalidateQueries(['reviews', searchParams.get('id')]);
         },
     });
 
@@ -173,12 +165,16 @@ function ProductDetail() {
                                 fullWidth
                                 size="large"
                                 sx={{ textTransform: 'none', fontWeight: 600 }}
-                                onClick={() =>
+                                onClick={() => {
+                                    if (!authentication.isAuthen) {
+                                        toast.error('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!');
+                                        return;
+                                    }
                                     addProductToCartMutation.mutate({
                                         productId: product?.id,
                                         cartQuantity: quantityProduct,
-                                    })
-                                }
+                                    });
+                                }}
                             >
                                 Thêm vào giỏ hàng
                             </Button>
@@ -448,8 +444,8 @@ function ProductDetail() {
                                         sx={{ textTransform: 'none', marginTop: '1rem', marginLeft: '1.5rem' }}
                                         onClick={() => likeReviewMutation.mutate(review.id)}
                                     >
-                                        <FontAwesomeIcon icon={faThumbsUp} />
-                                        <span className="ms-3">Thích ({review.likeCount})</span>
+                                        {review.isLiked ? <ThumbUpAlt /> : <ThumbUpOffAlt />}
+                                        <span className="ms-3">Thích ({review.likeQty})</span>
                                     </Button>
                                 </div>
                             ))}

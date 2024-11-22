@@ -31,6 +31,20 @@ class ReviewServiceClass {
 
         return axios.request(config);
     };
+
+    likeReview = (reviewId) => {
+        let config = {
+            method: 'patch',
+            maxBodyLength: Infinity,
+            url: REVIEW_URL + `/like/${reviewId}`,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+        };
+
+        return axios.request(config);
+    }
 }
 
 const ReviewService = new ReviewServiceClass();

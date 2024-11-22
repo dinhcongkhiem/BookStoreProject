@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -25,7 +26,13 @@ public class Review {
     private Product product;
     private String comment;
     private int star;
-    private int likeCount;
+    @ManyToMany
+    @JoinTable(
+            name = "user_review_like",
+            joinColumns = @JoinColumn(name = "review_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> usersWhoLiked;
     @Column(name = "update_time")
     private LocalDateTime updateTime;
 }

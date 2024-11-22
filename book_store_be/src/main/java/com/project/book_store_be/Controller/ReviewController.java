@@ -18,6 +18,7 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v1/review")
 public class ReviewController {
     private final ReviewService reviewService;
+
     @PostMapping
     public ResponseEntity<?> addReview(
             @RequestParam Long productId,
@@ -33,6 +34,7 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         }
     }
+
     @PatchMapping("/comment/{reviewId}")
     public ResponseEntity<?> updateCommentAndStar(
             @PathVariable Long reviewId,
@@ -51,13 +53,10 @@ public class ReviewController {
 
     @PatchMapping("/like/{reviewId}")
     public ResponseEntity<?> updateLikeCount(
-            @PathVariable Long reviewId,
-            @RequestBody ReviewRequest reviewRequest,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @PathVariable Long reviewId) {
         try {
-            ReviewDetailResponse response = reviewService.updateLikeCount(reviewId, reviewRequest, page, size);
-            return ResponseEntity.ok(response);
+            reviewService.likeReview(reviewId);
+            return ResponseEntity.ok().build();
         } catch (NoSuchElementException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Review not found.");
         } catch (IllegalStateException ex) {
