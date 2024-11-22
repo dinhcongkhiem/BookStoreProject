@@ -106,7 +106,8 @@ public class PaymentServiceImpl implements PaymentService {
                             .map(detail -> BigDecimal.valueOf(detail.getProduct().getOriginal_price().doubleValue())
                                     .multiply(BigDecimal.valueOf(detail.getQuantity())))
                             .reduce(BigDecimal.ZERO, BigDecimal::add));
-
+                    variables.put("shippingFee", order.getShippingFee());
+                    variables.put("totalAmount", finalPrice);
                     if (user != null) {
                         try {
                             sendMailService.sendEmail(user, "Thanh toán thành công", "paymentSuccessTemplate", variables);
@@ -137,13 +138,20 @@ public class PaymentServiceImpl implements PaymentService {
     public String cancelPayment(Long orderCode) throws Exception {
         try {
             payOS.cancelPaymentLink(orderCode, "Customer requested cancellation");
-
-//          HỦY THANK TOÁN (SEND MAIL Ở ĐÂY NHA)
-
+            Order order = orderRepository.findById(orderCode)
+                    .orElseThrow(() -> new NoSuchElementException("Order not found"));
+            User user = order.getUser();
+            if (user != null) {
+                Map<String, Object> variables = new HashMap<>();
+                variables.put("orderCode", order.getId());
+                variables.put("status", "Đã hủy");
+                sendMailService.sendEmail(user, "Thông báo hủy đơn hàng", "paymentCancelTemplate", variables);
+            }
             return "Order " + orderCode + " has been canceled on both system and third-party.";
         } catch (Exception e) {
             throw new Exception("Failed to cancel payment with third-party: " + e.getMessage());
         }
     }
+
 
 }

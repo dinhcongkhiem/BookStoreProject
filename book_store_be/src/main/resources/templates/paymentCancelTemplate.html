@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Xác nhận thanh toán thành công</title>
+    <title>Đơn hàng bị hủy </title>
     <style>
         table {
             width: 100%;
@@ -28,13 +28,13 @@
     </style>
 </head>
 <body style="width: 70%; margin: 0 auto; font-family: Arial, sans-serif;">
-<h1 style="color: #005bea;">Xác nhận thanh toán thành công</h1>
-<p style="font-size: 16px;">Book Bazaar rất vui thông báo rằng đơn hàng của bạn đã được tiếp nhận và đang trong quá
-    trình xử lý.</p>
+<h1 style="color: #e74c3c;">Thông báo hủy đơn hàng</h1>
+<p style="font-size: 16px;">Chúng tôi rất tiếc thông báo rằng đơn hàng của bạn đã bị hủy. Quý khách vui lòng thực hiện lại hoặc chuyển sang hình thức thanh toán khác phù hợp hơn.
+     Đơn hàng của bạn sẽ bị hủy khi chưa thanh toán trong 3 giờ nếu chưa nhận được thanh toán từ quý khách.</p>
 <div style="text-align: center; margin: 20px 0;">
     <a href="order_tracking_link_here"
-       style="background-color: #005bea; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-        Theo dõi đơn hàng
+       style="background-color: #e74c3c; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+        Thanh toán lại ngay
     </a>
 </div>
 <h3>Thông tin đơn hàng: <span th:text="${orderCode}"></span></h3>
@@ -46,13 +46,10 @@
     <span th:text="${user.phoneNum}"></span><br>
     <span th:text="${user.email}"></span>
 </p>
-<h4>Địa chỉ giao hàng:</h4>
-<p>
-    <strong th:text="${user.fullName}"></strong><br>
-    <span th:text="${user.address.getAddressDetail()} + ', ' + ${user.address.district.label} + ', ' + ${user.address.commune.label} + ', ' + ${user.address.province.label}"></span><br>
-    <span th:text="${user.phoneNum}"></span><br>
-    <span th:text="${user.email}"></span>
+<strong>Trạng thái đơn hàng:</strong> <span style="color: #e74c3c;">Hủy đơn hàng</span>
 </p>
+<h4>Thông tin đơn hàng:</h4>
+<p>
 <table>
     <thead>
     <tr>
@@ -78,11 +75,9 @@
     <p>Phí vận chuyển: <span th:text="${shippingFee} + ' VND'"></span></p>
     <p>Khuyến mãi: <span th:text="${discount} + ' VND'"></span></p>
     <h3>Tổng giá trị đơn hàng: <span th:text="${totalAmount} + ' VND'"></span></h3>
-    <p>Phương thức thanh toán: <span th:text="${order.paymentType}"></span></p>
-    <p>Trạng thái: <strong>Thanh toán thành công</strong></p>
 </div>
 <div style="text-align: center; margin-top: 20px; font-size: 12px;">
-    <p>Cảm ơn bạn đã mua sách ở Book Bazaar!</p>
+    <p>Chúng tôi hy vọng bạn sẽ tiếp tục ủng hộ Book Bazaar trong những lần mua sắm tiếp theo.</p>
     <p><strong>Book Bazaar</strong></p>
 </div>
 </body>
