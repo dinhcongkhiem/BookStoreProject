@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Table,
     TableBody,
@@ -27,17 +27,26 @@ import {
     Search as SearchIcon,
     Visibility as VisibilityIcon,
     LocalShipping as LocalShippingIcon,
-    Delete as DeleteIcon,
+    Cancel,
+    CalendarToday,
+    CheckCircle,
 } from '@mui/icons-material';
 import classNames from 'classnames/bind';
 import style from './OrderMng.module.scss';
 import { toast } from 'react-toastify';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import OrderService from '../../../service/OrderService';
-import { convertStatusOrderToVN, formatDate, getStatusOrderClass, orderTabs } from '../../../utills/ConvertData';
+import {
+    convertStatusOrderToVN,
+    convertToISOString,
+    formatDate,
+    getStatusOrderClass,
+    orderTabs,
+} from '../../../utills/ConvertData';
 import useDebounce from '../../../hooks/useDebounce';
 import OrderDetail from '../../OrderDetail/OrderDetail';
-import { useNavigate } from 'react-router-dom';
+import ConfirmModal from '../../../component/Modal/ConfirmModal/ConfirmModal';
+import { useNavigate, useParams } from 'react-router-dom';
 import style1 from '../Admin.module.scss';
 
 const cx1 = classNames.bind(style1);
@@ -45,25 +54,34 @@ const cx = classNames.bind(style);
 
 export default function OrderMng() {
     const navigate = useNavigate();
+    const orderDateRef = useRef(null);
+    const queryClient = useQueryClient();
+    const [orderDateValue, setOrderDateValue] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchDate, setSearchDate] = useState('');
     const [currentStatus, setCurrentStatus] = useState('all');
     const [page, setPage] = useState(1);
     const [detailOpen, setDetailOpen] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState(null);
-    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-    const [shippingConfirmOpen, setShippingConfirmOpen] = useState(false);
+    const [orderIdToUpdateStatus, setOrderIdToUpdateStatus] = useState(null);
+    const [isOpenShippingConfirm, setIsOpenShippingConfirm] = useState(false);
+    const [isOpenCancelConfirm, setIsOpenCancelConfirm] = useState(false);
+    const [isOpenSuccessConfirm, setIsOpenSuccessConfirm] = useState(false);
     const debounceSearchTerm = useDebounce(searchTerm, 800);
+    const { orderIdPath } = useParams();
+
     const {
         data: ordersRes,
         error,
         isLoading,
     } = useQuery({
-        queryKey: ['orderMng', currentStatus, debounceSearchTerm, page],
+        queryKey: ['orderMng', currentStatus, debounceSearchTerm, searchDate, page],
         queryFn: () =>
-            OrderService.getAllOrders({ page, status: currentStatus, keyword: debounceSearchTerm }).then(
-                (res) => res.data,
-            ),
+            OrderService.getAllOrders({
+                page,
+                status: currentStatus,
+                orderDate: searchDate.trim().length > 0 ? convertToISOString(searchDate) : '',
+                keyword: debounceSearchTerm,
+            }).then((res) => res.data),
         retry: 1,
         enabled: !!page && !!currentStatus,
     });
@@ -73,7 +91,13 @@ export default function OrderMng() {
     };
 
     const handleDateChange = (event) => {
-        setSearchDate(event.target.value);
+        const date = event.target.value;
+        let formattedDate = formatDate(date);
+        if (date.length === 0) {
+            formattedDate = '';
+        }
+        setOrderDateValue(date);
+        setSearchDate(formattedDate);
         setPage(1);
     };
 
@@ -88,46 +112,33 @@ export default function OrderMng() {
     };
 
     const handleCloseDetail = () => {
-        setDetailOpen(false);
-        setSelectedOrder(null);
+        navigate('/admin/orderMng');
     };
+    useEffect(() => {
+        if(!orderIdPath) {
+            setDetailOpen(false);
+        }else {
+            setDetailOpen(true);
+        }
+    }, [orderIdPath]);
 
-    const handleChangeToShipping = (orderId) => {
-        setShippingConfirmOpen(true);
-    };
+    const updateStatusOrderMutation = useMutation({
+        mutationFn: ({ id, status }) =>
+            OrderService.updateStatusOrder(id, {
+                status: status,
+                userId: -1,
+                amountPaid: null,
+            }),
+        onError: (error) => console.log(error),
+        onSuccess: (data) => {
+            setIsOpenShippingConfirm(false);
+            setIsOpenCancelConfirm(false);
+            setIsOpenSuccessConfirm(false);
+            toast.success('Đã cập nhật đơn hàng');
+            queryClient.invalidateQueries(['orderMng']);
+        },
+    });
 
-    const confirmChangeToShipping = () => {
-        // const updatedOrders = orders.map((order) =>
-        //     order.id === orderToModify ? { ...order, status: 'Đang giao hàng' } : order,
-        // );
-        // // setOrders(updatedOrders);
-        // if (selectedOrder && selectedOrder.id === orderToModify) {
-        //     setSelectedOrder({ ...selectedOrder, status: 'Đang giao hàng' });
-        // }
-        // setShippingConfirmOpen(false);
-        toast.success('Đơn hàng đã được chuyển sang trạng thái Đang giao hàng');
-    };
-
-    const handleDeleteOrder = (orderId) => {
-        setDeleteConfirmOpen(true);
-    };
-
-    const confirmDeleteOrder = () => {
-        // const updatedOrders = orders.map((order) =>
-        //     order.id === orderToModify ? { ...order, status: 'Đã hủy' } : order,
-        // );
-        // // setOrders(updatedOrders);
-        // if (selectedOrder && selectedOrder.id === orderToModify) {
-        //     setSelectedOrder({ ...selectedOrder, status: 'Đã hủy' });
-        // }
-        // setDeleteConfirmOpen(false);
-        toast.success('Đơn hàng đã được hủy thành công');
-    };
-
-    const cancelModification = () => {
-        setDeleteConfirmOpen(false);
-        setShippingConfirmOpen(false);
-    };
     useEffect(() => {
         if (ordersRes) {
             window.scrollTo({ top: 0, behavior: 'instant' });
@@ -159,9 +170,9 @@ export default function OrderMng() {
                     </Grid>
                 ))}
             </Grid>
-            <Paper className={cx('searchContainer')} elevation={3}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
+            <Paper className={cx('searchContainer')} elevation={2}>
+                <div className="d-flex align-items-center gap-5">
+                    <div className="flex-grow-1">
                         <TextField
                             size="small"
                             fullWidth
@@ -177,22 +188,46 @@ export default function OrderMng() {
                                 ),
                             }}
                         />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
+                    </div>
+                    <div className={cx('input-date', 'flex-grow-1')}>
                         <TextField
+                            slotProps={{
+                                input: {
+                                    readOnly: true,
+                                },
+                            }}
                             size="small"
                             fullWidth
-                            label="Tìm kiếm theo ngày đặt hàng"
-                            type="date"
+                            label="Ngày mua hàng"
+                            type="text"
+                            required
+                            autoComplete="off"
+                            margin="normal"
+                            placeholder="dd/MM/yyyy"
                             variant="outlined"
+                            onClick={() => {
+                                orderDateRef.current && orderDateRef.current.showPicker();
+                            }}
                             value={searchDate}
-                            onChange={handleDateChange}
-                            InputLabelProps={{
-                                shrink: true,
+                            sx={{ margin: 0 }}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <div className={cx('custom-datepicker')}>
+                                            <CalendarToday />
+                                        </div>
+                                    </InputAdornment>
+                                ),
                             }}
                         />
-                    </Grid>
-                </Grid>
+                        <input
+                            type="date"
+                            ref={orderDateRef}
+                            value={orderDateValue}
+                            onChange={(e) => handleDateChange(e, 1)}
+                        />
+                    </div>
+                </div>
             </Paper>
             <TableContainer component={Paper} className={cx('orderTable')}>
                 <Table>
@@ -222,17 +257,43 @@ export default function OrderMng() {
                                     />
                                 </TableCell>
                                 <TableCell align="center">
-                                    <IconButton color="primary" onClick={() => handleViewDetails(order)}>
+                                    <IconButton size="small" color="primary" onClick={() => handleViewDetails(order)}>
                                         <VisibilityIcon />
                                     </IconButton>
-                                    {order.status === 'Đang xử lý' && (
-                                        <IconButton color="primary" onClick={() => handleChangeToShipping(order.id)}>
+                                    {order.status === 'PROCESSING' && (
+                                        <IconButton
+                                            size="small"
+                                            color="primary"
+                                            onClick={() => {
+                                                setIsOpenShippingConfirm(true);
+                                                setOrderIdToUpdateStatus(order.orderId);
+                                            }}
+                                        >
                                             <LocalShippingIcon />
                                         </IconButton>
                                     )}
-                                    {(order.status === 'Đang xử lý' || order.status === 'Chưa thanh toán') && (
-                                        <IconButton color="error" onClick={() => handleDeleteOrder(order.id)}>
-                                            <DeleteIcon />
+                                    {order.status === 'SHIPPING' && (
+                                        <IconButton
+                                            size="small"
+                                            sx={{ color: '#2BC138' }}
+                                            onClick={() => {
+                                                setIsOpenSuccessConfirm(true);
+                                                setOrderIdToUpdateStatus(order.orderId);
+                                            }}
+                                        >
+                                            <CheckCircle />
+                                        </IconButton>
+                                    )}
+                                    {(order.status === 'PROCESSING' || order.status === 'SHIPPING') && (
+                                        <IconButton
+                                            size="small"
+                                            color="error"
+                                            onClick={() => {
+                                                setIsOpenCancelConfirm(true);
+                                                setOrderIdToUpdateStatus(order.orderId);
+                                            }}
+                                        >
+                                            <Cancel />
                                         </IconButton>
                                     )}
                                 </TableCell>
@@ -253,7 +314,7 @@ export default function OrderMng() {
             <Dialog open={detailOpen} onClose={handleCloseDetail} maxWidth="lg" fullWidth>
                 <DialogTitle>Chi tiết đơn hàng</DialogTitle>
                 <DialogContent>
-                    <OrderDetail />
+                    <OrderDetail onClose={handleCloseDetail}/>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseDetail} color="primary">
@@ -261,34 +322,39 @@ export default function OrderMng() {
                     </Button>
                 </DialogActions>
             </Dialog>
-            <Dialog open={shippingConfirmOpen} onClose={cancelModification}>
-                <DialogTitle>Xác nhận chuyển sang Đang giao hàng</DialogTitle>
-                <DialogContent>
-                    <Typography>Bạn có chắc chắn muốn chuyển đơn hàng sang trạng thái Đang giao hàng không?</Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={cancelModification} color="secondary">
-                        Hủy
-                    </Button>
-                    <Button onClick={confirmChangeToShipping} color="primary">
-                        Xác nhận
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            <Dialog open={deleteConfirmOpen} onClose={cancelModification}>
-                <DialogTitle>Xác nhận hủy đơn hàng</DialogTitle>
-                <DialogContent>
-                    <Typography>Bạn có chắc chắn muốn hủy đơn hàng này không?</Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={cancelModification} color="secondary">
-                        Hủy
-                    </Button>
-                    <Button onClick={confirmDeleteOrder} color="error">
-                        Xác nhận
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            {isOpenShippingConfirm && (
+                <ConfirmModal
+                    open={isOpenShippingConfirm}
+                    onClose={() => setIsOpenShippingConfirm(false)}
+                    onConfirm={() =>
+                        updateStatusOrderMutation.mutate({ id: orderIdToUpdateStatus, status: 'SHIPPING' })
+                    }
+                    title={'Xác nhận'}
+                    message={'Chuyển trạng thái đơn hàng qua đang giao'}
+                />
+            )}
+            {isOpenCancelConfirm && (
+                <ConfirmModal
+                    open={isOpenCancelConfirm}
+                    onClose={() => setIsOpenCancelConfirm(false)}
+                    onConfirm={() =>
+                        updateStatusOrderMutation.mutate({ id: orderIdToUpdateStatus, status: 'CANCELED' })
+                    }
+                    title={'Xác nhận'}
+                    message={'Bạn đang muốn hủy đơn hàng này?'}
+                />
+            )}
+                {isOpenSuccessConfirm && (
+                <ConfirmModal
+                    open={isOpenSuccessConfirm}
+                    onClose={() => setIsOpenSuccessConfirm(false)}
+                    onConfirm={() =>
+                        updateStatusOrderMutation.mutate({ id: orderIdToUpdateStatus, status: 'COMPLETED' })
+                    }
+                    title={'Xác nhận'}
+                    message={'Bạn đang muốn hoàn thành đơn hàng này?'}
+                />
+            )}
         </div>
     );
 }

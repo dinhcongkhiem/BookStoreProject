@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import classNames from 'classnames/bind';
 import Slider from 'react-slick';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Rating } from '@mui/material';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
@@ -26,7 +26,8 @@ import ReviewService from '../../service/ReviewService';
 const cx = classNames.bind(style);
 function ProductDetail() {
     const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams();
+    const queryClient = useQueryClient();
+    const [searchParams] = useSearchParams();
     const [activeIndex, setActiveIndex] = useState(0);
     const [quantityProduct, setQuantityProduct] = useState(1);
     const {
@@ -79,11 +80,29 @@ function ProductDetail() {
         const date = new Date(dateString);
         const formattedDate = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
         return formattedDate;
-        
-    }
+    };
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'instant' });
     }, [product]);
+
+    const likeReviewMutation = useMutation({
+        mutationFn: (reviewId) => ReviewService.likeReview(reviewId),
+        onError: (error) => {
+            console.log(error);
+        },
+        onSuccess: (data, reviewId) => {
+            queryClient.setQueryData(['reviews'], (oldData) => {
+                const newData = { ...oldData };
+                newData.data = oldData.data.map((review) => {
+                    if (review.id === reviewId) {
+                        review.likeCount += 1;
+                    }
+                    return review;
+                });
+                return newData;
+            });
+        },
+    });
 
     if (error) return <h1 style={{ textAlign: 'center', margin: '10rem 0' }}>VUI LÒNG THỬ LẠI</h1>;
 
@@ -212,7 +231,9 @@ function ProductDetail() {
                                         {product?.original_price?.toLocaleString('vi-VN')} ₫
                                     </span>
                                 )}
-                                {product?.discount_rate !== 0 && <span className={cx('discount-percent')}>{product?.discount_rate}%</span>}
+                                {product?.discount_rate !== 0 && (
+                                    <span className={cx('discount-percent')}>{product?.discount_rate}%</span>
+                                )}
                             </p>
                         </div>
                     </div>
@@ -425,8 +446,9 @@ function ProductDetail() {
                                     <Button
                                         size="small"
                                         sx={{ textTransform: 'none', marginTop: '1rem', marginLeft: '1.5rem' }}
+                                        onClick={() => likeReviewMutation.mutate(review.id)}
                                     >
-                                        <FontAwesomeIcon icon={faThumbsUp} />{' '}
+                                        <FontAwesomeIcon icon={faThumbsUp} />
                                         <span className="ms-3">Thích ({review.likeCount})</span>
                                     </Button>
                                 </div>

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -97,11 +98,12 @@ public class OrderController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "15") Integer pageSize,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) LocalDateTime orderDate,
             @RequestParam(required = false) OrderStatus status
     ) {
         try {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(orderService.findAllOrders(page, pageSize, status, keyword));
+                    .body(orderService.findAllOrders(page, pageSize, status,orderDate, keyword));
 
         } catch (Exception e) {
             e.printStackTrace();

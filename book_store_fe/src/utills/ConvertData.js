@@ -3,7 +3,7 @@ export const orderTabs = [
     { id: 'AWAITING_PAYMENT', label: 'Chờ thanh toán' },
     { id: 'PROCESSING', label: 'Đang xử lý' },
     { id: 'SHIPPING', label: 'Đang vận chuyển' },
-    { id: 'COMPLETED', label: 'Đã giao' },
+    { id: 'COMPLETED', label: 'Đã hoàn thành' },
     { id: 'CANCELED', label: 'Đã huỷ ' },
 ];
 
@@ -14,7 +14,10 @@ export const formatDate = (dateString) => {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
 };
-
+export const convertToISOString = (dateString) => {
+    const [day, month, year] = dateString.split('/');
+    return `${year}-${month}-${day}T00:00:00`;
+};
 
 export const convertStatusOrderToVN = (status) => {
     switch (status) {
@@ -27,7 +30,7 @@ export const convertStatusOrderToVN = (status) => {
         case 'SHIPPING':
             return 'Đang vận chuyển';
         case 'COMPLETED':
-            return 'Đã giao';
+            return 'Đã hoàn thành';
         case 'CANCELED':
             return 'Đã hủy';
         default:

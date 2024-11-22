@@ -295,7 +295,7 @@ function Payment() {
                                 <p>{`${selectedVoucher.name} giảm  ${
                                     selectedVoucher.type === 'PERCENT'
                                         ? ' ' + selectedVoucher.value + '% '
-                                        : ' ' + selectedVoucher.value.toLocaleString('vi-VN') + '₫ '
+                                        : ' ' + selectedVoucher?.value?.toLocaleString('vi-VN') + '₫ '
                                 }`}</p>
 
                                 <Button

@@ -1,9 +1,6 @@
 package com.project.book_store_be.Services;
 
-import com.project.book_store_be.Enum.NotificationType;
-import com.project.book_store_be.Enum.OrderStatus;
-import com.project.book_store_be.Enum.PaymentType;
-import com.project.book_store_be.Enum.VoucherType;
+import com.project.book_store_be.Enum.*;
 import com.project.book_store_be.Interface.AddressService;
 import com.project.book_store_be.Interface.OrderService;
 import com.project.book_store_be.Interface.PaymentService;
@@ -62,14 +59,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, keyword);
+        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
 
     @Override
-    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(null, status, keyword);
+    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime orderDate, String keyword) {
+        Specification<Order> spec = OrderSpecification.getOrders(null, status, orderDate, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         Page<GetAllOrderResponse> ordersPage = orderRepository.findAll(spec, pageable).map(this::convertToResMng);
         Tuple count = orderRepository.countOrder();
@@ -146,7 +143,7 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Số lượng không hợp lệ. Phải nhỏ hơn hoặc bằng số lượng có sẵn.");
         }
         Product product = orderDetail.getProduct();
-        productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity()  - quantity);
+        productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity() - quantity);
         orderDetail.setQuantity(quantity);
         orderDetailRepository.save(orderDetail);
     }
@@ -264,7 +261,7 @@ public class OrderServiceImpl implements OrderService {
             paymentResponse = this.handlePaymentRequest(order, finalPrice);
         } else {
             String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), finalPrice);
-            notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER);
+            notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER, "/admin/orderMng/" + order.getId());
         }
 
         order.setOrderDetails(orderDetailList);
@@ -306,7 +303,7 @@ public class OrderServiceImpl implements OrderService {
         } else {
             order.setStatus(OrderStatus.PROCESSING);
             String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), finalPrice);
-            notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER);
+            notificationService.sendAdminNotification("Đơn hàng", message, NotificationType.ORDER, "/admin/orderMng/" + order.getId());
         }
 
 
@@ -340,7 +337,7 @@ public class OrderServiceImpl implements OrderService {
                 );
                 String title = "Hủy đơn hàng vì quá thời hạn thanh toán.";
                 String message = String.format("Đơn hàng bị hủy do quá thời hạn thanh toán #%s đã bị hủy vì chưa được thanh toán!", currentOrder.getId());
-                notificationService.sendNotification(currentOrder.getUser(), title, message, NotificationType.ORDER);
+                notificationService.sendNotification(currentOrder.getUser(), title, message, NotificationType.ORDER, "/order/detail/" + currentOrder.getId());
                 if (currentOrder.getStatus().equals(OrderStatus.AWAITING_PAYMENT)) {
                     currentOrder.setStatus(OrderStatus.CANCELED);
                     orderRepository.save(currentOrder);
@@ -371,7 +368,7 @@ public class OrderServiceImpl implements OrderService {
         final BigDecimal[] totalDiscount = {BigDecimal.ZERO};
         final BigDecimal[] discountWithVoucher = {BigDecimal.ZERO};
 
-        Map<Long,Boolean> mapCheckReviewed = reviewService.checkUserReviewedProducts(userService.getCurrentUser().getId(),
+        Map<Long, Boolean> mapCheckReviewed = reviewService.checkUserReviewedProducts(userService.getCurrentUser().getId(),
                 order.getOrderDetails().stream().map(detail -> detail.getProduct().getId()).toList());
 
         List<OrderItemsDetailResponse> itemDetails = order.getOrderDetails().stream()
@@ -469,8 +466,21 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+    private String convertStatus(OrderStatus status) {
+        return switch (status) {
+            case PENDING -> "Chờ xác nhận";
+            case AWAITING_PAYMENT -> "Chờ thanh toán";
+            case PROCESSING -> "Đang xử lý";
+            case SHIPPING -> "giao cho bên vận chuyển";
+            case CANCELED -> "hủy";
+            case COMPLETED -> "hoàn thành";
+            default -> "Không xác định";
+        };
+    }
+
     @Override
     public void updateOrderStatus(Long id, UpdateOrderRequest request) {
+        User currentUser = userService.getCurrentUser();
         OrderStatus status = OrderStatus.valueOf(request.getStatus());
         User user = userService.findById(request.getUserId()).orElse(null);
         Order order = orderRepository.findById(id)
@@ -478,6 +488,18 @@ public class OrderServiceImpl implements OrderService {
 
         if (!order.getStatus().canTransitionTo(status)) {
             throw new IllegalArgumentException("Invalid status transition from " + order.getStatus() + " to " + status);
+        }
+        if (currentUser.getRole() == Role.ADMIN) {
+            if (order.getUser() != null) {
+                this.notificationService.sendNotification(order.getUser(), "Cập nhật đơn hàng",
+                        "Đơn hàng " + order.getId() + "của bạn đã được " + this.convertStatus(status),
+                        NotificationType.ORDER, "/order/detail/" + order.getId());
+
+            }
+        } else if (currentUser.getRole() == Role.USER) {
+            this.notificationService.sendAdminNotification("Cập nhật đơn hàng",
+                    "Đơn hàng " + order.getId() + " đã được " + this.convertStatus(status) + " bởi khách hàng",
+                    NotificationType.ORDER, "/admin/orderMng/" + order.getId());
         }
         order.setBuyerName(user != null ? user.getFullName() : "Khách lẻ");
         order.setBuyerPhoneNum(user != null ? user.getPhoneNum() : null);

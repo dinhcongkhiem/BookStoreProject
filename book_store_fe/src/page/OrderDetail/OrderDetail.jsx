@@ -17,15 +17,13 @@ import { styled } from '@mui/material/styles';
 import classNames from 'classnames/bind';
 import style from './OrderDetail.module.scss';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import PaymentIcon from '@mui/icons-material/Payment';
-import CancelIcon from '@mui/icons-material/Cancel';
 import RateReviewIcon from '@mui/icons-material/RateReview';
-import ReplayIcon from '@mui/icons-material/Replay';
 import { useQuery } from '@tanstack/react-query';
 import OrderService from '../../service/OrderService';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ReviewProductModal from '../../component/Modal/ReviewProductModal/ReviewProductModal';
 import { convertStatusOrderToVN } from '../../utills/ConvertData';
+import ButtonInOrder from '../../component/ButtonInOrderComponent/ButtonInOrderComponent';
 
 const cx = classNames.bind(style);
 
@@ -42,7 +40,7 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
     marginBottom: theme.spacing(2),
 }));
 
-function OrderDetail() {
+function OrderDetail({ onClose }) {
     window.scrollTo({ top: 0, behavior: 'instant' });
 
     const navigate = useNavigate();
@@ -64,90 +62,13 @@ function OrderDetail() {
         data: orderDataRes,
         error,
         isLoading,
+        refetch,
     } = useQuery({
         queryKey: ['orderDetail', orderIdPath],
         queryFn: () => OrderService.getOrderDetailByID(orderIdPath).then((res) => res.data),
         retry: 1,
         enabled: !!orderIdPath,
     });
-
-    function renderActionButtons(status) {
-        const isAdmin = pathname.startsWith('/admin');
-        const buttons = {
-            AWAITING_PAYMENT: isAdmin ? null : (
-                <>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<PaymentIcon />}
-                        className={cx('actionButton', 'payButton')}
-                        onClick={() => navigate(`/payment/repayment/${orderDataRes?.orderId}`)}
-                    >
-                        Thanh toán lại
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="error"
-                        startIcon={<CancelIcon />}
-                        className={cx('actionButton', 'cancelButton')}
-                    >
-                        Hủy đơn hàng
-                    </Button>
-                </>
-            ),
-            COMPLETED: !isAdmin && (
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<ReplayIcon />}
-                    className={cx('actionButton', 'reorderButton')}
-                >
-                    Mua lại
-                </Button>
-            ),
-            CANCELED: !isAdmin && (
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<ReplayIcon />}
-                    className={cx('actionButton', 'reorderButton')}
-                >
-                    Mua lại
-                </Button>
-            ),
-            PROCESSING: isAdmin ? (
-                <>
-                    <Button
-                        variant="contained"
-                        color="error"
-                        startIcon={<CancelIcon />}
-                        className={cx('actionButton', 'cancelButton')}
-                    >
-                        Hủy đơn hàng
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<ReplayIcon />}
-                        className={cx('actionButton', 'reorderButton')}
-                    >
-                        Xác nhận đơn hàng
-                    </Button>
-                </>
-            ) : (
-                <Button
-                    variant="contained"
-                    color="error"
-                    startIcon={<CancelIcon />}
-                    className={cx('actionButton', 'cancelButton')}
-                >
-                    Hủy đơn hàng
-                </Button>
-            ),
-        };
-
-        return buttons[status] || null;
-    }
 
     return (
         <Box className={cx('orderDetailContainer')}>
@@ -317,7 +238,7 @@ function OrderDetail() {
                                 </Typography>
                             </Box>
                         )}
-                        {orderDataRes?.voucher?.value !== 0 && (
+                        {orderDataRes?.voucher !== null && orderDataRes?.voucher?.value !== 0 && (
                             <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
                                 <Typography>Giảm giá từ mã khuyến mãi</Typography>
                                 <Typography noWrap className={cx('priceCell')}>
@@ -341,7 +262,15 @@ function OrderDetail() {
                 </Grid>
             </Box>
 
-            <Box className={cx('orderActionButtons')}>{renderActionButtons(orderDataRes?.status)}</Box>
+            <Box className={cx('orderActionButtons')}>
+                <ButtonInOrder
+                    status={orderDataRes?.status}
+                    orderId={orderIdPath}
+                    onClose={onClose}
+                    refetch={refetch}
+                    productIds={orderDataRes?.items.map((i) => i.productId).join(',')}
+                />
+            </Box>
 
             {!pathname.startsWith('/admin') && (
                 <Button

@@ -97,7 +97,7 @@ public class PaymentServiceImpl implements PaymentService {
 
                 BigDecimal finalPrice = totalPrice[0].add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
                 String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(), finalPrice);
-                notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER);
+                notificationService.sendAdminNotification("Thanh toán đơn hàng", message, NotificationType.ORDER, "/admin/orderMng/" + order.getId());
 
                 if (!sentEmailOrderCodes.contains(orderCode)) {
                     Map<String, Object> variables = new HashMap<>();

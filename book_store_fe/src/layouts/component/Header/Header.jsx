@@ -188,7 +188,7 @@ function Header() {
             return [jsonPayload, ...(oldData || [])];
         });
         queryClient.setQueryData(['qtyNotify'], (oldData) => {
-            return { qty: ((oldData?.qty) || 0) + 1 };
+            return { qty: (oldData?.qty || 0) + 1 };
         });
         setIsNotifying(true);
     };
@@ -295,84 +295,84 @@ function Header() {
                     </button>
                 </div>
                 <div className={cx('action')}>
-                    <CustomTooltip
-                        placement="bottom-start"
-                        open={isNotifying}
-                        onClose={() => setIsNotifying(false)}
-                        onOpen={() => setIsNotifying(true)}
-                        title={
-                            <>
-                                <p className="fs-3 fw-semibold">{newNotification?.title}</p>
-                                <p className="fs-5">{newNotification?.message}</p>
-                            </>
-                        }
-                        disableHoverListener
-                    >
-                        <div className={cx('cart')} onClick={(event) => setAnchorElNotify(event.currentTarget)}>
-                            <StyledBadge badgeContent={qtyNotify?.qty} color="primary">
-                                <FontAwesomeIcon icon={faBell} size="lg" />
-                            </StyledBadge>
-                        </div>
-                    </CustomTooltip>
-
-                    <Menu
-                        id="notify-menu"
-                        anchorEl={anchorElNotify}
-                        open={openNotify}
-                        onClose={() => setAnchorElNotify(null)}
-                        MenuListProps={{
-                            'aria-labelledby': 'basic-button',
-                            style: { width: '40rem' },
-                        }}
-                        anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'right',
-                        }}
-                        transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                        }}
-                        sx={{ marginTop: '1rem' }}
-                    >
-                        {notificationList?.map((noti, index) => (
-                            <MenuItem
-                                key={index}
-                                onClick={() => setAnchorEl(null)}
-                                className={cx('notifications-items')}
-                                ref={index === notificationList?.length - 1 ? lastItemRef : null}
-                            >
-                                <Link to={noti.targetLink} className="d-flex align-items-center gap-2">
-                                    <ListItemIcon
-                                        className={cx('icon', {
-                                            'notification-order-icon': noti.type === 'ORDER',
-                                            'notification-voucher-icon': noti.type === 'PROMOTION',
-                                            'notification-comment-icon': noti.type === 'REVIEW',
-                                        })}
-                                    >
-                                        {noti.type === 'ORDER' ? (
-                                            <LibraryBooks fontSize="small" />
-                                        ) : noti.type === 'PROMOTION' ? (
-                                            <FontAwesomeIcon icon={faTicketSimple} />
-                                        ) : (
-                                            <FontAwesomeIcon icon={faComment} />
-                                        )}
-                                    </ListItemIcon>
-                                    <div className={cx('notification-content')}>
-                                        <p className={cx('notification-title')}>{noti.title}</p>
-                                        <p className={cx('notification-message')}>{noti.message}</p>
-                                    </div>
-                                </Link>
-                            </MenuItem>
-                        ))}
-                        {notificationsLoading && (
-                            <MenuItem>
-                                <CircularProgress size={20} />
-                                <span className="ms-4"> Đang tải... </span>
-                            </MenuItem>
-                        )}
-                    </Menu>
                     {authentication.isAuthen ? (
                         <>
+                            <CustomTooltip
+                                placement="bottom-start"
+                                open={isNotifying}
+                                onClose={() => setIsNotifying(false)}
+                                onOpen={() => setIsNotifying(true)}
+                                title={
+                                    <>
+                                        <p className="fs-3 fw-semibold">{newNotification?.title}</p>
+                                        <p className="fs-5">{newNotification?.message}</p>
+                                    </>
+                                }
+                                disableHoverListener
+                            >
+                                <div className={cx('cart')} onClick={(event) => setAnchorElNotify(event.currentTarget)}>
+                                    <StyledBadge badgeContent={qtyNotify?.qty} color="primary">
+                                        <FontAwesomeIcon icon={faBell} size="lg" />
+                                    </StyledBadge>
+                                </div>
+                            </CustomTooltip>
+
+                            <Menu
+                                id="notify-menu"
+                                anchorEl={anchorElNotify}
+                                open={openNotify}
+                                onClose={() => setAnchorElNotify(null)}
+                                MenuListProps={{
+                                    'aria-labelledby': 'basic-button',
+                                    style: { width: '40rem' },
+                                }}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'right',
+                                }}
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'right',
+                                }}
+                                sx={{ marginTop: '1rem' }}
+                            >
+                                {notificationList?.map((noti, index) => (
+                                    <MenuItem
+                                        key={index}
+                                        onClick={() => setAnchorEl(null)}
+                                        className={cx('notifications-items')}
+                                        ref={index === notificationList?.length - 1 ? lastItemRef : null}
+                                    >
+                                        <Link to={noti.targetLink} className="d-flex align-items-center gap-2">
+                                            <ListItemIcon
+                                                className={cx('icon', {
+                                                    'notification-order-icon': noti.type === 'ORDER',
+                                                    'notification-voucher-icon': noti.type === 'PROMOTION',
+                                                    'notification-comment-icon': noti.type === 'REVIEW',
+                                                })}
+                                            >
+                                                {noti.type === 'ORDER' ? (
+                                                    <LibraryBooks fontSize="small" />
+                                                ) : noti.type === 'PROMOTION' ? (
+                                                    <FontAwesomeIcon icon={faTicketSimple} />
+                                                ) : (
+                                                    <FontAwesomeIcon icon={faComment} />
+                                                )}
+                                            </ListItemIcon>
+                                            <div className={cx('notification-content')}>
+                                                <p className={cx('notification-title')}>{noti.title}</p>
+                                                <p className={cx('notification-message')}>{noti.message}</p>
+                                            </div>
+                                        </Link>
+                                    </MenuItem>
+                                ))}
+                                {notificationsLoading && (
+                                    <MenuItem>
+                                        <CircularProgress size={20} />
+                                        <span className="ms-4"> Đang tải... </span>
+                                    </MenuItem>
+                                )}
+                            </Menu>
                             <div
                                 className={cx('user')}
                                 style={{ cursor: 'auto' }}
@@ -458,9 +458,9 @@ function Header() {
                             <Nav.Link as={Link} to="/pages">
                                 Pages
                             </Nav.Link>
-                            <Nav.Link as={Link} to="/blog">
+                            {/* <Nav.Link as={Link} to="/blog">
                                 Blog
-                            </Nav.Link>
+                            </Nav.Link> */}
                             <Nav.Link as={Link} to="/about">
                                 About
                             </Nav.Link>

@@ -8,6 +8,7 @@ import com.project.book_store_be.Response.OrderRes.*;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +16,7 @@ import java.util.Map;
 public interface OrderService {
     Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword);
     
-    OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword);
+    OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime orderDate, String keyword);
 
     CreateOrderResponse createOrder(OrderRequest request);
 
