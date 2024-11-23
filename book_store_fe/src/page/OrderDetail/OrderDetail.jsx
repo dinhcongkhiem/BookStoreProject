@@ -112,7 +112,9 @@ function OrderDetail({ onClose }) {
                             <Typography variant="body1" gutterBottom>
                                 {orderDataRes?.paymentType === 'bank_transfer'
                                     ? 'Chuyển khoản ngân hàng'
-                                    : 'Tiền mặt khi nhận hàng'}
+                                    : orderDataRes?.paymentType === 'cash_on_delivery'
+                                      ? 'Tiền mặt'
+                                      : 'Tiền mặt và chuyển khoản'}
                             </Typography>
                         </StyledPaper>
                     </Grid>
@@ -246,6 +248,25 @@ function OrderDetail({ onClose }) {
                                 </Typography>
                             </Box>
                         )}
+
+                        {orderDataRes?.amountPaid !== null && (
+                            <>
+                                <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
+                                    <Typography>Tiền khách đưa</Typography>
+                                    <Typography noWrap className={cx('priceCell')}>
+                                        {orderDataRes?.amountPaid.toLocaleString('vi-VN')} ₫
+                                    </Typography>
+                                </Box>
+                                <Box display="flex" justifyContent="space-between" className={cx('summaryRow')}>
+                                    <Typography>Tiền thừa</Typography>
+                                    <Typography noWrap className={cx('priceCell')}>
+                                        {(orderDataRes?.amountPaid - orderDataRes?.grandTotal).toLocaleString('vi-VN')}{' '}
+                                        ₫
+                                    </Typography>
+                                </Box>
+                            </>
+                        )}
+
                         <Divider className={cx('summaryDivider')} />
                         <Box display="flex" justifyContent="space-between" className={cx('summaryTotal')}>
                             <Typography variant="h6">Tổng cộng</Typography>

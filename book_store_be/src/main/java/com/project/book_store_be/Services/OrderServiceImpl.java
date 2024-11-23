@@ -421,6 +421,7 @@ public class OrderServiceImpl implements OrderService {
                         .code(voucher.getCode())
                         .value(discountWithVoucher[0])
                         .build() : null)
+                .amountPaid(order.getAmountPaid())
                 .shippingFee(order.getShippingFee())
                 .grandTotal(grandTotal[0])
                 .items(itemDetails)
@@ -505,6 +506,7 @@ public class OrderServiceImpl implements OrderService {
         order.setBuyerPhoneNum(user != null ? user.getPhoneNum() : null);
         order.setStatus(status);
         order.setAmountPaid(request.getAmountPaid());
+        order.setPaymentType(request.getPaymentType());
         order.setUser(user);
         orderRepository.save(order);
     }

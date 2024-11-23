@@ -30,6 +30,9 @@ import {
     InputAdornment,
     FormControl,
     Input,
+    RadioGroup,
+    FormControlLabel,
+    Radio,
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -40,9 +43,10 @@ import {
     LocalOffer as LocalOfferIcon,
     Search as SearchIcon,
     QrCode,
+    ZoomIn,
 } from '@mui/icons-material';
 import BarcodeScanner from '../../../component/BarcodeScannerComponent/BarcodeScannerComponent';
-import { useQuery, queryClient, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import classNames from 'classnames/bind';
 import styles from './Sell.module.scss';
 import ProductService from '../../../service/ProductService';
@@ -72,6 +76,7 @@ export default function Sell() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [openQRCodeModal, setOpenQRCodeModal] = useState(null);
+    const [paymentType, setPaymentType] = useState('cash');
     const debouncedSearchValue = useDebounce(searchTerm.trim(), 800);
     const queryClient = useQueryClient();
     const handleSearch = (event) => {
@@ -140,11 +145,13 @@ export default function Sell() {
         setInvoices((prevInvoices) => prevInvoices.filter((invoice) => invoice.orderId !== invoiceId));
         if (invoices.length === 1) {
             localStorage.removeItem('invoices');
+            setActiveInvoice(null);
         }
 
         if (activeInvoice === invoiceId) {
             const activeIndex = invoices.findIndex((invoice) => invoice.orderId === invoiceId);
             setActiveInvoice(invoices[activeIndex === 0 ? 1 : 0]?.orderId || null);
+            setTotalUserPayment(0);
         }
     };
 
@@ -203,20 +210,37 @@ export default function Sell() {
             prevInvoices.map((invoice) => (invoice.orderId === activeInvoice ? newData : invoice)),
         );
     };
-    const handleAddCustomerPayment = (type) => {
-        if (!amout) {
+
+    const handleChangeValueCash = (value) => {
+        console.log(value);
+        setAmount(value);
+        handleAddCustomerPayment('cash', value, false);
+    };
+
+    const clearPaymentValues = () => {
+        setAmount('');
+        setTotalUserPayment(0);
+        setInvoices((prevInvoices) =>
+            prevInvoices.map((invoice) => (invoice.orderId === activeInvoice ? { ...invoice, payment: [] } : invoice)),
+        );
+    };
+
+    const handleAddCustomerPayment = (type, amount, isReset) => {
+        if (!amount) {
             return;
         }
-        const payment = [{ paymentType: type, amount: parseInt(amout) }];
+        const payment = [{ paymentType: type, amount: parseInt(amount) }];
         const newData = {
             ...activeInvoiceData,
-            payment: [...(activeInvoiceData.payment || []), ...payment],
+            payment: isReset ? [...(activeInvoiceData.payment || []), ...payment] : [...payment],
         };
 
         setInvoices((prevInvoices) =>
             prevInvoices.map((invoice) => (invoice.orderId === activeInvoice ? newData : invoice)),
         );
-        setAmount('');
+        if (isReset) {
+            setAmount('');
+        }
     };
     useEffect(() => {
         const storedInvoices = localStorage.getItem('invoices');
@@ -299,6 +323,7 @@ export default function Sell() {
             OrderService.updateStatusOrder(activeInvoice, {
                 status: 'COMPLETED',
                 userId: selectedUser ? selectedUser.id : -1,
+                paymentType: paymentType === 'cash' ? 'cash_on_delivery' : paymentType === 'bank' ? 'bank_transfer' : 'both',
                 amountPaid: totalUserPayment,
             }),
         onError: (error) => console.log(error),
@@ -540,7 +565,6 @@ export default function Sell() {
                                             : []
                                     }
                                     value={selectedUser}
-                                    freeSolo
                                     filterOptions={(x) => x}
                                     onInputChange={(e, value) => setSearchUserTerm(value)}
                                     onChange={(event, value) => handleAddSelectedUser(value)}
@@ -574,78 +598,160 @@ export default function Sell() {
                                             : 0}
                                     </p>
                                 </div>
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <strong>Số tiền</strong>
-                                    <FormControl variant="standard" sx={{ width: '45%' }}>
-                                        <Input
-                                            value={amout}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                if (/^\d*$/.test(value)) {
-                                                    setAmount(value);
-                                                }
-                                            }}
-                                            disabled={!activeInvoice}
-                                            id="standard-adornment-weight"
-                                            endAdornment={<InputAdornment position="end">₫</InputAdornment>}
-                                            aria-describedby="standard-weight-helper-text"
-                                            inputProps={{
-                                                'aria-label': 'weight',
-                                            }}
+                                <FormControl size="small" fullWidth>
+                                    <RadioGroup
+                                        row
+                                        aria-labelledby="demo-row-radio-buttons-group-label"
+                                        name="row-radio-buttons-group"
+                                        sx={{
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                        }}
+                                        value={paymentType}
+                                        onChange={(e) => {
+                                            setPaymentType(e.target.value);
+                                            if(e.target.value === 'bank') {
+                                                setTotalUserPayment(productInOrderRes?.grandTotal);
+                                            }
+                                            clearPaymentValues();
+                                        }}
+                                    >
+                                        <FormControlLabel
+                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                            value="cash"
+                                            control={<Radio size="small" />}
+                                            label="Tiền mặt"
                                         />
-                                    </FormControl>
-                                </div>
-                                <div className="d-flex mx-3 gap-3 mt-3">
-                                    <Button
-                                        variant="outlined"
-                                        size="small"
-                                        fullWidth
-                                        disabled={!productInOrderRes || productInOrderRes.items.length === 0}
-                                        sx={{ textTransform: 'none' }}
-                                        onClick={() => handleAddCustomerPayment('cash')}
-                                    >
-                                        Tiền mặt
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        size="small"
-                                        fullWidth
-                                        disabled={!productInOrderRes || productInOrderRes.items.length === 0}
-                                        sx={{ textTransform: 'none' }}
-                                        onClick={() => handleAddCustomerPayment('bank')}
-                                    >
-                                        Chuyển khoản
-                                    </Button>
-                                </div>
-                                {activeInvoiceData?.payment && (
-                                    <div className={cx('list-paying')}>
-                                        {activeInvoiceData.payment.map((item) => (
-                                            <div className="d-flex justify-content-between align-items-center">
-                                                <span>
-                                                    {item.paymentType === 'cash' ? 'Tiền mặt' : 'Chuyển khoản'}
-                                                    {item.paymentType === 'bank' && (
-                                                        <button
-                                                            className={cx('show-barcode')}
-                                                            onClick={() => setOpenQRCodeModal(item.amount)}
-                                                        >
-                                                            <QrCode />
-                                                        </button>
-                                                    )}
-                                                </span>
-                                                <span>{item.amount.toLocaleString('vi-VN')} ₫</span>
-                                            </div>
-                                        ))}
+                                        <FormControlLabel
+                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                            value="bank"
+                                            control={<Radio size="small" />}
+                                            label="Chuyển khoản"
+                                        />
+                                        <FormControlLabel
+                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                            value="both"
+                                            control={<Radio size="small" />}
+                                            label="Cả hai"
+                                        />
+                                    </RadioGroup>
+                                </FormControl>
+                                {paymentType === 'bank' && (
+                                    <div className='d-flex align-items-start' style={{userSelect: 'none'}}>
+                                        <img
+                                            src={`https://api.vietqr.io/image/970422-VQRQAAVPE2846-bXU1iBq.jpg?addInfo=BookBazaar&amount=${productInOrderRes?.grandTotal}`}
+                                            alt="qrcode"
+                                            width={150}
+                                        />
+                                        <button
+                                            className={cx('show-barcode')}
+                                            onClick={() => setOpenQRCodeModal(productInOrderRes?.grandTotal)}
+                                        >
+                                            <ZoomIn />
+                                        </button>
                                     </div>
                                 )}
-                                <div className="d-flex justify-content-between">
-                                    <strong>Khách trả</strong>
-                                    <p>{totalUserPayment?.toLocaleString('vi-VN')} ₫</p>
-                                </div>
+                                {paymentType === 'cash' && (
+                                    <>
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <strong>Tiền khách đưa</strong>
+                                            <FormControl variant="standard" sx={{ width: '45%' }}>
+                                                <Input
+                                                    value={amout}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        if (/^\d*$/.test(value)) {
+                                                            handleChangeValueCash(value);
+                                                        }
+                                                    }}
+                                                    disabled={!activeInvoice}
+                                                    id="standard-adornment-weight"
+                                                    endAdornment={<InputAdornment position="end">₫</InputAdornment>}
+                                                    aria-describedby="standard-weight-helper-text"
+                                                    inputProps={{
+                                                        'aria-label': 'weight',
+                                                    }}
+                                                />
+                                            </FormControl>
+                                        </div>
+                                    </>
+                                )}
+                                {paymentType === 'both' && (
+                                    <>
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <strong>Số tiền</strong>
+                                            <FormControl variant="standard" sx={{ width: '45%' }}>
+                                                <Input
+                                                    value={amout}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        if (/^\d*$/.test(value)) {
+                                                            setAmount(value);
+                                                        }
+                                                    }}
+                                                    disabled={!activeInvoice}
+                                                    id="standard-adornment-weight"
+                                                    endAdornment={<InputAdornment position="end">₫</InputAdornment>}
+                                                    aria-describedby="standard-weight-helper-text"
+                                                    inputProps={{
+                                                        'aria-label': 'weight',
+                                                    }}
+                                                />
+                                            </FormControl>
+                                        </div>
+                                        <div className="d-flex mx-3 gap-3 mt-3">
+                                            <Button
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                disabled={!productInOrderRes || productInOrderRes.items.length === 0}
+                                                sx={{ textTransform: 'none' }}
+                                                onClick={() => handleAddCustomerPayment('cash', amout, true)}
+                                            >
+                                                Tiền mặt
+                                            </Button>
+                                            <Button
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                disabled={!productInOrderRes || productInOrderRes.items.length === 0}
+                                                sx={{ textTransform: 'none' }}
+                                                onClick={() => handleAddCustomerPayment('bank', amout, true)}
+                                            >
+                                                Chuyển khoản
+                                            </Button>
+                                        </div>
+                                        {activeInvoiceData?.payment?.length > 0 && (
+                                            <div className={cx('list-paying')}>
+                                                {activeInvoiceData.payment.map((item) => (
+                                                    <div className="d-flex justify-content-between align-items-center">
+                                                        <span>
+                                                            {item.paymentType === 'cash' ? 'Tiền mặt' : 'Chuyển khoản'}
+                                                            {item.paymentType === 'bank' && (
+                                                                <button
+                                                                    className={cx('show-barcode')}
+                                                                    onClick={() => setOpenQRCodeModal(item.amount)}
+                                                                >
+                                                                    <QrCode />
+                                                                </button>
+                                                            )}
+                                                        </span>
+                                                        <span>{item.amount.toLocaleString('vi-VN')} ₫</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <div className="d-flex justify-content-between mt-3">
+                                            <strong>Khách trả</strong>
+                                            <p>{totalUserPayment?.toLocaleString('vi-VN')} ₫</p>
+                                        </div>
+                                    </>
+                                )}
                                 {totalUserPayment > productInOrderRes?.grandTotal && (
                                     <div className="d-flex justify-content-between">
                                         <strong>Tiền thừa trả khách</strong>
                                         <p>
-                                            {(totalUserPayment - productInOrderRes?.grandTotal).toLocaleString('vi-VN')}{' '}
+                                            {(totalUserPayment - productInOrderRes?.grandTotal).toLocaleString('vi-VN')}
                                             ₫
                                         </p>
                                     </div>
@@ -655,9 +761,10 @@ export default function Sell() {
                                     variant="contained"
                                     className={cx('checkoutButton')}
                                     disabled={
+                                        (
                                         !activeInvoiceData ||
                                         totalUserPayment < productInOrderRes?.grandTotal ||
-                                        !productInOrderRes?.items.length > 0
+                                        !productInOrderRes?.items.length > 0) && paymentType !== 'bank'
                                     }
                                     startIcon={
                                         isLoading ? <CircularProgress size={24} color="inherit" /> : <AttachMoneyIcon />

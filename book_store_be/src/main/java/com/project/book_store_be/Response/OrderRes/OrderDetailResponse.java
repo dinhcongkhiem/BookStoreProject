@@ -26,6 +26,8 @@ public class OrderDetailResponse {
     private BigDecimal originalSubtotal;
     private BigDecimal totalDiscount;
     private VoucherInOrderResponse voucher;
+    private BigDecimal amountPaid;
+
     private BigDecimal shippingFee;
     private BigDecimal grandTotal;
     private LocalDateTime orderDate;
