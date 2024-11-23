@@ -13,17 +13,16 @@ import com.project.book_store_be.Response.OrderRes.OrderItemsResponse;
 import com.project.book_store_be.Response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import vn.payos.PayOS;
 import vn.payos.type.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,13 +31,47 @@ public class PaymentServiceImpl implements PaymentService {
     private final SendMailService sendMailService;
     private final OrderRepository orderRepository;
     private final NotificationService notificationService;
+    private final ImageProductService imageProductService; // Đã tích hợp từ TestController
     private final PayOS payOS;
     private static final String CANCEL_URL = "http://localhost:3000/profile";
     private static final String RETURN_URL = "http://localhost:3000/cart";
     private Set<String> sentEmailOrderCodes = new HashSet<>();
-
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
+    private Map<String, Object> prepareEmailVariables(Order order) {
+        User user = order.getUser();
+
+        List<Map<String, Object>> productList = order.getOrderDetails().stream()
+                .map(orderDetail -> {
+                    Product product = orderDetail.getProduct();
+                    String thumbnailUrl = imageProductService != null ? imageProductService.getThumbnailProduct(product.getId()) : "default-thumbnail-url";
+                    Map<String, Object> productMap = Map.of(
+                            "productName", product.getName(),
+                            "quantity", orderDetail.getQuantity(),
+                            "productPrice", orderDetail.getPriceAtPurchase(),
+                            "thumbnailImage", thumbnailUrl
+                    );
+                    return productMap;
+                })
+                .collect(Collectors.toList());
+
+        BigDecimal subTotal = order.getTotalPrice();
+        BigDecimal shippingFee = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
+        BigDecimal discount = order.getVoucher() != null ? order.getVoucher().getValue() : BigDecimal.ZERO;
+        BigDecimal totalAmount = subTotal.add(shippingFee).subtract(discount);
+
+        return Map.of(
+                "orderCode", order.getId(),
+                "orderDate", order.getOrderDate(),
+                "user", user,
+                "productList", productList,
+                "subTotal", subTotal,
+                "shippingFee", shippingFee,
+                "discount", discount,
+                "totalAmount", totalAmount,
+                "order", order
+        );
+    }
 
     @Override
     public PaymentResponse PaymentRequest(PaymentRequest request) throws Exception {
@@ -82,52 +115,33 @@ public class PaymentServiceImpl implements PaymentService {
                 String orderCode = String.valueOf(data.getOrderCode());
                 Order order = orderRepository.findById(Long.valueOf(orderCode.substring(0, orderCode.length() - 6)))
                         .orElseThrow(() -> new NoSuchElementException("Order not found: " + orderCode));
+
                 User user = order.getUser();
                 order.setStatus(OrderStatus.PROCESSING);
                 orderRepository.save(order);
 
                 List<OrderDetail> orderItems = order.getOrderDetails();
-                BigDecimal[] totalPrice = {BigDecimal.ZERO};
-
-                orderItems.forEach(o -> {
-                    Product product = o.getProduct();
-                    BigDecimal discount = o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO;
-                    totalPrice[0] = totalPrice[0].add(product.getOriginal_price().subtract(discount).multiply(BigDecimal.valueOf(o.getQuantity())));
-                });
-
-                BigDecimal finalPrice = totalPrice[0].add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
-                String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(), finalPrice);
-                notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER);
+                BigDecimal totalPrice = orderItems.stream()
+                        .map(o -> o.getProduct().getOriginal_price()
+                                .subtract(o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO)
+                                .multiply(BigDecimal.valueOf(o.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
+                notificationService.sendAdminNotification(
+                        "Đơn hàng mới",
+                        String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(), totalPrice),
+                        NotificationType.ORDER
+                );
 
                 if (!sentEmailOrderCodes.contains(orderCode)) {
-                    Map<String, Object> variables = new HashMap<>();
-                    variables.put("orderCode", order.getId());
-                    variables.put("amount", order.getOrderDetails().stream()
-                            .map(detail -> BigDecimal.valueOf(detail.getProduct().getOriginal_price().doubleValue())
-                                    .multiply(BigDecimal.valueOf(detail.getQuantity())))
-                            .reduce(BigDecimal.ZERO, BigDecimal::add));
-                    variables.put("shippingFee", order.getShippingFee());
-                    variables.put("totalAmount", finalPrice);
-                    if (user != null) {
-                        try {
-                            sendMailService.sendEmail(user, "Thanh toán thành công", "paymentSuccessTemplate", variables);
-                            User shopUser = new User();
-                            shopUser.setEmail("admin@khiemcongdinh.id.vn");
-                            sendMailService.sendEmail(shopUser, "Thông báo đơn hàng mới" + orderCode, "paymentAdminSuccessTemplate", variables);
-                            sentEmailOrderCodes.add(orderCode);
-                        } catch (Exception e) {
-                            System.out.println("Có lỗi xảy ra khi gửi email: " + e.getMessage());
-                        }
-                    } else {
-                        System.out.println("User không được tìm thấy cho đơn hàng: " + orderCode);
-                    }
-                } else {
-                    System.out.println("Email đã được gửi trước đó cho đơn hàng: " + orderCode);
+                    Map<String, Object> variables = prepareEmailVariables(order);
+                    sendMailService.sendEmail(user, "Thanh toán thành công", "paymentSuccessTemplate", variables);
+                    User shopUser = new User();
+                    shopUser.setEmail("admin@khiemcongdinh.id.vn");
+                    sendMailService.sendEmail(shopUser, "Thông báo đơn hàng mới " + orderCode, "paymentAdminSuccessTemplate", variables);
+                    sentEmailOrderCodes.add(orderCode);
                 }
             }
-
-        } catch (NoSuchElementException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -142,9 +156,10 @@ public class PaymentServiceImpl implements PaymentService {
                     .orElseThrow(() -> new NoSuchElementException("Order not found"));
             User user = order.getUser();
             if (user != null) {
-                Map<String, Object> variables = new HashMap<>();
-                variables.put("orderCode", order.getId());
-                variables.put("status", "Đã hủy");
+                Map<String, Object> variables = Map.of(
+                        "orderCode", order.getId(),
+                        "status", "Đã hủy"
+                );
                 sendMailService.sendEmail(user, "Thông báo hủy đơn hàng", "paymentCancelTemplate", variables);
             }
             return "Order " + orderCode + " has been canceled on both system and third-party.";
@@ -152,6 +167,4 @@ public class PaymentServiceImpl implements PaymentService {
             throw new Exception("Failed to cancel payment with third-party: " + e.getMessage());
         }
     }
-
-
 }
