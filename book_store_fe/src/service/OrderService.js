@@ -200,6 +200,22 @@ class OrderServiceClass {
 
         return httpRequest.request(config);
     }
+
+    successOrderMutation = (id, status) => {
+        let config = {
+            method: 'patch',
+            maxBodyLength: Infinity,
+            url: ORDERS_URL + `/success/${id}`,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+            responseType: 'blob',
+            data: status,
+        };
+
+        return httpRequest.request(config);
+    }
 }
 const OrderService = new OrderServiceClass();
 export default OrderService;

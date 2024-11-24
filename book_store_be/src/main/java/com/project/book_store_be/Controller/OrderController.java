@@ -8,8 +8,7 @@ import com.project.book_store_be.Request.UpdateOrderRequest;
 import com.project.book_store_be.Response.OrderRes.OrderStatusResponse;
 import com.project.book_store_be.Services.OrderServiceImpl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,6 +44,7 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
+
     @PostMapping()
     public ResponseEntity<?> createOrder(@RequestBody OrderRequest request) {
         try {
@@ -103,7 +103,7 @@ public class OrderController {
     ) {
         try {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(orderService.findAllOrders(page, pageSize, status,orderDate, keyword));
+                    .body(orderService.findAllOrders(page, pageSize, status, orderDate, keyword));
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -122,7 +122,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody UpdateOrderRequest request) {
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody OrderStatus request) {
         try {
             orderService.updateOrderStatus(id, request);
             return ResponseEntity.ok().build();
@@ -131,6 +131,25 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
+
+    @PatchMapping("/success/{id}")
+    public ResponseEntity<?> successOrderInCounterr(@PathVariable Long id, @RequestBody UpdateOrderRequest request) {
+        try {
+            byte[] pdfFile = orderService.successOrderInCounter(id, request);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDisposition(ContentDisposition.attachment().filename("bill.pdf").build());
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfFile);
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+        }
+    }
+
+
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("detail-qty/{id}")
     public ResponseEntity<?> updateOrderDetailQuantity(@PathVariable Long id, @RequestBody Integer quantity) {
@@ -154,6 +173,7 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("cancel/{id}")
     public ResponseEntity<?> cancelOrderInCounter(@PathVariable Long id) {

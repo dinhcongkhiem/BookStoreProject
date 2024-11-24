@@ -146,7 +146,6 @@ const Product = () => {
                 if (res.status !== 200) {
                     throw new Error('Failed to fetch PDF');
                   }
-
                   const url = URL.createObjectURL(res.data);
                   const iframe = document.createElement('iframe');
                   iframe.style.display = 'none';

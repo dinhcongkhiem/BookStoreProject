@@ -320,14 +320,24 @@ export default function Sell() {
 
     const successOrderMutation = useMutation({
         mutationFn: () =>
-            OrderService.updateStatusOrder(activeInvoice, {
-                status: 'COMPLETED',
+            OrderService.successOrderMutation(activeInvoice, {
                 userId: selectedUser ? selectedUser.id : -1,
                 paymentType: paymentType === 'cash' ? 'cash_on_delivery' : paymentType === 'bank' ? 'bank_transfer' : 'both',
                 amountPaid: totalUserPayment,
             }),
         onError: (error) => console.log(error),
-        onSuccess: (data) => {
+        onSuccess: (res) => {
+            const url = URL.createObjectURL(res.data);
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = url;
+            document.body.appendChild(iframe);
+        
+            URL.revokeObjectURL(url);
+        
+            iframe.onload = () => {
+              iframe.contentWindow?.print();
+            };
             deleteInvoice(activeInvoice);
             toast.success('Đã hoàn thành đơn hàng');
         },

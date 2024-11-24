@@ -29,12 +29,7 @@ function ButtonInOrder({ status, orderId, onClose, onRefetch, productIds }) {
         },
     });
     const updateStatusOrderMutation = useMutation({
-        mutationFn: ({ id, status }) =>
-            OrderService.updateStatusOrder(id, {
-                status,
-                userId: -1,
-                amountPaid: null,
-            }),
+        mutationFn: ({ id, status }) => OrderService.updateStatusOrder(id, status),
         onError: (error) => console.error(error),
         onSuccess: () => {
             setIsOpenConfirm({ type: null, isOpen: false });

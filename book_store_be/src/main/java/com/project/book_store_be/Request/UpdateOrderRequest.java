@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 @Builder
 public class UpdateOrderRequest {
     private Long userId;
-    private String status;
     private PaymentType paymentType;
     private BigDecimal amountPaid;
 

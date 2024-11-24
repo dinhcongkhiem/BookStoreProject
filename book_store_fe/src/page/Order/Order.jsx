@@ -87,12 +87,7 @@ function Order() {
         }
     };
     const updateStatusOrderMutation = useMutation({
-        mutationFn: ({ id, status }) =>
-            OrderService.updateStatusOrder(id, {
-                status,
-                userId: -1,
-                amountPaid: null,
-            }),
+        mutationFn: ({ id, status }) => OrderService.updateStatusOrder(id, status),
         onError: (error) => console.error(error),
         onSuccess: () => {
             setIsOpenCancelConfirm(false);

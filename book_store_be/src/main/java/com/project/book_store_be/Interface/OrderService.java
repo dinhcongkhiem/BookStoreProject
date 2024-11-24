@@ -35,7 +35,8 @@ public interface OrderService {
 
     void createOrderDetail(List<OrderRequest.OrderDetailRequest> request, Long orderId);
 
-    void updateOrderStatus(Long id, UpdateOrderRequest request);
+    byte[] successOrderInCounter(Long id, UpdateOrderRequest request);
+    void updateOrderStatus(Long orderId, OrderStatus status);
 
     void cancelOrderInCounter(Long orderId);
 }

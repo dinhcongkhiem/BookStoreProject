@@ -115,20 +115,15 @@ export default function OrderMng() {
         navigate('/admin/orderMng');
     };
     useEffect(() => {
-        if(!orderIdPath) {
+        if (!orderIdPath) {
             setDetailOpen(false);
-        }else {
+        } else {
             setDetailOpen(true);
         }
     }, [orderIdPath]);
 
     const updateStatusOrderMutation = useMutation({
-        mutationFn: ({ id, status }) =>
-            OrderService.updateStatusOrder(id, {
-                status: status,
-                userId: -1,
-                amountPaid: null,
-            }),
+        mutationFn: ({ id, status }) => OrderService.updateStatusOrder(id, status),
         onError: (error) => console.log(error),
         onSuccess: (data) => {
             setIsOpenShippingConfirm(false);
@@ -314,7 +309,7 @@ export default function OrderMng() {
             <Dialog open={detailOpen} onClose={handleCloseDetail} maxWidth="lg" fullWidth>
                 <DialogTitle>Chi tiết đơn hàng</DialogTitle>
                 <DialogContent>
-                    <OrderDetail onClose={handleCloseDetail}/>
+                    <OrderDetail onClose={handleCloseDetail} />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseDetail} color="primary">
@@ -344,7 +339,7 @@ export default function OrderMng() {
                     message={'Bạn đang muốn hủy đơn hàng này?'}
                 />
             )}
-                {isOpenSuccessConfirm && (
+            {isOpenSuccessConfirm && (
                 <ConfirmModal
                     open={isOpenSuccessConfirm}
                     onClose={() => setIsOpenSuccessConfirm(false)}
