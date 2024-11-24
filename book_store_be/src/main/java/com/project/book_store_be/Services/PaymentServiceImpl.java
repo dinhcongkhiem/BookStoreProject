@@ -44,13 +44,14 @@ public class PaymentServiceImpl implements PaymentService {
         List<Map<String, Object>> productList = order.getOrderDetails().stream()
                 .map(orderDetail -> {
                     Product product = orderDetail.getProduct();
-                    String thumbnailUrl = imageProductService != null ? imageProductService.getThumbnailProduct(product.getId()) : "default-thumbnail-url";
+                    String thumbnailUrl = imageProductService != null
+                            ? imageProductService.getThumbnailProduct(product.getId())
+                            : "default-thumbnail-url";
                     Map<String, Object> productMap = Map.of(
                             "productName", product.getName(),
                             "quantity", orderDetail.getQuantity(),
                             "productPrice", orderDetail.getPriceAtPurchase(),
-                            "thumbnailImage", thumbnailUrl
-                    );
+                            "thumbnailImage", thumbnailUrl);
                     return productMap;
                 })
                 .collect(Collectors.toList());
@@ -69,8 +70,7 @@ public class PaymentServiceImpl implements PaymentService {
                 "shippingFee", shippingFee,
                 "discount", discount,
                 "totalAmount", totalAmount,
-                "order", order
-        );
+                "order", order);
     }
 
     @Override
@@ -121,24 +121,30 @@ public class PaymentServiceImpl implements PaymentService {
                 orderRepository.save(order);
 
                 List<OrderDetail> orderItems = order.getOrderDetails();
-                BigDecimal totalPrice = orderItems.stream()
-                        .map(o -> o.getProduct().getOriginal_price()
-                                .subtract(o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO)
-                                .multiply(BigDecimal.valueOf(o.getQuantity())))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+
+                BigDecimal[] totalPrice = { BigDecimal.ZERO };
+
+                orderItems.forEach(o -> {
+                    Product product = o.getProduct();
+                    BigDecimal discount = o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO;
+                    totalPrice[0] = totalPrice[0].add(product.getOriginal_price().subtract(discount)
+                            .multiply(BigDecimal.valueOf(o.getQuantity())));
+                });
+
+                BigDecimal finalPrice = totalPrice[0]
                         .add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
-                notificationService.sendAdminNotification(
-                        "Đơn hàng mới",
-                        String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(), totalPrice),
-                        NotificationType.ORDER
-                );
+                String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(),
+                        finalPrice);
+                notificationService.sendAdminNotification("Thanh toán đơn hàng", message, NotificationType.ORDER,
+                        "/admin/orderMng/" + order.getId());
 
                 if (!sentEmailOrderCodes.contains(orderCode)) {
                     Map<String, Object> variables = prepareEmailVariables(order);
                     sendMailService.sendEmail(user, "Thanh toán thành công", "paymentSuccessTemplate", variables);
                     User shopUser = new User();
                     shopUser.setEmail("admin@khiemcongdinh.id.vn");
-                    sendMailService.sendEmail(shopUser, "Thông báo đơn hàng mới " + orderCode, "paymentAdminSuccessTemplate", variables);
+                    sendMailService.sendEmail(shopUser, "Thông báo đơn hàng mới " + orderCode,
+                            "paymentAdminSuccessTemplate", variables);
                     sentEmailOrderCodes.add(orderCode);
                 }
             }
@@ -158,8 +164,7 @@ public class PaymentServiceImpl implements PaymentService {
             if (user != null) {
                 Map<String, Object> variables = Map.of(
                         "orderCode", order.getId(),
-                        "status", "Đã hủy"
-                );
+                        "status", "Đã hủy");
                 sendMailService.sendEmail(user, "Thông báo hủy đơn hàng", "paymentCancelTemplate", variables);
             }
             return "Order " + orderCode + " has been canceled on both system and third-party.";
