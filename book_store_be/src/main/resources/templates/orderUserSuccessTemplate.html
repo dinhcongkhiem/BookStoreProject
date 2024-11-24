@@ -36,7 +36,7 @@
   </a>
 </div>
 <h3>Thông tin đơn hàng: <span th:text="${orderCode}"></span></h3>
-<p>Ngày đặt hàng: <span th:text="${orderDate}"></span></p>
+<p>Ngày đặt hàng: <span th:text="${#temporals.format(orderDate, 'dd/MM/yyyy')}"></span></p>
 <h4>Thông tin người dùng:</h4>
 <p>
   <strong th:text="${user.fullName}"></strong><br>
@@ -80,6 +80,7 @@
   <p>Trạng thái: <strong>Thanh toán thành công</strong></p>
   <b>Xin lưu ý:</b> Hệ thống đã cập nhật trạng thái đơn hàng và hoàn tất thanh toán cho khách hàng.
 </div>
-<h2 style="text-align: right">Book Bazaar</h2>
+  <b>Xin lưu ý:</b> Hệ thống đã cập nhật trạng thái đơn hàng và hoàn tất thanh toán cho khách hàng.
+<h2 style="text-align: center">Book Bazaar</h2>
 </body>
 </html>
