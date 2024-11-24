@@ -39,7 +39,7 @@ public class VoucherController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String sort
+            @RequestParam(required = false, defaultValue = "create_date") String sort
     ) {
         try {
             return ResponseEntity.ok(voucherService.searchVouchers(keyword, status, page, size, sort, true));
@@ -55,7 +55,7 @@ public class VoucherController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String sort) {
+            @RequestParam(required = false, defaultValue = "create_date") String sort) {
         return ResponseEntity.ok(voucherService.searchVouchers(keyword, status, page, size, sort, false));
     }
     @PreAuthorize("hasRole('ADMIN')")

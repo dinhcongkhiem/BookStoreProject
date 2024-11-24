@@ -29,7 +29,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import useDebounce from '../../../hooks/useDebounce';
 import DiscountService from '../../../service/DiscountService';
 import { toast } from 'react-toastify';
-import { formatDate } from '../../../utills/ConvertData';
+import { convertToISOString, formatDate } from '../../../utills/ConvertData';
 import { faCircleInfo, faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import UserService from '../../../service/UserService';
@@ -99,8 +99,8 @@ function AddVoucher() {
         }),
         type: Yup.string().required('Vui lòng chọn loại giảm giá'),
         quantity: Yup.number().required('Vui lòng nhập số lượng').min(1, 'Số lượng tối thiểu là 1'),
-        maxValue: Yup.number().min(1, 'Giá trị tối thiểu là 1'),
-        condition: Yup.string().required('Vui lòng nhập điều kiện sử dụng'),
+        maxValue: Yup.number().nullable().min(1, 'Giá trị tối thiểu là 1'),
+        condition: Yup.number().required('Vui lòng nhập điều kiện sử dụng'),
         start: Yup.string()
             .required('Vui lòng nhập ngày bắt đầu.')
             .test('is-valid-date', 'Ngày bắt đầu không hợp lệ', (value) => {
@@ -127,10 +127,6 @@ function AddVoucher() {
             .required('Bạn phải chọn ít nhất một người dùng'),
     });
 
-    const convertToISOString = (dateString) => {
-        const [day, month, year] = dateString.split('/');
-        return `${year}-${month}-${day}T00:00:00`;
-    };
     const createVoucherMutation = useMutation({
         mutationFn: ({ data }) => VoucherService.create(data),
         onError: (error) => {
@@ -223,6 +219,11 @@ function AddVoucher() {
         enabled: !!voucherId,
     });
 
+    const handleChangeInput = (e,key) => {
+        const inputValue = e.target.value;
+        const numericValue = inputValue.replace(/[^0-9]/g, '');
+        formik.setFieldValue(key, numericValue);
+    }
     return (
         <Box component="form" noValidate className={cx('form')}>
             <div className={cx('wrapper')}>
@@ -230,7 +231,7 @@ function AddVoucher() {
                     <Grid item xs={12}>
                         <Paper elevation={3} className={cx('paper')} sx={{ height: '100%' }}>
                             <Typography variant="h5" component="h2" className={cx('section-title')}>
-                                Thêm đợt giảm giá
+                                Thêm phiếu giảm giá
                             </Typography>
 
                             <div className="d-flex gap-3 mt-3">
@@ -270,7 +271,7 @@ function AddVoucher() {
                                     required
                                     margin="normal"
                                     value={formik.values.value}
-                                    onChange={formik.handleChange}
+                                    onChange={(e) => handleChangeInput(e,'value')}
                                     error={formik.touched.value && Boolean(formik.errors.value)}
                                     helperText={formik.touched.value && formik.errors.value}
                                     className={cx('form-field')}
@@ -320,7 +321,7 @@ function AddVoucher() {
                                     name="maxValue"
                                     margin="normal"
                                     value={formik.values.maxValue}
-                                    onChange={formik.handleChange}
+                                    onChange={(e) => handleChangeInput(e,'maxValue')}
                                     error={formik.touched.maxValue && Boolean(formik.errors.maxValue)}
                                     helperText={formik.touched.maxValue && formik.errors.maxValue}
                                     className={cx('form-field')}
@@ -335,7 +336,7 @@ function AddVoucher() {
                                     required
                                     margin="normal"
                                     value={formik.values.quantity}
-                                    onChange={formik.handleChange}
+                                    onChange={(e) => handleChangeInput(e,'quantity')}
                                     error={formik.touched.quantity && Boolean(formik.errors.quantity)}
                                     helperText={formik.touched.quantity && formik.errors.quantity}
                                     className={cx('form-field')}
@@ -348,7 +349,7 @@ function AddVoucher() {
                                     required
                                     margin="normal"
                                     value={formik.values.condition}
-                                    onChange={formik.handleChange}
+                                    onChange={(e) => handleChangeInput(e,'condition')}
                                     error={formik.touched.condition && Boolean(formik.errors.condition)}
                                     helperText={formik.touched.condition && formik.errors.condition}
                                     className={cx('form-field')}

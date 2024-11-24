@@ -24,35 +24,18 @@
             object-fit: fill;
         }
     }
-    .user-menu {
-        background-color: var(--white);
-        border: 1px solid #cecece;
-        border-radius: 1rem;
-        overflow: hidden;
-        li {
-            border-bottom: 1px solid #ececec;
-            cursor: pointer;
-            font-weight: 500;
-            user-select: none;
-            transition: all 0.3s;
-            a {
-                display: block;
-                padding: 0.6rem 2.5rem;
-            }
-            &:hover {
-                background-color: var(--hover-background-lighter);
-                transform: scale(1.05);
-            }
-            &:active {
-                opacity: 0.4;
-            }
-            &:last-child {
-                border: none;
-            }
+}
+.cart, .user {
+    span {
+        color: #6c757d;
+        cursor: pointer !important;
+        transition: color 0.3s ease;
+        background-color: #fff !important;
+        &:hover {
+            color: var(--hover-background-darker);
         }
     }
 }
-
 .container {
     display: flex;
     .nav-bar {
@@ -75,5 +58,67 @@
     .content {
         width: 100%;
         padding: 2rem;
+    }
+}
+
+.notifications-items {
+    > a {
+        width: 400px;
+        display: block;
+        flex: 1;
+        text-overflow: clip;
+        padding-right: 6rem;
+        padding-left: .5rem;
+        padding: 0.5rem;
+    }
+    padding: 0 !important;
+    .icon {
+        align-items: center;
+        justify-content: center;
+        min-width: auto;
+        width: 3.6rem;
+        height: 3.6rem;
+        border-radius: 50%;
+    }
+    .notification-order-icon {
+        color: #23c16b !important;
+        background-color: rgba(35, 193, 106, 0/2);
+    }
+    .notification-voucher-icon {
+        color: rgb(71, 145, 219) !important;
+        background-color: rgba(71, 145, 219, 0.2);
+    }
+
+    .notification-comment-icon {
+        color: rgb(60, 82 ,103) !important;
+        background-color: rgba(60, 82, 103, 0.2);
+    }
+
+    .notification-content {
+        padding: 0.5rem 0;
+        font-size: 1.4rem;
+        width: 100%;
+        flex: 1 1;
+        overflow: hidden;
+        > p {
+            margin: 0;
+        }
+        .notification-title {
+            font-weight: 600;
+            display: block;
+            text-overflow: ellipsis;
+            width: 100%;
+            overflow: hidden;
+        }
+        .notification-message {
+            opacity: 0.8;
+            height: 4.5rem;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: break-spaces;
+        }
     }
 }

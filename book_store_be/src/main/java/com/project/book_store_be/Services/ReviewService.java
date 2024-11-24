@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Model.Review;
 import com.project.book_store_be.Model.User;
@@ -22,6 +23,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     private void validateStarValue(int star) {
         if (star < 1 || star > 5) {
@@ -52,7 +54,7 @@ public class ReviewService {
         review.setUser(currentUser);
         review.setComment(reviewRequest.getComment());
         review.setStar(reviewRequest.getStar());
-        review.setLikeCount(reviewRequest.getLikeCount());
+        review.setUsersWhoLiked(new ArrayList<>());
         review.setUpdateTime(LocalDateTime.now());
         reviewRepository.save(review);
         return getReviewDetails(productId, page, size);
@@ -68,11 +70,19 @@ public class ReviewService {
         return getReviewDetails(review.getProduct().getId(), page, size);
     }
 
-    public ReviewDetailResponse updateLikeCount(Long reviewId, ReviewRequest reviewRequest, int page, int size) {
+    public void likeReview(Long reviewId) {
+        User currentUser = userService.getCurrentUser();
         Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new NoSuchElementException("No review found with id: " + reviewId));
-        review.setLikeCount(reviewRequest.getLikeCount());
+        List<Long> userIds = review.getUsersWhoLiked().stream().map(User::getId).toList();
+        if(userIds.contains(currentUser.getId())) {
+            review.getUsersWhoLiked().removeIf(user -> user.getId().equals(currentUser.getId()));
+        } else {
+            review.getUsersWhoLiked().add(currentUser);
+            if(!Objects.equals(currentUser.getId(), review.getUser().getId())) {
+                this.notificationService.sendNotification(review.getUser(), "Đánh giá sản phẩm",  currentUser.getFullName() +" đã vừa thích bình luận của bạn của bạn", NotificationType.REVIEW, "/product/detail?id=" + review.getProduct().getId());
+            }
+        }
         reviewRepository.save(review);
-        return getReviewDetails(review.getProduct().getId(), page, size);
     }
 
 
@@ -117,13 +127,17 @@ public class ReviewService {
     }
 
     private ReviewResponse convertToReviewResponse(Review review) {
+        List<Long> userIds = review.getUsersWhoLiked().stream().map(User::getId).toList();
+        Boolean isLike = userIds.contains(userService.getCurrentUser().getId());
+        Integer likeQty = userIds.size();
         return ReviewResponse.builder()
                 .id(review.getId())
                 .userName(review.getUser().getFullName())
                 .customerId(review.getUser().getId())
                 .comment(review.getComment())
                 .star(review.getStar())
-                .likeCount(review.getLikeCount())
+                .isLiked(isLike)
+                .likeQty(likeQty)
                 .createDate(review.getUpdateTime())
                 .build();
     }

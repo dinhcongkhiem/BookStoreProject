@@ -30,7 +30,7 @@ import { faCalendar } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DiscountService from '../../../service/DiscountService';
 import { toast } from 'react-toastify';
-import { formatDate } from '../../../utills/ConvertData';
+import { convertToISOString, formatDate } from '../../../utills/ConvertData';
 
 const cx = classNames.bind(style);
 
@@ -138,10 +138,7 @@ function AddDiscount() {
         enabled: !!discountId,
     });
 
-    const convertToISOString = (dateString) => {
-        const [day, month, year] = dateString.split('/');
-        return `${year}-${month}-${day}T00:00:00`;
-    };
+
     const createDiscountMutation = useMutation({
         mutationFn: ({ data }) => DiscountService.createDiscount(data),
         onError: (error) => {

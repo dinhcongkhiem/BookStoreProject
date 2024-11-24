@@ -73,11 +73,11 @@
         position: absolute;
         bottom: 0.8rem;
         left: 0;
-        opacity: 1; /* Giữ độ trong suốt để không nhìn thấy input */
+        opacity: 1; 
         width: 100%;
         height: 0rem;
-        z-index: -1; /* Đặt giá trị z-index cao hơn để nó nằm trên các phần tử khác */
-        cursor: pointer; /* Đảm bảo con trỏ chuột hiển thị khi di chuột lên input */
+        z-index: -1;
+        cursor: pointer;
     }
 }
 

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Đơn hàng đang được giao</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .thumbnail-img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body style="width: 70%; margin: 0 auto; font-family: Arial, sans-serif;">
+<h1 style="color: #5cb85c;">Đơn hàng của bạn đang được giao</h1>
+<h3>Thông tin đơn hàng: <span th:text="${orderCode}"></span></h3>
+<p>Ngày đặt hàng: <span th:text="${#temporals.format(orderDate, 'dd/MM/yyyy')}"></span></p>
+<h4>Thông tin đơn hàng:</h4>
+<table>
+  <thead>
+  <tr>
+    <th>Sản phẩm</th>
+    <th>Số lượng</th>
+    <th>Giá</th>
+    <th>Ảnh</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="product : ${productList}">
+    <td th:text="${product.productName}"></td>
+    <td th:text="${product.quantity}"></td>
+    <td th:text="${product.productPrice} + ' VND'"></td>
+    <td><img th:src="${product.thumbnailImage}" class="thumbnail-img" alt="Thumbnail"/></td>
+  </tr>
+  </tbody>
+</table>
+<div style="text-align: right;">
+  <p>Tạm tính: <span th:text="${subTotal} + ' VND'"></span></p>
+  <p>Phí vận chuyển: <span th:text="${shippingFee} + ' VND'"></span></p>
+  <p>Khuyến mãi: <span th:text="${discount} + ' VND'"></span></p>
+  <h3>Tổng giá trị đơn hàng: <span th:text="${totalAmount} + ' VND'"></span></h3>
+</div>
+<p>Đơn hàng của bạn đã được chuyển đến đơn vị vận chuyển.</p>
+<ul>
+  <li><strong>Đơn vị vận chuyển:</strong> <span th:text="${shippingPartner}"></span></li>
+  <li><strong>Mã vận đơn:</strong> <span th:text="${trackingNumber}"></span></li>
+  <li><strong>Thời gian dự kiến giao hàng:</strong> <span th:text="${deliveryDate}"></span></li>
+</ul>
+<p>Bạn có thể theo dõi trạng thái đơn hàng tại:</p>
+<div style="text-align: center; margin: 20px 0;">
+  <a href="tracking_link_here" style="background-color: #5cb85c; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+    Theo dõi đơn hàng
+  </a>
+</div>
+<p>Nếu bạn có thắc mắc, vui lòng liên hệ qua:</p>
+<p>Email: support@bookbazaar.com | Điện thoại: 0123 456 789</p>
+<h2 style="text-align: center;">Book Bazaar</h2>
+</body>
+</html>

@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Enum.VoucherType;
 import com.project.book_store_be.Interface.VoucherService;
 import com.project.book_store_be.Model.User;
@@ -29,6 +30,7 @@ public class VoucherServiceImpl implements VoucherService {
     private final VoucherRepository voucherRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     @Override
     public Page<?> searchVouchers(String keyword, Integer status, int page, int size, String sort, Boolean forUser) {
@@ -101,7 +103,7 @@ public class VoucherServiceImpl implements VoucherService {
                 .code(voucherRequest.getCode())
                 .name(voucherRequest.getName())
                 .startDate(voucherRequest.getStartDate())
-                .endDate(voucherRequest.getEndDate().withHour(23).withMinute(59).withSecond(59).withNano(999999999))
+                .endDate(voucherRequest.getEndDate().withHour(23).withMinute(59).withSecond(59))
                 .quantity(voucherRequest.getQuantity())
                 .type(voucherRequest.getType())
                 .value(voucherRequest.getValue())
@@ -110,7 +112,9 @@ public class VoucherServiceImpl implements VoucherService {
                 .createDate(LocalDateTime.now())
                 .users(users)
                 .build();
-
+        users.forEach(u -> notificationService.sendNotification(u, "Mã giảm giá mới",
+                "Bạn vừa nhận được mã giảm giá mới giảm " + voucher.getValue() + (voucher.getType() == VoucherType.PERCENT ? "%" : "đ") + "từ hệ thống",
+                NotificationType.PROMOTION, "/product"));
         return voucherRepository.save(voucher);
     }
 
@@ -127,7 +131,7 @@ public class VoucherServiceImpl implements VoucherService {
         voucher.setCode(voucherRequest.getCode());
         voucher.setName(voucherRequest.getName());
         voucher.setStartDate(voucherRequest.getStartDate());
-        voucher.setEndDate(voucherRequest.getEndDate().withHour(23).withMinute(59).withSecond(59).withNano(999999999));
+        voucher.setEndDate(voucherRequest.getEndDate().withHour(23).withMinute(59).withSecond(59));
         voucher.setQuantity(voucherRequest.getQuantity());
         voucher.setType(voucherRequest.getType());
         voucher.setValue(voucherRequest.getValue());

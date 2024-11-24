@@ -13,6 +13,8 @@ import CartService from '../../service/CartService';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
 import { useNavigate } from 'react-router-dom';
 import { convertStatusOrderToVN, getStatusOrderClass, orderTabs } from '../../utills/ConvertData';
+import { toast } from 'react-toastify';
+import ConfirmModal from '../../component/Modal/ConfirmModal/ConfirmModal';
 const cx = classNames.bind(style);
 
 function Order() {
@@ -24,6 +26,8 @@ function Order() {
     const [page, setPage] = useState(1);
     const [activeTab, setActiveTab] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [orderIdToUpdateStatus, setOrderIdToUpdateStatus] = useState(null);
+    const [isOpenCancelConfirm, setIsOpenCancelConfirm] = useState(false);
     const observer = useRef();
     const navigate = useNavigate();
     const {
@@ -82,7 +86,15 @@ function Order() {
                 return null;
         }
     };
-
+    const updateStatusOrderMutation = useMutation({
+        mutationFn: ({ id, status }) => OrderService.updateStatusOrder(id, status),
+        onError: (error) => console.error(error),
+        onSuccess: () => {
+            setIsOpenCancelConfirm(false);
+            refetch();
+            toast.success('Đã cập nhật đơn hàng');
+        },
+    });
 
     useEffect(() => {
         if (orders && page === 1) {
@@ -169,7 +181,12 @@ function Order() {
                             <div className={cx('actions')}>
                                 {order.status === 'AWAITING_PAYMENT' && (
                                     <>
-                                        <button className={cx('actionButton', 'payAgainButton')}>Thanh toán lại</button>
+                                        <button
+                                            className={cx('actionButton', 'payAgainButton')}
+                                            onClick={() => navigate(`/payment/repayment/${order.orderId}`)}
+                                        >
+                                            Thanh toán lại
+                                        </button>
                                         <button
                                             className={cx('actionButton')}
                                             onClick={() => navigate(`/order/detail/${order.orderId}`)}
@@ -179,12 +196,23 @@ function Order() {
                                     </>
                                 )}
                                 {order.status === 'PROCESSING' && (
-                                    <button
-                                        className={cx('actionButton')}
-                                        onClick={() => navigate(`/order/detail/${order.orderId}`)}
-                                    >
-                                        Xem chi tiết
-                                    </button>
+                                    <>
+                                        <button
+                                            className={cx('actionButton')}
+                                            onClick={() => {
+                                                setIsOpenCancelConfirm(true);
+                                                setOrderIdToUpdateStatus(order.orderId);
+                                            }}
+                                        >
+                                            Hủy
+                                        </button>
+                                        <button
+                                            className={cx('actionButton')}
+                                            onClick={() => navigate(`/order/detail/${order.orderId}`)}
+                                        >
+                                            Xem chi tiết
+                                        </button>
+                                    </>
                                 )}
                                 {order.status === 'SHIPPING' && (
                                     <button
@@ -208,7 +236,11 @@ function Order() {
                                     <>
                                         <button
                                             className={cx('actionButton')}
-                                            onClick={() => reBuyProductsMutation.mutate(order.items.map(i => i.productId).join(','))}
+                                            onClick={() =>
+                                                reBuyProductsMutation.mutate(
+                                                    order.items.map((i) => i.productId).join(','),
+                                                )
+                                            }
                                         >
                                             Mua lại
                                         </button>
@@ -225,6 +257,17 @@ function Order() {
                     </div>
                 ))}
             </div>
+            {isOpenCancelConfirm && (
+                <ConfirmModal
+                    open={isOpenCancelConfirm}
+                    onClose={() => setIsOpenCancelConfirm(false)}
+                    onConfirm={() =>
+                        updateStatusOrderMutation.mutate({ id: orderIdToUpdateStatus, status: 'CANCELED' })
+                    }
+                    title={'Xác nhận'}
+                    message={'Bạn đang muốn hủy đơn hàng này?'}
+                />
+            )}
             <ModalLoading isLoading={isLoading || isFetching} />
         </div>
     );

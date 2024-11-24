@@ -1,9 +1,17 @@
 package com.project.book_store_be.Services;
 
-import com.project.book_store_be.Enum.NotificationType;
-import com.project.book_store_be.Enum.OrderStatus;
-import com.project.book_store_be.Enum.PaymentType;
-import com.project.book_store_be.Enum.VoucherType;
+import com.itextpdf.io.image.ImageData;
+import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.*;
+import com.itextpdf.layout.properties.HorizontalAlignment;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+import com.project.book_store_be.Enum.*;
 import com.project.book_store_be.Interface.AddressService;
 import com.project.book_store_be.Interface.OrderService;
 import com.project.book_store_be.Interface.PaymentService;
@@ -32,9 +40,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -62,14 +77,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, keyword);
+        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
 
     @Override
-    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(null, status, keyword);
+    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime orderDate, String keyword) {
+        Specification<Order> spec = OrderSpecification.getOrders(null, status, orderDate, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         Page<GetAllOrderResponse> ordersPage = orderRepository.findAll(spec, pageable).map(this::convertToResMng);
         Tuple count = orderRepository.countOrder();
@@ -146,7 +161,7 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Số lượng không hợp lệ. Phải nhỏ hơn hoặc bằng số lượng có sẵn.");
         }
         Product product = orderDetail.getProduct();
-        productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity()  - quantity);
+        productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity() - quantity);
         orderDetail.setQuantity(quantity);
         orderDetailRepository.save(orderDetail);
     }
@@ -264,7 +279,7 @@ public class OrderServiceImpl implements OrderService {
             paymentResponse = this.handlePaymentRequest(order, finalPrice);
         } else {
             String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), finalPrice);
-            notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER);
+            notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER, "/admin/orderMng/" + order.getId());
         }
 
         order.setOrderDetails(orderDetailList);
@@ -306,7 +321,7 @@ public class OrderServiceImpl implements OrderService {
         } else {
             order.setStatus(OrderStatus.PROCESSING);
             String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), finalPrice);
-            notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER);
+            notificationService.sendAdminNotification("Đơn hàng", message, NotificationType.ORDER, "/admin/orderMng/" + order.getId());
         }
 
 
@@ -340,7 +355,7 @@ public class OrderServiceImpl implements OrderService {
                 );
                 String title = "Hủy đơn hàng vì quá thời hạn thanh toán.";
                 String message = String.format("Đơn hàng bị hủy do quá thời hạn thanh toán #%s đã bị hủy vì chưa được thanh toán!", currentOrder.getId());
-                notificationService.sendNotification(currentOrder.getUser(), title, message, NotificationType.ORDER);
+                notificationService.sendNotification(currentOrder.getUser(), title, message, NotificationType.ORDER, "/order/detail/" + currentOrder.getId());
                 if (currentOrder.getStatus().equals(OrderStatus.AWAITING_PAYMENT)) {
                     currentOrder.setStatus(OrderStatus.CANCELED);
                     orderRepository.save(currentOrder);
@@ -371,7 +386,7 @@ public class OrderServiceImpl implements OrderService {
         final BigDecimal[] totalDiscount = {BigDecimal.ZERO};
         final BigDecimal[] discountWithVoucher = {BigDecimal.ZERO};
 
-        Map<Long,Boolean> mapCheckReviewed = reviewService.checkUserReviewedProducts(userService.getCurrentUser().getId(),
+        Map<Long, Boolean> mapCheckReviewed = reviewService.checkUserReviewedProducts(userService.getCurrentUser().getId(),
                 order.getOrderDetails().stream().map(detail -> detail.getProduct().getId()).toList());
 
         List<OrderItemsDetailResponse> itemDetails = order.getOrderDetails().stream()
@@ -424,6 +439,7 @@ public class OrderServiceImpl implements OrderService {
                         .code(voucher.getCode())
                         .value(discountWithVoucher[0])
                         .build() : null)
+                .amountPaid(order.getAmountPaid())
                 .shippingFee(order.getShippingFee())
                 .grandTotal(grandTotal[0])
                 .items(itemDetails)
@@ -469,9 +485,47 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+    private String convertStatus(OrderStatus status) {
+        return switch (status) {
+            case PENDING -> "Chờ xác nhận";
+            case AWAITING_PAYMENT -> "Chờ thanh toán";
+            case PROCESSING -> "Đang xử lý";
+            case SHIPPING -> "giao cho bên vận chuyển";
+            case CANCELED -> "hủy";
+            case COMPLETED -> "hoàn thành";
+            default -> "Không xác định";
+        };
+    }
+
     @Override
-    public void updateOrderStatus(Long id, UpdateOrderRequest request) {
-        OrderStatus status = OrderStatus.valueOf(request.getStatus());
+    public void updateOrderStatus(Long id, OrderStatus orderStatus) {
+        User currentUser = userService.getCurrentUser();
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Order not found"));
+
+        if (!order.getStatus().canTransitionTo(orderStatus)) {
+            throw new IllegalArgumentException("Invalid status transition from " + order.getStatus() + " to " + orderStatus);
+        }
+        if (currentUser.getRole() == Role.ADMIN) {
+            if (order.getUser() != null) {
+                this.notificationService.sendNotification(order.getUser(), "Cập nhật đơn hàng",
+                        "Đơn hàng " + order.getId() + "của bạn đã được " + this.convertStatus(orderStatus),
+                        NotificationType.ORDER, "/order/detail/" + order.getId());
+
+            }
+        } else if (currentUser.getRole() == Role.USER) {
+            this.notificationService.sendAdminNotification("Cập nhật đơn hàng",
+                    "Đơn hàng " + order.getId() + " đã được " + this.convertStatus(orderStatus) + " bởi khách hàng",
+                    NotificationType.ORDER, "/admin/orderMng/" + order.getId());
+        }
+        order.setStatus(orderStatus);
+        orderRepository.save(order);
+    }
+
+
+    @Override
+    public byte[] successOrderInCounter(Long id, UpdateOrderRequest request) {
+        OrderStatus status = OrderStatus.COMPLETED;
         User user = userService.findById(request.getUserId()).orElse(null);
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Order not found"));
@@ -482,9 +536,11 @@ public class OrderServiceImpl implements OrderService {
         order.setBuyerName(user != null ? user.getFullName() : "Khách lẻ");
         order.setBuyerPhoneNum(user != null ? user.getPhoneNum() : null);
         order.setStatus(status);
-        order.setAmountPaid(request.getAmountPaid());
+        order.setAmountPaid(request.getPaymentType() == PaymentType.bank_transfer ? order.getTotalPrice() : request.getAmountPaid());
+        order.setPaymentType(request.getPaymentType());
         order.setUser(user);
         orderRepository.save(order);
+        return this.getBill(order);
     }
 
     @Override
@@ -513,4 +569,106 @@ public class OrderServiceImpl implements OrderService {
         }
         return voucherDiscount;
     }
+
+    private byte[] getBill(Order order) {
+        try {
+            ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
+            PdfWriter writer = new PdfWriter(pdfOutputStream);
+            PdfDocument pdfDocument = new PdfDocument(writer);
+            Document document = new Document(pdfDocument);
+            String fontPath = "C:\\Windows\\Fonts\\arial.ttf";
+            PdfFont font = PdfFontFactory.createFont(fontPath, PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED);
+            document.setFont(font);
+            DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.getDefault());
+            symbols.setGroupingSeparator('.');
+            symbols.setDecimalSeparator(',');
+
+            DecimalFormat decimalFormat = new DecimalFormat("#,###", symbols);
+            InputStream logoStream = getClass().getResourceAsStream("/static/Logo-BookBazaar-nobg.png");
+            if (logoStream != null) {
+                ImageData logoData = ImageDataFactory.create(logoStream.readAllBytes());
+                Image logo = new Image(logoData);
+                logo.setWidth(250);
+                logo.setHorizontalAlignment(HorizontalAlignment.CENTER);
+                logo.setMarginBottom(20);
+
+                document.add(logo);
+            }
+
+            document.add(new Paragraph("HÓA ĐƠN MUA HÀNG")
+                    .setBold()
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMultipliedLeading(0.8f)
+                    .setFontSize(16));
+            document.add(new Paragraph("Số hóa đơn: " + order.getId())
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMultipliedLeading(0.8f));
+            document.add(new Paragraph("Ngày: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")))
+                    .setMarginBottom(14).setMultipliedLeading(0.8f));
+
+            document.add(new Paragraph()
+                    .add(new Text("Khách hàng: ").setBold())
+                    .add(order.getBuyerName()).setMultipliedLeading(0.8f));
+            if(order.getBuyerPhoneNum() != null) {
+                document.add(new Paragraph()
+                        .add(new Text("SĐT: ").setBold())
+                        .add(order.getBuyerPhoneNum()).setMultipliedLeading(0.8f));
+            }
+            if (order.getAddress() != null) {
+                document.add(new Paragraph()
+                        .add(new Text("Địa chỉ: ").setBold())
+                        .add(order.getAddress().getAddressDetail() + ", " + order.getAddress().getCommune().getLabel()
+                                + ", " + order.getAddress().getDistrict().getLabel()
+                                + ", " + order.getAddress().getProvince().getLabel())
+                        .setMultipliedLeading(0.8f));
+            }
+
+            float[] columnWidths = {3, 2, 1, 2};
+            Table table = new Table(columnWidths);
+            table.setMarginTop(15);
+            table.setWidth(UnitValue.createPercentValue(100));
+
+            table.addHeaderCell(new Cell().add(new Paragraph("Sản phẩm").setBold()).setTextAlignment(TextAlignment.CENTER));
+            table.addHeaderCell(new Cell().add(new Paragraph("Giá").setBold()).setTextAlignment(TextAlignment.CENTER));
+            table.addHeaderCell(new Cell().add(new Paragraph("Số lượng").setBold()).setTextAlignment(TextAlignment.CENTER));
+            table.addHeaderCell(new Cell().add(new Paragraph("Thành tiền").setBold()).setTextAlignment(TextAlignment.CENTER));
+
+            order.getOrderDetails().forEach(orderDetail -> {
+                Product product = orderDetail.getProduct();
+                BigDecimal price = orderDetail.getPriceAtPurchase();
+                BigDecimal quantity = BigDecimal.valueOf(orderDetail.getQuantity());
+                BigDecimal total = price.multiply(quantity);
+                table.addCell(new Cell().add(new Paragraph(product.getName())));
+                table.addCell(new Cell().add(new Paragraph(decimalFormat.format(price) + " ₫").setTextAlignment(TextAlignment.RIGHT)));
+                table.addCell(new Cell().add(new Paragraph(decimalFormat.format(quantity)).setTextAlignment(TextAlignment.CENTER)));
+                table.addCell(new Cell().add(new Paragraph(decimalFormat.format(total) + " ₫").setTextAlignment(TextAlignment.RIGHT)));
+            });
+            document.add(table);
+
+            document.add(new Paragraph()
+                    .add(new Text("Tổng tiền hàng: ").setBold())
+                    .add(decimalFormat.format(order.getTotalPrice()) + " ₫")
+                    .setMarginTop(20)
+                    .setTextAlignment(TextAlignment.RIGHT).setMultipliedLeading(0.8f));
+            document.add(new Paragraph()
+                    .add(new Text("Hình thức thanh toán: ").setBold())
+                    .add(order.getPaymentType() == PaymentType.bank_transfer ? "Chuyển khoản" :
+                            order.getPaymentType() == PaymentType.both ? "Tiền mặt và chuyển khoản" : "Tiền mặt")
+                    .setTextAlignment(TextAlignment.RIGHT).setMultipliedLeading(0.8f));
+            document.add(new Paragraph()
+                    .add(new Text("Tiền khách đưa: ").setBold())
+                    .add(decimalFormat.format(order.getAmountPaid()))
+                    .setTextAlignment(TextAlignment.RIGHT).setMultipliedLeading(0.8f));
+            document.add(new Paragraph()
+                    .add(new Text("Tiền thừa: ").setBold())
+                    .add(decimalFormat.format(order.getAmountPaid().subtract(order.getTotalPrice())) + " ₫")
+                    .setTextAlignment(TextAlignment.RIGHT).setMultipliedLeading(0.8f));
+
+            document.close();
+            return pdfOutputStream.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
