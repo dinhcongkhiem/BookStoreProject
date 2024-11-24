@@ -30,28 +30,27 @@ const PrivateRoute = ({ children }) => {
 };
 
 const AdminRoute = ({ children }) => {
-    // const { authentication, loading } = useContext(AuthenticationContext);
-    // const navigate = useNavigate();
+    const { authentication, loading } = useContext(AuthenticationContext);
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (!loading) {
+            if (!authentication.isAuthen) {
+                // toast.warning('Bạn chưa đăng nhập!', { position: 'top-center' });
+                navigate('/');
+            } else {
+                if (authentication.user.role !== 'ADMIN') {
+                    navigate('/');
+                }
+            }
+        }
+    }, [authentication, loading, navigate]);
 
-    // useEffect(() => {
-    //     if (!loading) {
-    //         if (!authentication.isAuthen) {
-    //             toast.warning('Bạn chưa đăng nhập!', { position: 'top-center' });
-    //             navigate('/');
-    //         } else {
-    //             if (authentication.user.role !== 'ADMIN') {
-    //                 navigate('/');
-    //             }
-    //         }
-    //     }
-    // }, [authentication, loading, navigate]);
-
-    // if (!authentication.isAuthen) {
-    //     return null;
-    // }
-    // if (authentication.user.role !== 'ADMIN') {
-    //     return null;
-    // }
+    if (!authentication.isAuthen) {
+        return null;
+    }
+    if (authentication.user.role !== 'ADMIN') {
+        return null;
+    }
     return children;
 };
 

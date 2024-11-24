@@ -88,7 +88,7 @@ public class DisCountService {
                 .name(disCountRequest.getName())
                 .discountRate(disCountRequest.getValue())
                 .startDate(disCountRequest.getStartDate())
-                .endDate(disCountRequest.getEndDate().withHour(23).withMinute(59).withSecond(59).withNano(999999999))
+                .endDate(disCountRequest.getEndDate().withHour(23).withMinute(59).withSecond(59))
                 .createDate(LocalDateTime.now())
                 .build();
         Discount newDiscount = repo.save(disCount);
@@ -122,7 +122,7 @@ public class DisCountService {
         Discount updatedDiscount = existingDiscount.toBuilder()
                 .discountRate(disCountRequest.getValue())
                 .startDate(disCountRequest.getStartDate())
-                .endDate(disCountRequest.getEndDate().withHour(23).withMinute(59).withSecond(59).withNano(999999999))
+                .endDate(disCountRequest.getEndDate().withHour(23).withMinute(59).withSecond(59))
                 .build();
         Discount newDiscount = repo.save(updatedDiscount);
 

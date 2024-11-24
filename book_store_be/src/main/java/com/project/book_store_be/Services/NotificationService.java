@@ -49,15 +49,15 @@ public class NotificationService {
         messagingTemplate.convertAndSend("/stream/barcode", true);
     }
 
-    public void sendNotification(User user, String title, String message, NotificationType type) {
-        Notification notification = this.createNotification(user, title, message, type);
+    public void sendNotification(User user, String title, String message, NotificationType type, String targetLink) {
+        Notification notification = this.createNotification(user, title, message, type, targetLink);
         messagingTemplate.convertAndSendToUser(user.getEmail(), "/notifications", this.convertToRes(notification));
     }
 
-    public void sendAdminNotification(String title, String message, NotificationType type) {
+    public void sendAdminNotification(String title, String message, NotificationType type, String targetLink) {
         List<User> adminUsers = userService.getAdminUser();
         adminUsers.forEach(a -> {
-            this.createNotification(a, title, message, type);
+            this.createNotification(a, title, message, type, targetLink);
         });
         Notification notification = new Notification();
         notification.setTitle(title);
@@ -70,10 +70,11 @@ public class NotificationService {
     }
 
 
-    public Notification createNotification(User user, String title, String message, NotificationType type) {
+    public Notification createNotification(User user, String title, String message, NotificationType type, String targetLink) {
         Notification notification = new Notification();
         notification.setTitle(title);
         notification.setUser(user);
+        notification.setTargetLink(targetLink);
         notification.setMessage(message);
         notification.setType(type);
         notification.setStatus(NotificationStatus.UNREAD);

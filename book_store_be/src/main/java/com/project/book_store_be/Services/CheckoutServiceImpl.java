@@ -67,15 +67,15 @@ public class CheckoutServiceImpl implements CheckoutService {
         }).toList();
         BigDecimal shippingFee = order.getShippingFee();
         grandTotal[0] = grandTotal[0].add(shippingFee);
-        return Map.of(
+        Map<String, Object> map = new java.util.HashMap<>(Map.of(
                 "items", responses,
                 "originalSubtotal", originalSubtotal[0],
                 "totalDiscount", totalDiscount[0],
                 "shippingFee", shippingFee,
-                "grandTotal", grandTotal[0],
-                "voucher", voucherService.mapToResponse(order.getVoucher(), false)
-
-        );
+                "grandTotal", grandTotal[0]
+        ));
+        map.put("voucher", order.getVoucher() != null ? voucherService.mapToResponse(order.getVoucher(), false) : null);
+        return map;
     }
 
     private List<CheckoutResponse> getCheckoutResponses(List<Long> cartIds, Long productId, Integer qty) {

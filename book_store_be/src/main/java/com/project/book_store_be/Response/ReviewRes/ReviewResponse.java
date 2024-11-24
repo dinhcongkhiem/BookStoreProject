@@ -13,7 +13,8 @@ public class ReviewResponse {
     private Long customerId;
     private String comment;
     private int star;
-    private int likeCount;
+    private Boolean isLiked;
+    private Integer likeQty;
     private LocalDateTime createDate;
 
 }

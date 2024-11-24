@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { CATEGORY_URL } from './config';
 class CategoryServiceClass {
-    getAll = ({keyword}) => {
+    getAll = ({keyword}) => {        
         const config = {
             method: 'get',
             maxBodyLength: Infinity,

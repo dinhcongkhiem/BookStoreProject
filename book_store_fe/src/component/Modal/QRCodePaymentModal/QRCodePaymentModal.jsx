@@ -94,7 +94,7 @@ const QRCodePaymentModal = ({ open, handleClose, data }) => {
                         </div>
                         <div className="d-flex justify-content-between mt-3">
                             <p style={{ opacity: 0.6 }}>Tổng tiền</p>
-                            <p className="fw-bold">{data?.finalPrice?.toLocaleString('vi-VN')}</p>
+                            <p className="fw-bold">{data?.finalPrice?.toLocaleString('vi-VN')} ₫</p>
                         </div>
                     </div>
                     <div className={cx('tutorial', 'col-7')}>

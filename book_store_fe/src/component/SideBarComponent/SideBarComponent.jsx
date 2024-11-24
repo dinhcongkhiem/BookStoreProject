@@ -53,19 +53,24 @@ function SideBarComponent() {
         setSelectedCategory(categoryId);
     };
 
-    const { data: categories } = useQuery({
-        queryKey: ['categories'],
-        queryFn: () => CatogoryService.getAll().then((response) => response.data),
+    const { data: categories, error } = useQuery({
+        queryKey: ['listCategory'],
+        queryFn: () => CatogoryService.getAll({keyword: ''}).then((response) => response.data),
         retry: 1,
     });
+    useEffect(() => {
+        if (error) {
+            console.log(error);
+        }
+    }, [error]);
     const { data: priceRangeRes } = useQuery({
         queryKey: ['priceRange'],
         queryFn: () => ProductService.getPriceRange().then((response) => response.data),
         retry: 1,
     });
     const { data: publishers } = useQuery({
-        queryKey: ['publishers'],
-        queryFn: () => PublisherService.getAll().then((res) => res.data),
+        queryKey: ['listPublisher'],
+        queryFn: () => PublisherService.getAll({keyword: ''}).then((res) => res.data),
         retry: 1,
     });
 

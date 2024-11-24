@@ -121,17 +121,18 @@ public class PaymentServiceImpl implements PaymentService {
                 orderRepository.save(order);
 
                 List<OrderDetail> orderItems = order.getOrderDetails();
-                BigDecimal totalPrice = orderItems.stream()
-                        .map(o -> o.getProduct().getOriginal_price()
-                                .subtract(o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO)
-                                .multiply(BigDecimal.valueOf(o.getQuantity())))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add)
-                        .add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
-                notificationService.sendAdminNotification(
-                        "Đơn hàng mới",
-                        String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(), totalPrice),
-                        NotificationType.ORDER
-                );
+                BigDecimal[] totalPrice = {BigDecimal.ZERO};
+
+                orderItems.forEach(o -> {
+                    Product product = o.getProduct();
+                    BigDecimal discount = o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO;
+                    totalPrice[0] = totalPrice[0].add(product.getOriginal_price().subtract(discount).multiply(BigDecimal.valueOf(o.getQuantity())));
+                });
+
+                BigDecimal finalPrice = totalPrice[0].add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
+                String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(), finalPrice);
+                notificationService.sendAdminNotification("Thanh toán đơn hàng", message, NotificationType.ORDER, "/admin/orderMng/" + order.getId());
+
 
                 if (!sentEmailOrderCodes.contains(orderCode)) {
                     Map<String, Object> variables = prepareEmailVariables(order);
