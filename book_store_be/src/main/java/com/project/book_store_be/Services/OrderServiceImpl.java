@@ -341,8 +341,8 @@ public class OrderServiceImpl implements OrderService {
     private PaymentResponse handlePaymentRequest(Order order, BigDecimal finalPrice) {
         try {
             String currentTimeString = String.valueOf(new Date().getTime());
-            Long time = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
-            Long orderCode = Long.parseLong(order.getId() + String.valueOf(time));
+            String time = currentTimeString.substring(currentTimeString.length() - 6);
+            Long orderCode = Long.parseLong(String.valueOf(order.getId()) + time);
             PaymentResponse paymentResponse = paymentService.PaymentRequest(PaymentRequest.builder()
                     .orderCode(orderCode)
                     .amount(finalPrice)
@@ -563,7 +563,11 @@ public class OrderServiceImpl implements OrderService {
             return voucherDiscount;
         }
         if (voucher.getType() == VoucherType.PERCENT) {
-            voucherDiscount = voucher.getValue().multiply(totalPrice.add(shippingFee)).divide(BigDecimal.valueOf(100));
+            if (voucher.getMaxValue() != null && voucher.getMaxValue().compareTo(voucher.getValue()) < 0) {
+                voucherDiscount = voucher.getMaxValue().multiply(totalPrice.add(shippingFee)).divide(BigDecimal.valueOf(100));
+            } else if (voucher.getMaxValue() == null) {
+                voucherDiscount = voucher.getValue().multiply(totalPrice.add(shippingFee)).divide(BigDecimal.valueOf(100));
+            }
         } else if (voucher.getType() == VoucherType.CASH) {
             voucherDiscount = voucher.getValue();
         }
