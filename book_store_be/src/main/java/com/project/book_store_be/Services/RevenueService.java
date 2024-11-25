@@ -94,7 +94,7 @@ public class RevenueService {
         BigDecimal todayRevenue = todaysOrdersRevene.stream()
                 .map(Order::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        List<Order> allOrders = orderRepository.findAll();
+        List<Order> allOrders = orderRepository.findByStatus(OrderStatus.COMPLETED);
         int totalOrders = allOrders.size();
         BigDecimal totalRevenue = allOrders.stream()
                 .map(Order::getTotalPrice)
