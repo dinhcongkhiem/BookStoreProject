@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -282,8 +283,10 @@ public class ProductService {
             Discount discount = p.getDiscounts().stream()
                     .max(Comparator.comparing(Discount::getCreateDate))
                     .orElse(null);
-
-            discountRate = discount.getDiscountRate();
+            LocalDateTime now = LocalDateTime.now();
+            if(discount.getStartDate().isBefore(now) && discount.getEndDate().isAfter(now)){
+                discountRate = discount.getDiscountRate();
+            }
         }
         BigDecimal discountValue = p.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
                 .divide(ONE_HUNDRED, RoundingMode.HALF_UP);

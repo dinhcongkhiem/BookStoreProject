@@ -3,7 +3,7 @@ import classNames from 'classnames/bind';
 import style from './Payment.module.scss';
 import { Box, Button, FormControl, FormControlLabel, Radio, RadioGroup, Typography } from '@mui/material';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import bank_transfer_icon from '../../assets/icons/bank_transfer_icon.png';
 import cash_on_delivery_icon from '../../assets/icons/cash_on_delivery_icon.png';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -39,10 +39,14 @@ function Payment() {
     const productFromState = location.state?.product || null;
     const cartIds = cartIdsFromState || JSON.parse(localStorage.getItem('cartIdsForPayment'));
     const product = productFromState || JSON.parse(localStorage.getItem('productForPayment'));
-    const selectVoucherInStorage = JSON.parse(localStorage.getItem('selectedVoucher'));
+    const selectVoucherInStorage = useMemo(() => {
+        return JSON.parse(localStorage.getItem('selectedVoucher'));
+    }, []);
+
     useEffect(() => {
         setSelectedVoucher(selectVoucherInStorage);
     }, [selectVoucherInStorage]);
+
     const {
         data: userInfo,
         error,
@@ -147,8 +151,8 @@ function Payment() {
     });
 
     const handleOrder = () => {
-        if(orderId) {
-            rePaymentOrderMutation.mutate({orderId: orderId, paymentType: paymentType});
+        if (orderId) {
+            rePaymentOrderMutation.mutate({ orderId: orderId, paymentType: paymentType });
             return;
         }
         const data = {
@@ -162,7 +166,13 @@ function Payment() {
         };
         createOrderMutation.mutate(data);
     };
-
+    const calculateDiscount = () => {
+        if (selectedVoucher.type === 'PERCENT') {
+            const percentageDiscount = (checkoutData?.grandTotal * selectedVoucher.value) / 100;
+            return Math.min(percentageDiscount, selectedVoucher.maxValue);
+        }
+        return selectedVoucher.value;
+    };
     return (
         <div className={cx('d-flex justify-content-center', 'wrapper')}>
             <div className={cx('col-lg-8')}>
@@ -331,7 +341,9 @@ function Payment() {
                                 {checkoutData?.items.reduce((total, item) => total + item.quantity, 0)} sản phẩm
                             </span>
                         </div>
-                        <Link to="/cart" className={cx({'disable': orderId})} >Thay đổi</Link>
+                        <Link to="/cart" className={cx({ disable: orderId })}>
+                            Thay đổi
+                        </Link>
                     </div>
                     <div>
                         <div className="d-flex justify-content-between">
@@ -361,10 +373,7 @@ function Payment() {
                                 <p className={cx('label')}>Giảm giá từ mã khuyến mãi</p>
                                 <p className={cx('discount')}>
                                     -
-                                    {(selectedVoucher.type === 'PERCENT'
-                                        ? (checkoutData?.grandTotal * selectedVoucher.value) / 100
-                                        : selectedVoucher.value
-                                    ).toLocaleString('vi-VN')}
+                                    {calculateDiscount()?.toLocaleString('vi-VN')}
                                     <span>₫</span>
                                 </p>
                             </div>
@@ -378,9 +387,7 @@ function Payment() {
                                     {selectedVoucher
                                         ? (
                                               checkoutData?.grandTotal -
-                                              (selectedVoucher?.type === 'PERCENT'
-                                                  ? (checkoutData?.grandTotal * selectedVoucher.value) / 100
-                                                  : selectedVoucher?.value)
+                                              calculateDiscount()
                                           ).toLocaleString('vi-VN')
                                         : checkoutData?.grandTotal.toLocaleString('vi-VN')}
                                     <span>₫</span>

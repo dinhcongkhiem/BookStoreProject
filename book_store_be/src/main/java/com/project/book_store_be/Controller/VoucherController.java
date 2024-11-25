@@ -36,13 +36,12 @@ public class VoucherController {
     @GetMapping("/by-user")
     public ResponseEntity<?> getVoucherByUser(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false, defaultValue = "create_date") String sort
     ) {
         try {
-            return ResponseEntity.ok(voucherService.searchVouchers(keyword, status, page, size, sort, true));
+            return ResponseEntity.ok(voucherService.searchVouchers(keyword, 1, page, size, sort, true));
         } catch (NoSuchElementException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Voucher not found.");
         }
