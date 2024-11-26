@@ -3,10 +3,7 @@ package com.project.book_store_be.Services;
 import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Interface.PaymentService;
-import com.project.book_store_be.Model.Order;
-import com.project.book_store_be.Model.OrderDetail;
-import com.project.book_store_be.Model.Product;
-import com.project.book_store_be.Model.User;
+import com.project.book_store_be.Model.*;
 import com.project.book_store_be.Repository.OrderRepository;
 import com.project.book_store_be.Request.PaymentRequest;
 import com.project.book_store_be.Response.OrderRes.OrderItemsResponse;
@@ -18,6 +15,7 @@ import vn.payos.PayOS;
 import vn.payos.type.*;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -31,47 +29,93 @@ public class PaymentServiceImpl implements PaymentService {
     private final SendMailService sendMailService;
     private final OrderRepository orderRepository;
     private final NotificationService notificationService;
-    private final ImageProductService imageProductService; // Đã tích hợp từ TestController
+    private final ImageProductService imageProductService;
+    private final UserService userService;
     private final PayOS payOS;
     private static final String CANCEL_URL = "http://localhost:3000/profile";
     private static final String RETURN_URL = "http://localhost:3000/cart";
     private Set<String> sentEmailOrderCodes = new HashSet<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
+    private String formatPrice(BigDecimal price) {
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        return formatter.format(price) + " ₫";
+    }
+
     private Map<String, Object> prepareEmailVariables(Order order) {
         User user = order.getUser();
+        if (user == null) {
+            throw new IllegalArgumentException("Không tìm thấy thông tin khách hàng cho đơn hàng");
+        }
+        Order currentOrder = orderRepository.findById(order.getId()).orElseThrow(
+                () -> new NoSuchElementException("Not found order id : " + order.getId())
+        );
+        Address address = user.getAddress();
+        String fullAddress = (address != null)
+                ? address.getAddressDetail() + ", " +
+                (address.getDistrict() != null && address.getDistrict().getLabel() != null ? address.getDistrict().getLabel() : "") + ", " +
+                (address.getCommune() != null && address.getCommune().getLabel() != null ? address.getCommune().getLabel() : "") + ", " +
+                (address.getProvince() != null && address.getProvince().getLabel() != null ? address.getProvince().getLabel() : "")
+                : "Địa chỉ không có";
 
-        List<Map<String, Object>> productList = order.getOrderDetails().stream()
+        List<OrderDetail> orderDetails = order.getOrderDetails() != null ? order.getOrderDetails() : Collections.emptyList();
+
+        List<Map<String, Object>> productList = orderDetails.stream()
                 .map(orderDetail -> {
                     Product product = orderDetail.getProduct();
+
                     String thumbnailUrl = imageProductService != null
                             ? imageProductService.getThumbnailProduct(product.getId())
                             : "default-thumbnail-url";
-                    Map<String, Object> productMap = Map.of(
-                            "productName", product.getName(),
-                            "quantity", orderDetail.getQuantity(),
-                            "productPrice", orderDetail.getPriceAtPurchase(),
-                            "thumbnailImage", thumbnailUrl);
+
+                    Map<String, Object> productMap = new HashMap<>();
+                    productMap.put("productName", product.getName());
+                    productMap.put("quantity", orderDetail.getQuantity());
+                    productMap.put("productPrice", formatPrice(orderDetail.getOriginalPriceAtPurchase()));
+                    productMap.put("thumbnailImage", thumbnailUrl);
                     return productMap;
                 })
                 .collect(Collectors.toList());
 
-        BigDecimal subTotal = order.getTotalPrice();
-        BigDecimal shippingFee = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
-        BigDecimal discount = order.getVoucher() != null ? order.getVoucher().getValue() : BigDecimal.ZERO;
-        BigDecimal totalAmount = subTotal.add(shippingFee).subtract(discount);
+        BigDecimal subTotal = orderDetails.stream()
+                .map(orderDetail -> orderDetail.getOriginalPriceAtPurchase().multiply(BigDecimal.valueOf(orderDetail.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        return Map.of(
-                "orderCode", order.getId(),
-                "orderDate", order.getOrderDate(),
-                "user", user,
-                "productList", productList,
-                "subTotal", subTotal,
-                "shippingFee", shippingFee,
-                "discount", discount,
-                "totalAmount", totalAmount,
-                "order", order);
+        BigDecimal totalDiscount = orderDetails.stream()
+                .map(orderDetail -> orderDetail.getDiscount() != null ? orderDetail.getDiscount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal shippingFee = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
+        BigDecimal totalAmountBeforeVoucher = subTotal.add(shippingFee).subtract(totalDiscount);
+        BigDecimal voucherAmount = BigDecimal.ZERO;
+        if (order.getVoucher() != null) {
+            voucherAmount = totalAmountBeforeVoucher.multiply(order.getVoucher().getValue()).divide(BigDecimal.valueOf(100)); // Tính số tiền giảm từ voucher
+        }
+        BigDecimal totalAmount = totalAmountBeforeVoucher.subtract(voucherAmount);
+
+        String formattedVoucherAmount = formatPrice(voucherAmount.negate());
+        String formattedTotalAmount = formatPrice(totalAmount);
+        String frontendBaseUrl = "http://localhost:3000";
+        String adminLink = String.format("%s/admin/orderMng/%d", frontendBaseUrl, order.getId());
+        String userLink = String.format("%s/order/detail/%d", frontendBaseUrl, order.getId());
+        String canCelLink = String.format("%s/order/detail/%d", frontendBaseUrl, currentOrder.getId());
+        Map<String, Object> emailVariables = new HashMap<>();
+        emailVariables.put("orderCode", order.getId());
+        emailVariables.put("orderDate", order.getOrderDate());
+        emailVariables.put("user", user);
+        emailVariables.put("adminLink", adminLink);
+        emailVariables.put("userLink", userLink);
+        emailVariables.put("canCelLink", canCelLink);
+        emailVariables.put("fullAddress", fullAddress);
+        emailVariables.put("productList", productList);
+        emailVariables.put("subTotal", formatPrice(subTotal));
+        emailVariables.put("shippingFee", formatPrice(shippingFee));
+        emailVariables.put("discount", formatPrice(totalDiscount.negate()));
+        emailVariables.put("voucher", formattedVoucherAmount);
+        emailVariables.put("totalAmount", formattedTotalAmount);
+        return emailVariables;
     }
+
 
     @Override
     public PaymentResponse PaymentRequest(PaymentRequest request) throws Exception {
@@ -121,7 +165,6 @@ public class PaymentServiceImpl implements PaymentService {
                 orderRepository.save(order);
 
                 List<OrderDetail> orderItems = order.getOrderDetails();
-
                 BigDecimal[] totalPrice = { BigDecimal.ZERO };
 
                 orderItems.forEach(o -> {
@@ -139,12 +182,11 @@ public class PaymentServiceImpl implements PaymentService {
                         "/admin/orderMng/" + order.getId());
 
                 if (!sentEmailOrderCodes.contains(orderCode)) {
-                    Map<String, Object> variables = prepareEmailVariables(order);
-                    sendMailService.sendEmail(user, "Thanh toán thành công", "paymentSuccessTemplate", variables);
-                    User shopUser = new User();
-                    shopUser.setEmail("admin@khiemcongdinh.id.vn");
-                    sendMailService.sendEmail(shopUser, "Thông báo đơn hàng mới " + orderCode,
-                            "paymentAdminSuccessTemplate", variables);
+                    List<User> adminUsers = userService.getAdminUser();
+                    for (User admin : adminUsers) {
+                        Map<String, Object> variables = prepareEmailVariables(order);
+                        sendMailService.sendEmail(admin, "Thông báo thanh toán đơn hàng", "orderUserSuccessTemplate", variables);  // Send to admin
+                    }
                     sentEmailOrderCodes.add(orderCode);
                 }
             }
@@ -158,15 +200,6 @@ public class PaymentServiceImpl implements PaymentService {
     public String cancelPayment(Long orderCode) throws Exception {
         try {
             payOS.cancelPaymentLink(orderCode, "Customer requested cancellation");
-            Order order = orderRepository.findById(orderCode)
-                    .orElseThrow(() -> new NoSuchElementException("Order not found"));
-            User user = order.getUser();
-            if (user != null) {
-                Map<String, Object> variables = Map.of(
-                        "orderCode", order.getId(),
-                        "status", "Đã hủy");
-                sendMailService.sendEmail(user, "Thông báo hủy đơn hàng", "paymentCancelTemplate", variables);
-            }
             return "Order " + orderCode + " has been canceled on both system and third-party.";
         } catch (Exception e) {
             throw new Exception("Failed to cancel payment with third-party: " + e.getMessage());

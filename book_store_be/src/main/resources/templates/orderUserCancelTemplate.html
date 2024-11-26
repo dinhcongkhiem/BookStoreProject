@@ -18,8 +18,8 @@
       background-color: #f2f2f2;
     }
     .thumbnail-img {
-      width: 50px;
-      height: 50px;
+      width: 100px;
+      height: 100px;
       object-fit: cover;
     }
   </style>
@@ -28,10 +28,10 @@
 <h1 style="color: #d9534f;">Khách hàng đã hủy đơn hàng</h1>
 <h3>Thông tin đơn hàng: <span th:text="${orderCode}"></span></h3>
 <p>Ngày đặt hàng: <span th:text="${#temporals.format(orderDate, 'dd/MM/yyyy')}"></span></p>
-<h4>Thông tin người dùng:</h4>
+<h4>Thông tin khách hàng:</h4>
 <p>
   <strong th:text="${user.fullName}"></strong><br>
-  <span th:text="${user.address.getAddressDetail()} + ', ' + ${user.address.district.label} + ', ' + ${user.address.commune.label} + ', ' + ${user.address.province.label}"></span><br>
+  <span th:text="${fullAddress}"></span><br>
   <span th:text="${user.phoneNum}"></span><br>
   <span th:text="${user.email}"></span>
 </p>
@@ -42,23 +42,27 @@
     <th>Sản phẩm</th>
     <th>Số lượng</th>
     <th>Giá</th>
-    <th>Ảnh</th>
   </tr>
   </thead>
   <tbody>
   <tr th:each="product : ${productList}">
-    <td th:text="${product.productName}"></td>
+    <td>
+      <div style="display: flex; align-items: center;">
+        <img th:src="${product.thumbnailImage}" class="thumbnail-img" alt="Thumbnail" style="margin-right: 10px;" />
+        <span th:text="${product.productName}"></span>
+      </div>
+    </td>
     <td th:text="${product.quantity}"></td>
-    <td th:text="${product.productPrice} + ' VND'"></td>
-    <td><img th:src="${product.thumbnailImage}" class="thumbnail-img" alt="Thumbnail"/></td>
+    <td class="price" th:text="${product.productPrice}"></td>
   </tr>
   </tbody>
 </table>
 <div style="text-align: right;">
-  <p>Tạm tính: <span th:text="${subTotal} + ' VND'"></span></p>
-  <p>Phí vận chuyển: <span th:text="${shippingFee} + ' VND'"></span></p>
-  <p>Khuyến mãi: <span th:text="${discount} + ' VND'"></span></p>
-  <h3>Tổng giá trị đơn hàng: <span th:text="${totalAmount} + ' VND'"></span></h3>
+  <p>Tạm tính: <span th:text="${subTotal} "></span></p>
+  <p>Phí vận chuyển: <span th:text="${shippingFee} "></span></p>
+  <p>Giảm giá từ deal: <span th:text="${discount} "></span></p>
+  <p>Giảm giá từ khuyến mãi: <span th:text="${voucher} "></span></p>
+  <h3>Tổng giá trị đơn hàng: <span th:text="${totalAmount} "></span></h3>
 </div>
 <h2 style="text-align: center;">Book Bazaar</h2>
 </body>
