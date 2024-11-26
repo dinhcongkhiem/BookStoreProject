@@ -398,7 +398,7 @@ function AddVoucher() {
                                     <TextField
                                         size="small"
                                         fullWidth
-                                        label="Ngày bắt đầu"
+                                        label="Ngày kết thúc"
                                         name="start"
                                         type="text"
                                         required
@@ -435,7 +435,7 @@ function AddVoucher() {
                             <Box className={cx('button-group')}>
                                 <Button
                                     variant="outlined"
-                                    onClick={() => navigate('/admin/discount')}
+                                    onClick={() => navigate('/admin/voucher')}
                                     className={cx('cancel-button')}
                                 >
                                     Hủy

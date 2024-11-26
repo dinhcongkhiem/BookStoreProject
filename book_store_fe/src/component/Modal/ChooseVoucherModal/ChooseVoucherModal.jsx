@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -40,16 +40,42 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, voucher, grandTotal }) 
     const [displayedPromos, setDisplayedPromos] = useState([]);
     const [filteredPromos, setFilteredPromos] = useState([]);
     const [showAll, setShowAll] = useState(false);
+    const observer = useRef();
 
     const {
         data: vouchers,
         error,
         isLoading,
     } = useQuery({
-        queryKey: ['vouchers'],
-        queryFn: () => VoucherService.getByUser(page).then((res) => res.data),
+        queryKey: ['vouchers', page],
+        queryFn: () => VoucherService.getByUser({page: page}).then((res) => res.data),
         retry: 1,
     });
+
+    const lastPromoElementRef = useCallback(
+        (node) => {
+            if (isLoading) return;
+            if (observer.current) observer.current.disconnect();
+            observer.current = new IntersectionObserver((entries) => {                
+                if (entries[0].isIntersecting && page < vouchers.totalPages) {
+                    setPage((prevPage) => prevPage + 1);
+                }
+            });
+            if (node) observer.current.observe(node);
+        },
+        [isLoading, vouchers]
+    );
+
+    useEffect(() => {
+       console.log(page);
+        
+    }, [page]);
+
+    useEffect(() => {
+        if (vouchers) {
+            setDisplayedPromos((prev) => [...prev, ...vouchers.content]);
+        }
+    }, [vouchers]);
 
     const handleApplyPromo = (promo) => {
         if (promo.id === voucher?.id) {
@@ -97,11 +123,12 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, voucher, grandTotal }) 
                         Xác nhận
                     </Button>
                 </div>
-                {vouchers?.content.length > 0 ? (
+                {displayedPromos.length > 0 ? (
                     <>
-                        {vouchers?.content.map((promo, index) => (
+                        {displayedPromos.map((promo, index) => (
                             <div
                                 key={index}
+                                ref={index === displayedPromos.length - 1 ? lastPromoElementRef : null}
                                 className={cx('promo-item', {
                                     'selected-item': promo.id === voucher?.id,
                                     disable: promo.condition > grandTotal,

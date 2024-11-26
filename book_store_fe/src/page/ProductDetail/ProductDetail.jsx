@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames/bind';
 import Slider from 'react-slick';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, Rating } from '@mui/material';
+import { Button, Pagination, Rating } from '@mui/material';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -25,7 +25,7 @@ import { AuthenticationContext } from '../../context/AuthenticationProvider';
 const cx = classNames.bind(style);
 function ProductDetail() {
     const { authentication, loading } = useContext(AuthenticationContext);
-
+    const [pageOfReivews, setPageOfReviews] = useState(1);
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [searchParams] = useSearchParams();
@@ -42,8 +42,11 @@ function ProductDetail() {
     });
 
     const { data: reviews, isLoadingReviews } = useQuery({
-        queryKey: ['reviews', searchParams.get('id')],
-        queryFn: () => ReviewService.getReviews(searchParams.get('id')).then((response) => response.data),
+        queryKey: ['reviews', searchParams.get('id'), pageOfReivews],
+        queryFn: () =>
+            ReviewService.getReviews({ productId: searchParams.get('id'), page: pageOfReivews, size: 5 }).then(
+                (response) => response.data,
+            ),
         retry: 1,
     });
 
@@ -274,7 +277,9 @@ function ProductDetail() {
                                     <AddIcon />
                                 </button>
                             </div>
-                            <span style={{opacity: 0.6, fontSize: '1.4rem', marginLeft: '1rem'}}>(còn lại: {product?.quantity - quantityProduct})</span>
+                            <span style={{ opacity: 0.6, fontSize: '1.4rem', marginLeft: '1rem' }}>
+                                (còn lại: {product?.quantity - quantityProduct})
+                            </span>
                         </div>
                     </div>
                     <div className={cx('detail-info', 'block')}>
@@ -430,12 +435,21 @@ function ProductDetail() {
                             </div>
                         </div>
                     </div>
-                    {reviews?.data.length > 0 && (
+                    {reviews?.data.content.length > 0 && (
                         <div className={cx('flex-grow-1', 'comment')}>
-                            {reviews?.data.map((review, index) => (
+                            {reviews?.data.content.map((review, index) => (
                                 <div className={cx('comment-item')}>
-                                    <div className={cx('comment-info')}>
-                                        <p className={cx('user-name')}>{review.userName}</p>
+                                    <div className={cx('comment-info', 'mt-3')}>
+                                        <div className="d-flex gap-5 align-items-center">
+                                            <p className={cx('user-name')}>{review.userName}</p>
+                                            <Rating
+                                                value={review.star || 0}
+                                                precision={0.5}
+                                                readOnly
+                                                size="small"
+                                                sx={{ marginRight: '0.3rem' }}
+                                            />
+                                        </div>
                                         <p className={cx('comment-date')}>{converDateFormat(review.createDate)}</p>
                                     </div>
                                     <p className={cx('comment-value')}>{review.comment}</p>
@@ -450,6 +464,15 @@ function ProductDetail() {
                                     </Button>
                                 </div>
                             ))}
+                            <div className="d-flex justify-content-center mt-4">
+                                <Pagination
+                                    color="primary"
+                                    onChange={(e, v) => setPageOfReviews(v)}
+                                    variant="outlined"
+                                    page={parseInt(pageOfReivews)}
+                                    count={reviews?.data?.totalPages < 1 ? 1 : reviews?.data?.totalPages}
+                                />
+                            </div>
                         </div>
                     )}
                 </div>

@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class ReviewRequest {
     private String comment;
-    private int star;
+    private Float star;
     private int likeCount;
 }
