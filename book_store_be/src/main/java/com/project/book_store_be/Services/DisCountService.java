@@ -118,7 +118,6 @@ public class DisCountService {
         } else {
             products = productService.findAllByIds(disCountRequest.getProductIds());
         }
-
         Discount updatedDiscount = existingDiscount.toBuilder()
                 .discountRate(disCountRequest.getValue())
                 .startDate(disCountRequest.getStartDate())
@@ -140,10 +139,25 @@ public class DisCountService {
 
 
     private void updateProductsWithDiscount(List<Product> products, Discount discount) {
-        products.forEach(p -> {
-            p.getDiscounts().add(discount);
-       });
-        productRepository.saveAll(products);
+
+        List<Product> currentProducts = discount.getProducts();
+
+        List<Product> productsToRemove = currentProducts.stream()
+                .filter(product -> !products.contains(product))
+                .toList();
+        for (Product product : productsToRemove) {
+            product.getDiscounts().remove(discount);
+            productRepository.save(product);
+        }
+
+        for (Product product : products) {
+            if (!product.getDiscounts().contains(discount)) {
+                product.getDiscounts().add(discount);
+                productRepository.save(product);
+            }
+        }
+        discount.setProducts(products);
+        repo.save(discount);
     }
 
     private DiscountResponse convertToRes(Discount d) {

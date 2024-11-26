@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -288,6 +289,12 @@ public class OrderServiceImpl implements OrderService {
 
         if (voucher != null) {
             this.voucherService.updateQuantity(voucher.getId(), 1);
+            voucher.setUsers(
+                    voucher.getUsers().stream()
+                            .filter(user -> !Objects.equals(user.getId(), u.getId()))
+                            .collect(Collectors.toList())
+            );
+            voucherRepository.save(voucher);
         }
         request.getItems().forEach(item -> {
             Long cartId = item.getCartId();
@@ -490,8 +497,8 @@ public class OrderServiceImpl implements OrderService {
             case PENDING -> "Chờ xác nhận";
             case AWAITING_PAYMENT -> "Chờ thanh toán";
             case PROCESSING -> "Đang xử lý";
-            case SHIPPING -> "giao cho bên vận chuyển";
-            case CANCELED -> "hủy";
+            case SHIPPING -> "được giao cho bên vận chuyển bởi BookBazaar";
+            case CANCELED -> "bị hủy";
             case COMPLETED -> "hoàn thành";
             default -> "Không xác định";
         };
@@ -509,14 +516,20 @@ public class OrderServiceImpl implements OrderService {
         if (currentUser.getRole() == Role.ADMIN) {
             if (order.getUser() != null) {
                 this.notificationService.sendNotification(order.getUser(), "Cập nhật đơn hàng",
-                        "Đơn hàng " + order.getId() + "của bạn đã được " + this.convertStatus(orderStatus),
+                        "Đơn hàng " + order.getId() + " của bạn đã  " + this.convertStatus(orderStatus),
                         NotificationType.ORDER, "/order/detail/" + order.getId());
 
             }
         } else if (currentUser.getRole() == Role.USER) {
             this.notificationService.sendAdminNotification("Cập nhật đơn hàng",
-                    "Đơn hàng " + order.getId() + " đã được " + this.convertStatus(orderStatus) + " bởi khách hàng",
+                    "Đơn hàng " + order.getId() + " đã " + this.convertStatus(orderStatus) + " bởi khách hàng",
                     NotificationType.ORDER, "/admin/orderMng/" + order.getId());
+        }
+        if(orderStatus == OrderStatus.CANCELED) {
+            order.getOrderDetails().forEach(orderDetail -> {
+                Product product = orderDetail.getProduct();
+                productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity());
+            });
         }
         order.setStatus(orderStatus);
         orderRepository.save(order);

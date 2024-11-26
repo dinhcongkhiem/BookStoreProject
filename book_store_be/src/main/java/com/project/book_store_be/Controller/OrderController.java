@@ -3,6 +3,7 @@ package com.project.book_store_be.Controller;
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Enum.PaymentType;
 import com.project.book_store_be.Enum.Interface.OrderService;
+import com.project.book_store_be.Exception.ProductQuantityNotEnough;
 import com.project.book_store_be.Request.OrderRequest;
 import com.project.book_store_be.Request.UpdateOrderRequest;
 import lombok.RequiredArgsConstructor;
@@ -46,9 +47,9 @@ public class OrderController {
     public ResponseEntity<?> createOrder(@RequestBody OrderRequest request) {
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(request));
-        } catch (Exception e) {
+        }catch (ProductQuantityNotEnough e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Số lượng sản phẩm không đủ, vui lòng thử lại sau!");
         }
     }
 
