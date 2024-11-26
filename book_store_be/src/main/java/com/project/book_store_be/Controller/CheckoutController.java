@@ -1,6 +1,6 @@
 package com.project.book_store_be.Controller;
 
-import com.project.book_store_be.Interface.CheckoutService;
+import com.project.book_store_be.Enum.Interface.CheckoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;

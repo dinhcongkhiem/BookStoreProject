@@ -2,7 +2,7 @@ package com.project.book_store_be.Controller;
 
 
 import com.project.book_store_be.Exception.UserAlreadyExistsException;
-import com.project.book_store_be.Interface.AuthenticationService;
+import com.project.book_store_be.Enum.Interface.AuthenticationService;
 import com.project.book_store_be.Request.*;
 import com.project.book_store_be.Response.AuthenticationResponse;
 import jakarta.servlet.http.HttpServletResponse;

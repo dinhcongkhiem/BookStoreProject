@@ -1,12 +1,10 @@
 package com.project.book_store_be.Controller;
 
-import com.project.book_store_be.Enum.VoucherStatus;
 import com.project.book_store_be.Model.Voucher;
 import com.project.book_store_be.Request.VoucherRequest;
 import com.project.book_store_be.Response.VoucherRes.VoucherResponse;
-import com.project.book_store_be.Interface.VoucherService;
+import com.project.book_store_be.Enum.Interface.VoucherService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,13 +34,12 @@ public class VoucherController {
     @GetMapping("/by-user")
     public ResponseEntity<?> getVoucherByUser(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false, defaultValue = "create_date") String sort
     ) {
         try {
-            return ResponseEntity.ok(voucherService.searchVouchers(keyword, status, page, size, sort, true));
+            return ResponseEntity.ok(voucherService.searchVouchers(keyword, 1, page, size, sort, true));
         } catch (NoSuchElementException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Voucher not found.");
         }

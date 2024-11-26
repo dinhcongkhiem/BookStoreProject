@@ -2,8 +2,10 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Enum.SoftProductType;
-import com.project.book_store_be.Interface.AuthorService;
-import com.project.book_store_be.Interface.ProductRepositoryCustom;
+import com.project.book_store_be.Enum.Interface.AuthorService;
+import com.project.book_store_be.Enum.Interface.ProductRepositoryCustom;
+import com.project.book_store_be.Exception.ProductQuantityNotEnough;
+
 import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Model.Product;
@@ -27,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -156,9 +159,19 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
+    @Transactional
     public void updateQuantity(Product product, Integer quantity) {
-        product.setQuantity(quantity);
-        productRepository.save(product);
+        Product p = productRepository.findByIdWithLock(product.getId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        if(quantity < 0){
+            throw new ProductQuantityNotEnough("Số luượng sản phẩm không đủ, vui lòng thử lại sau!");
+        }
+        if(quantity == 0) {
+            p.setStatus(ProductStatus.UNAVAILABLE);
+        }
+        p.setQuantity(quantity);
+        productRepository.save(p);
+
     }
 
     public void updateProduct(Long productId, ProductRequest request, List<MultipartFile> images, Integer indexThumbnail, List<Long> listOldImg) {
@@ -282,8 +295,10 @@ public class ProductService {
             Discount discount = p.getDiscounts().stream()
                     .max(Comparator.comparing(Discount::getCreateDate))
                     .orElse(null);
-
-            discountRate = discount.getDiscountRate();
+            LocalDateTime now = LocalDateTime.now();
+            if(discount.getStartDate().isBefore(now) && discount.getEndDate().isAfter(now)){
+                discountRate = discount.getDiscountRate();
+            }
         }
         BigDecimal discountValue = p.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
                 .divide(ONE_HUNDRED, RoundingMode.HALF_UP);

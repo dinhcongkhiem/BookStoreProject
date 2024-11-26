@@ -12,10 +12,10 @@ import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.project.book_store_be.Enum.*;
-import com.project.book_store_be.Interface.AddressService;
-import com.project.book_store_be.Interface.OrderService;
-import com.project.book_store_be.Interface.PaymentService;
-import com.project.book_store_be.Interface.VoucherService;
+import com.project.book_store_be.Enum.Interface.AddressService;
+import com.project.book_store_be.Enum.Interface.OrderService;
+import com.project.book_store_be.Enum.Interface.PaymentService;
+import com.project.book_store_be.Enum.Interface.VoucherService;
 import com.project.book_store_be.Model.*;
 import com.project.book_store_be.Repository.OrderDetailRepository;
 import com.project.book_store_be.Repository.OrderRepository;
@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -288,6 +289,12 @@ public class OrderServiceImpl implements OrderService {
 
         if (voucher != null) {
             this.voucherService.updateQuantity(voucher.getId(), 1);
+            voucher.setUsers(
+                    voucher.getUsers().stream()
+                            .filter(user -> !Objects.equals(user.getId(), u.getId()))
+                            .collect(Collectors.toList())
+            );
+            voucherRepository.save(voucher);
         }
         request.getItems().forEach(item -> {
             Long cartId = item.getCartId();
@@ -341,8 +348,8 @@ public class OrderServiceImpl implements OrderService {
     private PaymentResponse handlePaymentRequest(Order order, BigDecimal finalPrice) {
         try {
             String currentTimeString = String.valueOf(new Date().getTime());
-            Long time = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
-            Long orderCode = Long.parseLong(order.getId() + String.valueOf(time));
+            String time = currentTimeString.substring(currentTimeString.length() - 6);
+            Long orderCode = Long.parseLong(String.valueOf(order.getId()) + time);
             PaymentResponse paymentResponse = paymentService.PaymentRequest(PaymentRequest.builder()
                     .orderCode(orderCode)
                     .amount(finalPrice)
@@ -490,8 +497,8 @@ public class OrderServiceImpl implements OrderService {
             case PENDING -> "Chờ xác nhận";
             case AWAITING_PAYMENT -> "Chờ thanh toán";
             case PROCESSING -> "Đang xử lý";
-            case SHIPPING -> "giao cho bên vận chuyển";
-            case CANCELED -> "hủy";
+            case SHIPPING -> "được giao cho bên vận chuyển bởi BookBazaar";
+            case CANCELED -> "bị hủy";
             case COMPLETED -> "hoàn thành";
             default -> "Không xác định";
         };
@@ -509,14 +516,20 @@ public class OrderServiceImpl implements OrderService {
         if (currentUser.getRole() == Role.ADMIN) {
             if (order.getUser() != null) {
                 this.notificationService.sendNotification(order.getUser(), "Cập nhật đơn hàng",
-                        "Đơn hàng " + order.getId() + "của bạn đã được " + this.convertStatus(orderStatus),
+                        "Đơn hàng " + order.getId() + " của bạn đã  " + this.convertStatus(orderStatus),
                         NotificationType.ORDER, "/order/detail/" + order.getId());
 
             }
         } else if (currentUser.getRole() == Role.USER) {
             this.notificationService.sendAdminNotification("Cập nhật đơn hàng",
-                    "Đơn hàng " + order.getId() + " đã được " + this.convertStatus(orderStatus) + " bởi khách hàng",
+                    "Đơn hàng " + order.getId() + " đã " + this.convertStatus(orderStatus) + " bởi khách hàng",
                     NotificationType.ORDER, "/admin/orderMng/" + order.getId());
+        }
+        if(orderStatus == OrderStatus.CANCELED) {
+            order.getOrderDetails().forEach(orderDetail -> {
+                Product product = orderDetail.getProduct();
+                productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity());
+            });
         }
         order.setStatus(orderStatus);
         orderRepository.save(order);
@@ -563,7 +576,11 @@ public class OrderServiceImpl implements OrderService {
             return voucherDiscount;
         }
         if (voucher.getType() == VoucherType.PERCENT) {
-            voucherDiscount = voucher.getValue().multiply(totalPrice.add(shippingFee)).divide(BigDecimal.valueOf(100));
+            if (voucher.getMaxValue() != null && voucher.getMaxValue().compareTo(voucher.getValue()) < 0) {
+                voucherDiscount = voucher.getMaxValue().multiply(totalPrice.add(shippingFee)).divide(BigDecimal.valueOf(100));
+            } else if (voucher.getMaxValue() == null) {
+                voucherDiscount = voucher.getValue().multiply(totalPrice.add(shippingFee)).divide(BigDecimal.valueOf(100));
+            }
         } else if (voucher.getType() == VoucherType.CASH) {
             voucherDiscount = voucher.getValue();
         }

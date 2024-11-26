@@ -1,4 +1,4 @@
-package com.project.book_store_be.Interface;
+package com.project.book_store_be.Enum.Interface;
 
 import com.project.book_store_be.Request.ChangePasswordRequest;
 import com.project.book_store_be.Request.ForgetPasswordRequest;

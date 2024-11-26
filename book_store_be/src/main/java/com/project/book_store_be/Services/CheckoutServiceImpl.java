@@ -1,9 +1,8 @@
 package com.project.book_store_be.Services;
 
-import com.project.book_store_be.Interface.CheckoutService;
-import com.project.book_store_be.Interface.OrderService;
-import com.project.book_store_be.Interface.ShippingService;
-import com.project.book_store_be.Interface.VoucherService;
+import com.project.book_store_be.Enum.Interface.CheckoutService;
+import com.project.book_store_be.Enum.Interface.ShippingService;
+import com.project.book_store_be.Enum.Interface.VoucherService;
 import com.project.book_store_be.Model.*;
 import com.project.book_store_be.Repository.OrderRepository;
 import com.project.book_store_be.Response.CheckoutResponse;

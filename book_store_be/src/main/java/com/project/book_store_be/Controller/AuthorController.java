@@ -2,7 +2,7 @@ package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Exception.AuthorNotFoundException;
 import com.project.book_store_be.Exception.DuplicatePseudonymException;
-import com.project.book_store_be.Interface.AuthorService;
+import com.project.book_store_be.Enum.Interface.AuthorService;
 import com.project.book_store_be.Model.Author;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

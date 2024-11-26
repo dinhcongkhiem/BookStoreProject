@@ -2,11 +2,13 @@ package com.project.book_store_be.Repository;
 
 import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Model.Product;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.Tuple;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -54,7 +56,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CrudRep
                 GROUP BY p.id
             """)
     Tuple findProductWithQtySold(@Param("productId") Long productId);
-
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Product p WHERE p.id = :id")
+    Optional<Product> findByIdWithLock(@Param("id") Long id);
 
 }
 

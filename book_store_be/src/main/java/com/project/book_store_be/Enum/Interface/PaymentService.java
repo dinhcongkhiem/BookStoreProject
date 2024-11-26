@@ -1,4 +1,4 @@
-package com.project.book_store_be.Interface;
+package com.project.book_store_be.Enum.Interface;
 
 import com.project.book_store_be.Request.PaymentRequest;
 import com.project.book_store_be.Response.PaymentResponse;

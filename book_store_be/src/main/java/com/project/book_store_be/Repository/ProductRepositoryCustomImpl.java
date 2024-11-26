@@ -1,6 +1,6 @@
 package com.project.book_store_be.Repository;
 
-import com.project.book_store_be.Interface.ProductRepositoryCustom;
+import com.project.book_store_be.Enum.Interface.ProductRepositoryCustom;
 import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Model.OrderDetail;
 import com.project.book_store_be.Model.Product;

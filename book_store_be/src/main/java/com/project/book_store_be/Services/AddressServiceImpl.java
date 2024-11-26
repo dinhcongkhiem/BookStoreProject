@@ -1,6 +1,6 @@
 package com.project.book_store_be.Services;
 
-import com.project.book_store_be.Interface.AddressService;
+import com.project.book_store_be.Enum.Interface.AddressService;
 import com.project.book_store_be.Model.Address;
 import com.project.book_store_be.Repository.AddressRepository;
 import lombok.RequiredArgsConstructor;

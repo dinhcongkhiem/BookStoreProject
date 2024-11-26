@@ -65,10 +65,16 @@ function Cart() {
         );
         let voucherDiscount;
         if (selectedVoucher) {
-            if (selectedItems.type === 'CASH') {
+            if (selectedVoucher.type === 'PERCENT') {
                 voucherDiscount = (grandTotal * selectedVoucher.value) / 100;
             } else {
                 voucherDiscount = selectedVoucher.value;
+            }
+
+            
+            
+            if(voucherDiscount > selectedVoucher.maxValue && selectedVoucher.maxValue !== null ) {
+                voucherDiscount = selectedVoucher.maxValue;
             }
         } else {
             voucherDiscount = 0;
@@ -360,7 +366,7 @@ function Cart() {
                             </strong>
                         </p>
                         <p>
-                            <span>Giảm giá từ khuyến mãi:</span>
+                            <span>Giảm giá từ mã khuyến mãi:</span>
                             <strong className="ms-3" style={{ color: 'rgb(0, 171, 86)' }}>
                                 {selectedItems.length > 0 && '-'}
                                 {voucherDiscount?.toLocaleString('vi-VN')}
