@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -288,6 +289,12 @@ public class OrderServiceImpl implements OrderService {
 
         if (voucher != null) {
             this.voucherService.updateQuantity(voucher.getId(), 1);
+            voucher.setUsers(
+                    voucher.getUsers().stream()
+                            .filter(user -> !Objects.equals(user.getId(), u.getId()))
+                            .collect(Collectors.toList())
+            );
+            voucherRepository.save(voucher);
         }
         request.getItems().forEach(item -> {
             Long cartId = item.getCartId();

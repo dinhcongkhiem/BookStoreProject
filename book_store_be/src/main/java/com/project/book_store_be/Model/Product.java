@@ -48,7 +48,7 @@ public class Product {
     private List<Category> categories;
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Author> authors;
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "product_discount",
             joinColumns = @JoinColumn(name = "product_id"),

@@ -169,7 +169,12 @@ function Payment() {
     const calculateDiscount = () => {
         if (selectedVoucher.type === 'PERCENT') {
             const percentageDiscount = (checkoutData?.grandTotal * selectedVoucher.value) / 100;
-            return Math.min(percentageDiscount, selectedVoucher.maxValue);
+            if(selectedVoucher.maxValue !== null) {
+               return Math.min(percentageDiscount, selectedVoucher.maxValue);
+            }
+
+            return percentageDiscount;
+            
         }
         return selectedVoucher.value;
     };
