@@ -2,24 +2,21 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Enum.OrderStatus;
-import com.project.book_store_be.Interface.PaymentService;
+import com.project.book_store_be.Enum.Interface.PaymentService;
 import com.project.book_store_be.Model.Order;
 import com.project.book_store_be.Model.OrderDetail;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.OrderRepository;
 import com.project.book_store_be.Request.PaymentRequest;
-import com.project.book_store_be.Response.OrderRes.OrderItemsResponse;
 import com.project.book_store_be.Response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import vn.payos.PayOS;
 import vn.payos.type.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

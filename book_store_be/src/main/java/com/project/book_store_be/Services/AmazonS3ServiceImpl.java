@@ -1,6 +1,6 @@
 package com.project.book_store_be.Services;
 
-import com.project.book_store_be.Interface.AmazonS3Service;
+import com.project.book_store_be.Enum.Interface.AmazonS3Service;
 import com.project.book_store_be.Model.ImageProduct;
 import jakarta.annotation.PostConstruct;
 
@@ -16,7 +16,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -26,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 

@@ -1,7 +1,7 @@
 package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Exception.UserAlreadyExistsException;
-import com.project.book_store_be.Interface.AuthenticationService;
+import com.project.book_store_be.Enum.Interface.AuthenticationService;
 import com.project.book_store_be.Model.Address;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.UserRepository;

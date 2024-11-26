@@ -2,7 +2,7 @@ package com.project.book_store_be.Services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.book_store_be.Interface.ShippingService;
+import com.project.book_store_be.Enum.Interface.ShippingService;
 import com.project.book_store_be.Model.Address;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Response.FeeResponse;

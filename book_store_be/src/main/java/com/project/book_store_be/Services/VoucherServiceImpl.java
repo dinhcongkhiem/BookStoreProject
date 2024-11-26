@@ -2,7 +2,7 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Enum.VoucherType;
-import com.project.book_store_be.Interface.VoucherService;
+import com.project.book_store_be.Enum.Interface.VoucherService;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Model.Voucher;
 import com.project.book_store_be.Repository.UserRepository;
@@ -10,7 +10,6 @@ import com.project.book_store_be.Repository.VoucherRepository;
 import com.project.book_store_be.Request.VoucherRequest;
 import com.project.book_store_be.Response.VoucherRes.VoucherResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

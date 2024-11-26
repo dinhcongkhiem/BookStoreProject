@@ -2,8 +2,8 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Enum.SoftProductType;
-import com.project.book_store_be.Interface.AuthorService;
-import com.project.book_store_be.Interface.ProductRepositoryCustom;
+import com.project.book_store_be.Enum.Interface.AuthorService;
+import com.project.book_store_be.Enum.Interface.ProductRepositoryCustom;
 import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Model.Product;

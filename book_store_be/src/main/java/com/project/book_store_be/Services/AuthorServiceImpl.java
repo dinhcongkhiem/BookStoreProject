@@ -1,13 +1,9 @@
 package com.project.book_store_be.Services;
 
-import com.project.book_store_be.Exception.AuthorNotFoundException;
-import com.project.book_store_be.Exception.DuplicatePseudonymException;
-import com.project.book_store_be.Interface.AuthorService;
+import com.project.book_store_be.Enum.Interface.AuthorService;
 import com.project.book_store_be.Model.Author;
-import com.project.book_store_be.Model.Category;
 import com.project.book_store_be.Repository.AuthorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
