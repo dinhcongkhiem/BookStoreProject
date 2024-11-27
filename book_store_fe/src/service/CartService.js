@@ -37,7 +37,7 @@ class CartServiceClass {
                 'Content-Type': 'application/json',
             },
             withCredentials: true,
-            params: { size: 20, page: page - 1 },
+            params: { size: 1000, page: page - 1 },
         };
 
         return httpRequest.request(config);

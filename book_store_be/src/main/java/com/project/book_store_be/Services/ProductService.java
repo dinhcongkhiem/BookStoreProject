@@ -169,6 +169,9 @@ public class ProductService {
             p.setStatus(ProductStatus.UNAVAILABLE);
         }
         p.setQuantity(quantity);
+        if(p.getStatus().equals(ProductStatus.UNAVAILABLE) && quantity > 0){
+            p.setStatus(ProductStatus.AVAILABLE);
+        }
         productRepository.save(p);
 
     }
