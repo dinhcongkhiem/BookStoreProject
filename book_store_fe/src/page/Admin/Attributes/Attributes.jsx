@@ -120,7 +120,7 @@ function Attributes() {
             if (modalType === 'addPublisher') {
                 await publisherService.create({ name: values.name });
                 queryClient.invalidateQueries(['publishers']);
-                toast.success('Nhà xuất bản đã được thêm thành công!');
+                toast.success('Nhà phát hành đã được thêm thành công!');
             } else if (modalType === 'addAuthor') {
                 await authorService.create({ name: values.name });
                 queryClient.invalidateQueries(['authors']);
@@ -149,7 +149,7 @@ function Attributes() {
             } else if (modalType === 'editPublisher' && selectedAttribute?.id) {
                 await publisherService.update(selectedAttribute.id, { name: selectedAttribute.name });
                 queryClient.invalidateQueries(['publishers']);
-                toast.success('Nhà xuất bản đã được cập nhật thành công!');
+                toast.success('Nhà phát hành đã được cập nhật thành công!');
             } else if (modalType === 'editGenre' && selectedAttribute?.id) {
                 await CategoryService.update(selectedAttribute.id, { name: selectedAttribute.name });
                 queryClient.invalidateQueries(['categories']);
@@ -175,7 +175,7 @@ function Attributes() {
     const handleDeletePublisher = async (id) => {
         try {
             await publisherService.delete(id);
-            toast.success('Nhà xuất bản đã được xóa!');
+            toast.success('Nhà phát hành đã được xóa!');
             queryClient.invalidateQueries(['publishers']);
         } catch (error) {
             console.error('Error deleting publisher:', error);
@@ -321,10 +321,10 @@ function Attributes() {
                                 <div className={cx('titleWrapper')}>
                                     <BusinessIcon className={cx('sectionIcon', 'BusinessIcon')} />
                                     <Typography variant="h6" className={cx('sectionTitle')}>
-                                        Nhà xuất bản
+                                        Nhà phát hành
                                     </Typography>
                                 </div>
-                                <Tooltip title="Thêm nhà xuất bản" arrow>
+                                <Tooltip title="Thêm nhà phát hành" arrow>
                                     <IconButton
                                         className={cx('addButton')}
                                         size="small"
@@ -339,7 +339,7 @@ function Attributes() {
                                 size='small'
                                 fullWidth
                                 variant="outlined"
-                                placeholder="Tìm kiếm nhà xuất bản..."
+                                placeholder="Tìm kiếm nhà phát hành..."
                                 value={publisherSearchTerm}
                                 onChange={(e) => setPublisherSearchTerm(e.target.value)}
                                 InputProps={{
@@ -512,7 +512,7 @@ function Attributes() {
                             {modalType.includes('Author')
                                 ? 'Tác giả'
                                 : modalType.includes('Publisher')
-                                    ? 'Nhà xuất bản'
+                                    ? 'Nhà phát hành'
                                     : 'Thể loại'}
                         </Typography>
                         <IconButton aria-label="close" onClick={handleCloseModal} className={cx('closeButton')}>
