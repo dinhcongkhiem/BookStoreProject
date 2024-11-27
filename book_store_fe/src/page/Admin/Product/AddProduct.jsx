@@ -59,12 +59,13 @@ function AddProduct() {
             .required('Vui lòng nhập khối lượng.')
             .min(0, 'Phải lớn hơn 0')
             .max(2000, 'Tối đa 2000 gam'),
-        quantity: Yup.number().required('Vui lòng nhập số lượng.').min(1, 'Phải lớn hơn 0'),
-        numberOfPages: Yup.number().required('Vui lòng nhập số trang.').min(1, 'Phải lớn hơn 0'),
-        cost: Yup.number().required('Vui lòng nhập giá nhập.').min(1, 'Phải lớn hơn 0'),
+        quantity: Yup.number().required('Vui lòng nhập số lượng.').min(1, 'Phải lớn hơn 0').max(2000000000, 'Tối đa là 2.000.000.000') ,
+        numberOfPages: Yup.number().required('Vui lòng nhập số trang.').min(1, 'Phải lớn hơn 0').max(2000000000, 'Tối đa là 2.000.000.000') ,
+        cost: Yup.number().required('Vui lòng nhập giá nhập.').min(1, 'Phải lớn hơn 0').max(2000000000, 'Tối đa là 2.000.000.000 ₫') ,
         originalPrice: Yup.number()
             .required('Vui lòng nhập giá bán.')
             .min(1, 'Phải lớn hơn 0')
+            .max(2000000000, 'Tối đa là 2.000.000.000 ₫')
             .when('cost', {
                 is: (cost) => cost !== undefined && cost >= 0,
                 then: (schema) =>

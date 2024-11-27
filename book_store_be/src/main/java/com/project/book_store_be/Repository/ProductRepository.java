@@ -1,5 +1,6 @@
 package com.project.book_store_be.Repository;
 
+import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Model.Author;
 import com.project.book_store_be.Model.Product;
 import jakarta.persistence.LockModeType;
@@ -38,7 +39,17 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CrudRep
     List<Tuple> findTop10ByAuthorsExceptCurrent(@Param("authors") List<Author> authors,
                                                 @Param("productId") Long productId, Pageable pageable);
 
-    Page<Product> searchByNameContainingIgnoreCaseOrId(String name, Long id, Pageable pageable);
+    @Query("""
+    SELECT p 
+    FROM Product p 
+    WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) OR p.id = :id)
+    AND p.status = :status
+""")
+    Page<Product> searchByNameOrIdAndStatus(
+            @Param("name") String name,
+            @Param("id") Long id,
+            @Param("status") ProductStatus status,
+            Pageable pageable);
 
     List<Product> findAllByIdNotIn(List<Long> ids);
     Optional<Product> findByProductCode(Long productCode);

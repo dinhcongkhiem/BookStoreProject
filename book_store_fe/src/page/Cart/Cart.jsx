@@ -1,16 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import style from './Cart.module.scss';
 import classNames from 'classnames/bind';
-import {
-    Button,
-    Checkbox,
-    IconButton,
-    TableHead,
-    TableRow,
-    TableCell,
-    TableBody,
-    TableContainer,
-} from '@mui/material';
+import { Button, Checkbox, IconButton, TableHead, TableRow, TableCell, TableBody, TableContainer } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -71,9 +62,7 @@ function Cart() {
                 voucherDiscount = selectedVoucher.value;
             }
 
-            
-            
-            if(voucherDiscount > selectedVoucher.maxValue && selectedVoucher.maxValue !== null ) {
+            if (voucherDiscount > selectedVoucher.maxValue && selectedVoucher.maxValue !== null) {
                 voucherDiscount = selectedVoucher.maxValue;
             }
         } else {
@@ -283,9 +272,7 @@ function Cart() {
                                             </div>
                                             <div className={cx('stock-remaining')}>
                                                 Số lượng còn lại:
-                                                {isNaN(item.productQuantity - item.quantity)
-                                                    ? 0
-                                                    : item.productQuantity - item.quantity}
+                                                {item.productQuantity}
                                             </div>
                                         </TableCell>
 
@@ -323,10 +310,11 @@ function Cart() {
                         {selectedVoucher ? (
                             <div className={cx('selected-voucher')}>
                                 <div>
-                                    <p>{`${selectedVoucher.name} giảm  ${selectedVoucher.type === 'PERCENT'
+                                    <p>{`${selectedVoucher.name} giảm  ${
+                                        selectedVoucher.type === 'PERCENT'
                                             ? ' ' + selectedVoucher.value + '% '
                                             : ' ' + selectedVoucher.value.toLocaleString('vi-VN') + '₫ '
-                                        }`}</p>
+                                    }`}</p>
 
                                     <Button
                                         variant="outlined"

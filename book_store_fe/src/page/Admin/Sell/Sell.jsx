@@ -90,7 +90,7 @@ export default function Sell() {
     } = useQuery({
         queryKey: ['productsMng', debouncedSearchValue, page],
         queryFn: () =>
-            ProductService.getAllProductForMng({ page: page, pageSize: 20, keyword: debouncedSearchValue }).then(
+            ProductService.getAllProductForMng({ page: page, pageSize: 20, keyword: debouncedSearchValue, status: 1 }).then(
                 (res) => res.data,
             ),
         retry: 1,
@@ -212,7 +212,6 @@ export default function Sell() {
     };
 
     const handleChangeValueCash = (value) => {
-        console.log(value);
         setAmount(value);
         handleAddCustomerPayment('cash', value, false);
     };
@@ -327,6 +326,7 @@ export default function Sell() {
             }),
         onError: (error) => console.log(error),
         onSuccess: (res) => {
+            setAmount('');
             const url = URL.createObjectURL(res.data);
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
@@ -448,7 +448,13 @@ export default function Sell() {
                                                         </Box>
                                                     </TableCell>
                                                     <TableCell align="right">
-                                                        {item.originalPrice.toLocaleString('vi-VN')}₫
+                                                        {(item.originalPrice - item.discount).toLocaleString('vi-VN')}₫
+                                                        {item.discount > 0 && (
+                                                <p className={cx('originalPrice')}>
+                                                    {item.originalPrice.toLocaleString('vi-VN')}
+                                                    <span>₫</span>
+                                                </p>
+                                            )}{' '}
                                                     </TableCell>
                                                     <TableCell align="center">
                                                         <div className={cx('quantity-container')}>
@@ -499,13 +505,11 @@ export default function Sell() {
                                                         </div>
                                                         <div className={cx('stock-remaining')}>
                                                             Số lượng còn lại:
-                                                            {item.productQuantity +
-                                                                item.initialQuantity -
-                                                                item.quantity}
+                                                            {item.productQuantity}
                                                         </div>
                                                     </TableCell>
                                                     <TableCell align="right">
-                                                        {(item.quantity * item.originalPrice).toLocaleString('vi-VN')}₫
+                                                        {(item.quantity * (item.originalPrice - item.discount)).toLocaleString('vi-VN')}₫
                                                     </TableCell>
                                                     <TableCell align="center">
                                                         <IconButton
@@ -646,10 +650,10 @@ export default function Sell() {
                                         />
                                     </RadioGroup>
                                 </FormControl>
-                                {paymentType === 'bank' && (
+                                {paymentType === 'bank' && activeInvoice !== null && productInOrderRes?.grandTotal > 0 && (
                                     <div className='d-flex align-items-start' style={{userSelect: 'none'}}>
                                         <img
-                                            src={`https://api.vietqr.io/image/970422-VQRQAAVPE2846-bXU1iBq.jpg?addInfo=BookBazaar&amount=${productInOrderRes?.grandTotal}`}
+                                            src={`https://api.vietqr.io/image/970422-0842888559-bXU1iBq.jpg?addInfo=BookBazaar&amount=${productInOrderRes?.grandTotal}`}
                                             alt="qrcode"
                                             width={150}
                                         />
@@ -832,7 +836,7 @@ export default function Sell() {
                                                 onChange={() => handleSelectProduct(product)}
                                             />
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell sx={{maxWidth: '45rem'}}>
                                             <Box display="flex" alignItems="center">
                                                 <img
                                                     alt={product.name}
@@ -844,7 +848,7 @@ export default function Sell() {
                                                 </Typography>
                                             </Box>
                                         </TableCell>
-                                        <TableCell align="right">
+                                        <TableCell align="right" >
                                             {product.price.toLocaleString('vi-VN')} <span>₫</span>
                                             {product.price !== product.originalPrice && (
                                                 <p className={cx('originalPrice')}>

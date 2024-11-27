@@ -66,10 +66,6 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, voucher, grandTotal }) 
         [isLoading, vouchers]
     );
 
-    useEffect(() => {
-       console.log(page);
-        
-    }, [page]);
 
     useEffect(() => {
         if (vouchers) {

@@ -67,7 +67,7 @@ function ProductDetail() {
     const addProductToCartMutation = useMutation({
         mutationFn: (data) => CartService.addProductToCart(data),
         onError: (error) => {
-            console.log(error);
+            toast.error("Tổng số lượng trong giỏ hàng vượt quá số lượng có sẵn trong kho. Vui lòng thử lại!");
         },
         onSuccess: () => {
             toast.success('Đã thêm sản phẩm vào giỏ hàng!');
@@ -278,7 +278,7 @@ function ProductDetail() {
                                 </button>
                             </div>
                             <span style={{ opacity: 0.6, fontSize: '1.4rem', marginLeft: '1rem' }}>
-                                (còn lại: {product?.quantity - quantityProduct})
+                                (còn lại: {product?.quantity})
                             </span>
                         </div>
                     </div>

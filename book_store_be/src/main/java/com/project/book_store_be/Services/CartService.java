@@ -1,7 +1,6 @@
 package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Model.Cart;
-import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.CartRepository;
@@ -34,8 +33,8 @@ public class CartService {
 
     public CartResponse getCartByUserId(int page, int size) {
         User currentUser = userService.getCurrentUser();
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updateDate"));
-        Page<Cart> cartPage = cartRepository.findByUserOrderById(currentUser, pageable);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createDate"));
+        Page<Cart> cartPage = cartRepository.findByUser(currentUser, pageable);
         return convertToCartResponse(cartPage);
     }
 
@@ -109,6 +108,7 @@ public class CartService {
             throw new IllegalArgumentException("Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1 và nhỏ hơn hoặc bằng số lượng có sẵn.");
         }
         cart.setCartQuantity(quantity);
+        cart.setUpdateDate(LocalDateTime.now());
         cartRepository.save(cart);
     }
 
