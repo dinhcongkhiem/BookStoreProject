@@ -649,7 +649,7 @@ export default function Sell() {
                                 {paymentType === 'bank' && (
                                     <div className='d-flex align-items-start' style={{userSelect: 'none'}}>
                                         <img
-                                            src={`https://api.vietqr.io/image/970422-VQRQAAVPE2846-bXU1iBq.jpg?addInfo=BookBazaar&amount=${productInOrderRes?.grandTotal}`}
+                                            src={`https://api.vietqr.io/image/970422-0842888559-bXU1iBq.jpg?addInfo=BookBazaar&amount=${productInOrderRes?.grandTotal}`}
                                             alt="qrcode"
                                             width={150}
                                         />
