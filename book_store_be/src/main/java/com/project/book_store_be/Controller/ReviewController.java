@@ -87,7 +87,7 @@ public class ReviewController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            ReviewDetailResponse response = reviewService.getReviewDetails(productId, page, size);
+            ReviewDetailResponse response = reviewService.getReviews(productId, page, size);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NoSuchElementException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found.");

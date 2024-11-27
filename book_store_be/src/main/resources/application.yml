@@ -1,84 +1,92 @@
 server:
   tomcat:
-      relaxed-query-chars: ['[',']']
+    relaxed-query-chars: ['[',']']
 spring:
-    application:
-        name: book_store_be
-    datasource:
-        url: jdbc:postgresql://localhost:5432/book_store_db
-        username: postgres
-        password: BookStoreDB
-        driver-class-name: org.postgresql.Driver
-    jpa:
-        hibernate:
-            ddl-auto: update
-        properties:
-            hibernate:
-                format_sql: true
+  application:
+    name: book_store_be
+  datasource:
+    url: jdbc:postgresql://localhost:5432/book_store_db
+    username: postgres
+    password: BookStoreDB
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
 
-        database: postgresql
-        database-platform: org.hibernate.dialect.PostgreSQLDialect
-    servlet:
-        multipart:
-            max-file-size: 10MB
-            max-request-size: 20MB
-    security:
-        oauth2:
-            client:
-                registration:
-                    google:
-                        client-id:
-                        client-secret:
-                        scope: profile,email
-                    facebook:
-                        client-id:
-                        client-secret:
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 463878333575-e4ehb2h7l1m1ngm569k36roeluu049m6.apps.googleusercontent.com
+            client-secret: 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
+            scope: profile,email
+          facebook:
+            client-id: 1000666255400262
+            client-secret: 4ada11a6a787f361fdab2e9464b0e79a
 
-    mail:
-        host: pro55.emailserver.vn
-        port: 465
-        username: admin@khiemcongdinh.id.vn
-        password: Khiem_2004
-        properties:
-            mail:
-                smtp:
-                    auth: true
-                    starttls:
-                        enable: true
-                        required: true
-                    ssl:
-                        enable: true
+  mail:
+    host: pro55.emailserver.vn
+    port: 465
+    username: admin@khiemcongdinh.id.vn
+    password: Khiem_2004
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            enable: true
 
 s3:
-    accessKey:
-    secretKey:
-    bucketName: bookbazaar-project
+  accessKey: AKIARYEUCDWNVCIE3ZAN
+  secretKey: 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
+  bucketName: bookbazaar-project
 springdoc:
-    api-docs:
-        path: /api-docs
+  api-docs:
+    path: /api-docs
 application:
-    security:
-        jwt:
-            secret-key: 36d40671a0dfd75dc62f1e0b7e72f73a11b418e51cc62adc7d06febce98c01ef
-            expiration: 86400000 # a day
+  security:
+    jwt:
+      secret-key: 36d40671a0dfd75dc62f1e0b7e72f73a11b418e51cc62adc7d06febce98c01ef
+      expiration: 86400000 # a day
 client:
-    url: http://localhost:3000
+  url: http://localhost:3000
 
 information:
-    nameShop: Book Bazaar
-    emailShop: admin@khiemcongdinh.id.vn
-    ccGmailShop: phamthihue3340@gmail.com
+  nameShop: Book Bazaar
+  emailShop: admin@khiemcongdinh.id.vn
+  ccGmailShop: phamthihue3340@gmail.com
 ghtk:
-    api:
-        url: 
-        urlProduction: 
-        token: 
-    pickup:
-        province: "
-        district:
-        ward:
-        address:
+  api:
+    url: https://services-staging.ghtklab.com
+    urlProduction: https://services.giaohangtietkiem.vn
+    token: 2a5601c2c9c772d2aca14c2d52d25bce6020b8f2
+  pickup:
+    province: "Hà Nội"
+    district: "Hoài Đức"
+    ward: "Vân Canh"
+    address: "37lk24"
 PAYOS:
-  CLIENT_ID:
-  API_KEY:
-  CHECKSUM_KEY:
+  CLIENT_ID: 2500acc1-e682-4cc2-b796-7b18441a488d
+  API_KEY: 8ca0d9a3-eb1b-489e-a511-c486d4771d6b
+  CHECKSUM_KEY: 4c8a3b169c11dae9b3c34a8bde6b985d488eee1b13d5db9d789231289ed1f589
+
+logging:
+  level:
+    org:
+      springframework:
+        web:
+          socket: DEBUG
+        messaging: DEBUG

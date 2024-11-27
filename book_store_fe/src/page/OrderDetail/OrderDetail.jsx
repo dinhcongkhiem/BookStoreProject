@@ -18,7 +18,7 @@ import classNames from 'classnames/bind';
 import style from './OrderDetail.module.scss';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import RateReviewIcon from '@mui/icons-material/RateReview';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import OrderService from '../../service/OrderService';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ReviewProductModal from '../../component/Modal/ReviewProductModal/ReviewProductModal';
@@ -42,7 +42,7 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
 
 function OrderDetail({ onClose }) {
     window.scrollTo({ top: 0, behavior: 'instant' });
-
+    const queryClient = useQueryClient();
     const navigate = useNavigate();
     const [reviewProduct, setReviewProduct] = useState(null);
     const [isShowModalReview, setIsShowModalReview] = useState(false);
@@ -307,7 +307,10 @@ function OrderDetail({ onClose }) {
                 <ReviewProductModal
                     open={isShowModalReview}
                     data={reviewProduct}
-                    handleClose={() => setIsShowModalReview(false)}
+                    handleClose={() => {
+                        setIsShowModalReview(false);
+                        queryClient.invalidateQueries(['orderDetail', orderIdPath]);
+                    }}
                 />
             )}
         </Box>

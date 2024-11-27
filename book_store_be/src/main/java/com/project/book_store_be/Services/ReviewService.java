@@ -25,7 +25,7 @@ public class ReviewService {
     private final UserService userService;
     private final NotificationService notificationService;
 
-    private void validateStarValue(int star) {
+    private void validateStarValue(Float star) {
         if (star < 1 || star > 5) {
             throw new IllegalArgumentException("Star value must be between 1 and 5.");
         }
@@ -36,7 +36,7 @@ public class ReviewService {
         if (reviews.isEmpty()) {
             return 0.0F;
         }
-        double totalStars = reviews.stream().mapToInt(Review::getStar).sum();
+        double totalStars = reviews.stream().mapToDouble(Review::getStar).sum();
         double average = totalStars / reviews.size();
         return (float) (Math.round(average * 2) / 2.0);
     }
@@ -57,7 +57,7 @@ public class ReviewService {
         review.setUsersWhoLiked(new ArrayList<>());
         review.setUpdateTime(LocalDateTime.now());
         reviewRepository.save(review);
-        return getReviewDetails(productId, page, size);
+        return getReviews(productId, page, size);
     }
 
 
@@ -67,7 +67,7 @@ public class ReviewService {
         review.setComment(reviewRequest.getComment());
         review.setStar(reviewRequest.getStar());
         reviewRepository.save(review);
-        return getReviewDetails(review.getProduct().getId(), page, size);
+        return getReviews(review.getProduct().getId(), page, size);
     }
 
     public void likeReview(Long reviewId) {
@@ -90,25 +90,26 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new NoSuchElementException("No review found with id: " + reviewId));
         Long productId = review.getProduct().getId();
         reviewRepository.deleteById(reviewId);
-        return getReviewDetails(productId, page, size);
+        return getReviews(productId, page, size);
     }
 
-    public ReviewDetailResponse getReviewDetails(Long productId, int page, int size) {
+    public ReviewDetailResponse getReviews(Long productId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("updateTime").descending());
+        Page<Review> reviewPage = reviewRepository.findByProductId(productId, pageable);
         List<Review> allReviews = reviewRepository.findByProductId(productId);
-        Page<Review> reviewPage = new PageImpl<>(allReviews, pageable, allReviews.size());
 
-        Map<Integer, Long> starCounts = allReviews.stream().collect(Collectors.groupingBy(Review::getStar, Collectors.counting()));
+        Map<Integer, Long> starCounts = allReviews.stream()
+                .collect(Collectors.groupingBy(review -> (int) Math.ceil(review.getStar()), Collectors.counting()));
         int countStar1 = starCounts.getOrDefault(1, 0L).intValue();
         int countStar2 = starCounts.getOrDefault(2, 0L).intValue();
         int countStar3 = starCounts.getOrDefault(3, 0L).intValue();
         int countStar4 = starCounts.getOrDefault(4, 0L).intValue();
         int countStar5 = starCounts.getOrDefault(5, 0L).intValue();
-        Float averageRate = 0F;
+        double averageRate = 0;
         if (!allReviews.isEmpty()) {
-            float totalStars = allReviews.stream().mapToInt(Review::getStar).sum();
-            float average = totalStars / allReviews.size();
-            averageRate =  (float) (Math.round(average * 2) / 2.0);
+            double totalStars = allReviews.stream().mapToDouble(Review::getStar).sum();
+            double average = totalStars / allReviews.size();
+            averageRate =  (double) (Math.round(average * 2) / 2.0);
         }
 
         ReviewDetailResponse.MetaData metaData = ReviewDetailResponse.MetaData.builder()
@@ -121,8 +122,7 @@ public class ReviewService {
                 .countStar5(countStar5)
                 .build();
 
-        List<ReviewResponse> reviewResponses = reviewPage.getContent().stream().map(this::convertToReviewResponse).collect(Collectors.toList());
-
+        Page<ReviewResponse> reviewResponses = reviewPage.map(this::convertToReviewResponse);
         return ReviewDetailResponse.builder().data(reviewResponses).metaData(metaData).build();
     }
 

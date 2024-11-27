@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import java.util.stream.Collectors;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.font.PdfFont;
@@ -30,6 +31,7 @@ import com.project.book_store_be.Response.VoucherRes.VoucherInOrderResponse;
 import jakarta.persistence.Tuple;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -53,6 +55,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,6 +74,7 @@ public class OrderServiceImpl implements OrderService {
     private final VoucherService voucherService;
     private final ReviewService reviewService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final SendMailService sendMailService;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -235,6 +239,10 @@ public class OrderServiceImpl implements OrderService {
                 .buyerName(request.getBuyerName() != null ? request.getBuyerName() : u.getFullName())
                 .buyerPhoneNum(request.getBuyerPhoneNum() != null ? request.getBuyerPhoneNum() : u.getPhoneNum())
                 .build();
+
+        if (order.getOrderDetails() == null) {
+            order.setOrderDetails(new ArrayList<>());
+        }
         orderRepository.save(order);
 
         request.getItems().forEach(item -> {
@@ -256,6 +264,7 @@ public class OrderServiceImpl implements OrderService {
             orderDetailList.add(orderDetail);
         });
 
+        order.setOrderDetails(orderDetailList);
         if (request.getVoucherCode() != null) {
             Optional<Voucher> optionalVoucher = voucherRepository.findByCode(request.getVoucherCode());
             if (optionalVoucher.isEmpty()) {
@@ -280,14 +289,27 @@ public class OrderServiceImpl implements OrderService {
         } else {
             String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), finalPrice);
             notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER, "/admin/orderMng/" + order.getId());
+            List<User> adminUsers = userService.getAdminUser();
+            Map<String, Object> emailVariables = prepareEmailVariables(order);
+            emailVariables.put("finalPrice", finalPrice);
+            for (User admin : adminUsers) {
+                sendMailService.sendEmail(admin,
+                        "Thông báo: Đơn hàng mới từ " + order.getUser().getFullName(),
+                        "orderUserSuccessTemplate", emailVariables);
+            }
         }
 
-        order.setOrderDetails(orderDetailList);
         order.setTotalPrice(totalPrice[0]);
         orderRepository.save(order);
 
         if (voucher != null) {
             this.voucherService.updateQuantity(voucher.getId(), 1);
+            voucher.setUsers(
+                    voucher.getUsers().stream()
+                            .filter(user -> !Objects.equals(user.getId(), u.getId()))
+                            .collect(Collectors.toList())
+            );
+            voucherRepository.save(voucher);
         }
         request.getItems().forEach(item -> {
             Long cartId = item.getCartId();
@@ -322,8 +344,15 @@ public class OrderServiceImpl implements OrderService {
             order.setStatus(OrderStatus.PROCESSING);
             String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), finalPrice);
             notificationService.sendAdminNotification("Đơn hàng", message, NotificationType.ORDER, "/admin/orderMng/" + order.getId());
+            List<User> adminUsers = userService.getAdminUser();
+            Map<String, Object> emailVariables = prepareEmailVariables(order);
+            emailVariables.put("finalPrice", finalPrice);
+            for (User admin : adminUsers) {
+                sendMailService.sendEmail(admin,
+                        "Thông báo: Đơn hàng mới từ " + order.getUser().getFullName(),
+                        "orderUserSuccessTemplate", emailVariables);
+            }
         }
-
 
         order.setPaymentType(paymentType);
         orderRepository.save(order);
@@ -356,6 +385,8 @@ public class OrderServiceImpl implements OrderService {
                 String title = "Hủy đơn hàng vì quá thời hạn thanh toán.";
                 String message = String.format("Đơn hàng bị hủy do quá thời hạn thanh toán #%s đã bị hủy vì chưa được thanh toán!", currentOrder.getId());
                 notificationService.sendNotification(currentOrder.getUser(), title, message, NotificationType.ORDER, "/order/detail/" + currentOrder.getId());
+                Map<String, Object> emailVariables = prepareEmailVariables(order);
+                sendMailService.sendEmail(order.getUser(), "Thông báo: Đơn hàng bị hủy", "orderCancelTemplate", emailVariables);
                 if (currentOrder.getStatus().equals(OrderStatus.AWAITING_PAYMENT)) {
                     currentOrder.setStatus(OrderStatus.CANCELED);
                     orderRepository.save(currentOrder);
@@ -363,6 +394,7 @@ public class OrderServiceImpl implements OrderService {
             }, 3, TimeUnit.HOURS);
             return paymentResponse;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
@@ -490,8 +522,8 @@ public class OrderServiceImpl implements OrderService {
             case PENDING -> "Chờ xác nhận";
             case AWAITING_PAYMENT -> "Chờ thanh toán";
             case PROCESSING -> "Đang xử lý";
-            case SHIPPING -> "giao cho bên vận chuyển";
-            case CANCELED -> "hủy";
+            case SHIPPING -> "được giao cho bên vận chuyển bởi BookBazaar";
+            case CANCELED -> "bị hủy";
             case COMPLETED -> "hoàn thành";
             default -> "Không xác định";
         };
@@ -509,14 +541,43 @@ public class OrderServiceImpl implements OrderService {
         if (currentUser.getRole() == Role.ADMIN) {
             if (order.getUser() != null) {
                 this.notificationService.sendNotification(order.getUser(), "Cập nhật đơn hàng",
-                        "Đơn hàng " + order.getId() + "của bạn đã được " + this.convertStatus(orderStatus),
+                        "Đơn hàng " + order.getId() + " của bạn đã  " + this.convertStatus(orderStatus),
                         NotificationType.ORDER, "/order/detail/" + order.getId());
+                Map<String, Object> emailVariables = prepareEmailVariables(order);
 
+                if (orderStatus == OrderStatus.CANCELED) {
+                    sendMailService.sendEmail(order.getUser(),
+                            "Đơn hàng " + order.getId() + " của bạn đã bị " + this.convertStatus(orderStatus),
+                            "orderAdminCancelTemplate", emailVariables);
+                } else if (orderStatus == OrderStatus.COMPLETED) {
+                    sendMailService.sendEmail(order.getUser(),
+                            "Đơn hàng " + order.getId() + " của bạn đã hoàn tất",
+                            "orderAdminSuccessTemplate", emailVariables);
+                } else if (orderStatus == OrderStatus.SHIPPING) {
+                    sendMailService.sendEmail(order.getUser(),
+                            "Đơn hàng " + order.getId() + " của bạn đang được vận chuyển",
+                            "orderShippingTemplate", emailVariables);
+                }
             }
         } else if (currentUser.getRole() == Role.USER) {
             this.notificationService.sendAdminNotification("Cập nhật đơn hàng",
-                    "Đơn hàng " + order.getId() + " đã được " + this.convertStatus(orderStatus) + " bởi khách hàng",
+                    "Đơn hàng " + order.getId() + " đã " + this.convertStatus(orderStatus) + " bởi khách hàng",
                     NotificationType.ORDER, "/admin/orderMng/" + order.getId());
+            if (orderStatus == OrderStatus.CANCELED) {
+                List<User> adminUsers = userService.getAdminUser();
+                for (User admin : adminUsers) {
+                    Map<String, Object> adminEmailVariables = prepareEmailVariables(order);
+                    sendMailService.sendEmail(admin,
+                            "Đơn hàng " + order.getId() + " đã được " + this.convertStatus(orderStatus) + " bởi khách hàng",
+                            "orderUserCancelTemplate", adminEmailVariables);
+                }
+            }
+        }
+        if(orderStatus == OrderStatus.CANCELED) {
+            order.getOrderDetails().forEach(orderDetail -> {
+                Product product = orderDetail.getProduct();
+                productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity());
+            });
         }
         order.setStatus(orderStatus);
         orderRepository.save(order);
@@ -673,6 +734,84 @@ public class OrderServiceImpl implements OrderService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+    private Map<String, Object> prepareEmailVariables(Order order) {
+        User user = order.getUser();
+        if (user == null) {
+            throw new IllegalArgumentException("Không tìm thấy thông tin khách hàng cho đơn hàng");
+        }
+        Order currentOrder = orderRepository.findById(order.getId()).orElseThrow(
+                () -> new NoSuchElementException("Not found order id : " + order.getId())
+        );
+        Address address = user.getAddress();
+        String fullAddress = (address != null)
+                ? address.getAddressDetail() + ", " +
+                (address.getDistrict() != null && address.getDistrict().getLabel() != null ? address.getDistrict().getLabel() : "") + ", " +
+                (address.getCommune() != null && address.getCommune().getLabel() != null ? address.getCommune().getLabel() : "") + ", " +
+                (address.getProvince() != null && address.getProvince().getLabel() != null ? address.getProvince().getLabel() : "")
+                : "Địa chỉ không có";
+
+        List<OrderDetail> orderDetails = order.getOrderDetails() != null ? order.getOrderDetails() : Collections.emptyList();
+
+        List<Map<String, Object>> productList = orderDetails.stream()
+                .map(orderDetail -> {
+                    Product product = orderDetail.getProduct();
+
+                    String thumbnailUrl = imageProductService != null
+                            ? imageProductService.getThumbnailProduct(product.getId())
+                            : "default-thumbnail-url";
+
+                    Map<String, Object> productMap = new HashMap<>();
+                    productMap.put("productName", product.getName());
+                    productMap.put("quantity", orderDetail.getQuantity());
+                    productMap.put("productPrice", formatPrice(orderDetail.getOriginalPriceAtPurchase()));
+                    productMap.put("thumbnailImage", thumbnailUrl);
+                    return productMap;
+                })
+                .collect(Collectors.toList());
+
+        BigDecimal subTotal = orderDetails.stream()
+                .map(orderDetail -> orderDetail.getOriginalPriceAtPurchase().multiply(BigDecimal.valueOf(orderDetail.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalDiscount = orderDetails.stream()
+                .map(orderDetail -> orderDetail.getDiscount() != null ? orderDetail.getDiscount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal shippingFee = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
+        BigDecimal totalAmountBeforeVoucher = subTotal.add(shippingFee).subtract(totalDiscount);
+        BigDecimal voucherAmount = BigDecimal.ZERO;
+        if (order.getVoucher() != null) {
+            voucherAmount = totalAmountBeforeVoucher.multiply(order.getVoucher().getValue()).divide(BigDecimal.valueOf(100)); // Tính số tiền giảm từ voucher
+        }
+        BigDecimal totalAmount = totalAmountBeforeVoucher.subtract(voucherAmount);
+
+        String formattedVoucherAmount = formatPrice(voucherAmount.negate());
+        String formattedTotalAmount = formatPrice(totalAmount);
+        String frontendBaseUrl = "http://localhost:3000";
+        String adminLink = String.format("%s/admin/orderMng/%d", frontendBaseUrl, order.getId());
+        String userLink = String.format("%s/order/detail/%d", frontendBaseUrl, order.getId());
+        String cancelLink = String.format("%s/order/detail/%d", frontendBaseUrl, currentOrder.getId());
+        Map<String, Object> emailVariables = new HashMap<>();
+        emailVariables.put("orderCode", order.getId());
+        emailVariables.put("orderDate", order.getOrderDate());
+        emailVariables.put("user", user);
+        emailVariables.put("adminLink", adminLink);
+        emailVariables.put("userLink", userLink);
+        emailVariables.put("cancelLink", cancelLink);
+        emailVariables.put("fullAddress", fullAddress);
+        emailVariables.put("productList", productList);
+        emailVariables.put("subTotal", formatPrice(subTotal));
+        emailVariables.put("shippingFee", formatPrice(shippingFee));
+        emailVariables.put("discount", formatPrice(totalDiscount.negate()));
+        emailVariables.put("voucher", formattedVoucherAmount);
+        emailVariables.put("totalAmount", formattedTotalAmount);
+        return emailVariables;
+    }
+
+    private String formatPrice(BigDecimal amount) {
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        return formatter.format(amount) + " ₫";
     }
 
 }

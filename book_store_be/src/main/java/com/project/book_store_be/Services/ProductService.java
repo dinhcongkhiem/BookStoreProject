@@ -2,6 +2,7 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Enum.SoftProductType;
+import com.project.book_store_be.Exception.ProductQuantityNotEnough;
 import com.project.book_store_be.Interface.AuthorService;
 import com.project.book_store_be.Interface.ProductRepositoryCustom;
 import com.project.book_store_be.Model.Author;
@@ -157,9 +158,19 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
+    @Transactional
     public void updateQuantity(Product product, Integer quantity) {
-        product.setQuantity(quantity);
-        productRepository.save(product);
+        Product p = productRepository.findByIdWithLock(product.getId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        if(quantity < 0){
+            throw new ProductQuantityNotEnough("Số luượng sản phẩm không đủ, vui lòng thử lại sau!");
+        }
+        if(quantity == 0) {
+            p.setStatus(ProductStatus.UNAVAILABLE);
+        }
+        p.setQuantity(quantity);
+        productRepository.save(p);
+
     }
 
     public void updateProduct(Long productId, ProductRequest request, List<MultipartFile> images, Integer indexThumbnail, List<Long> listOldImg) {

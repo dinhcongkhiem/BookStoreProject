@@ -25,7 +25,7 @@ public class Review {
     @JoinColumn(name = "product_id")
     private Product product;
     private String comment;
-    private int star;
+    private Float star;
     @ManyToMany
     @JoinTable(
             name = "user_review_like",

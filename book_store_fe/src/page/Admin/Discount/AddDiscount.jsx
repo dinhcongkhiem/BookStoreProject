@@ -289,7 +289,7 @@ function AddDiscount() {
                                         }}
                                         size="small"
                                         fullWidth
-                                        label="Ngày bắt đầu"
+                                        label="Ngày kết thúc"
                                         name="start"
                                         type="text"
                                         required

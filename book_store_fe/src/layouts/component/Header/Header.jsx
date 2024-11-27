@@ -343,7 +343,13 @@ function Header() {
                                         className={cx('notifications-items')}
                                         ref={index === notificationList?.length - 1 ? lastItemRef : null}
                                     >
-                                        <Link to={noti.targetLink} className="d-flex align-items-center gap-2">
+                                        <div
+                                            onClick={() => {
+                                                navigate(noti.targetLink);
+                                                setAnchorElNotify(null);
+                                            }}
+                                            className="d-flex align-items-center gap-2"
+                                        >
                                             <ListItemIcon
                                                 className={cx('icon', {
                                                     'notification-order-icon': noti.type === 'ORDER',
@@ -363,7 +369,7 @@ function Header() {
                                                 <p className={cx('notification-title')}>{noti.title}</p>
                                                 <p className={cx('notification-message')}>{noti.message}</p>
                                             </div>
-                                        </Link>
+                                        </div>
                                     </MenuItem>
                                 ))}
                                 {notificationsLoading && (

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Khách hàng hủy đơn hàng</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .thumbnail-img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body style="width: 70%; margin: 0 auto; font-family: Arial, sans-serif;">
+<h1 style="color: #d9534f;">Khách hàng đã hủy đơn hàng</h1>
+<h3>Thông tin đơn hàng: <span th:text="${orderCode}"></span></h3>
+<p>Ngày đặt hàng: <span th:text="${#temporals.format(orderDate, 'dd/MM/yyyy')}"></span></p>
+<h4>Thông tin khách hàng:</h4>
+<p>
+  <strong th:text="${user.fullName}"></strong><br>
+  <span th:text="${fullAddress}"></span><br>
+  <span th:text="${user.phoneNum}"></span><br>
+  <span th:text="${user.email}"></span>
+</p>
+<h4>Danh sách sản phẩm:</h4>
+<table>
+  <thead>
+  <tr>
+    <th>Sản phẩm</th>
+    <th>Số lượng</th>
+    <th>Giá</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="product : ${productList}">
+    <td>
+      <div style="display: flex; align-items: center;">
+        <img th:src="${product.thumbnailImage}" class="thumbnail-img" alt="Thumbnail" style="margin-right: 10px;" />
+        <span th:text="${product.productName}"></span>
+      </div>
+    </td>
+    <td th:text="${product.quantity}"></td>
+    <td class="price" th:text="${product.productPrice}"></td>
+  </tr>
+  </tbody>
+</table>
+<div style="text-align: right;">
+  <p>Tạm tính: <span th:text="${subTotal} "></span></p>
+  <p>Phí vận chuyển: <span th:text="${shippingFee} "></span></p>
+  <p>Giảm giá từ deal: <span th:text="${discount} "></span></p>
+  <p>Giảm giá từ khuyến mãi: <span th:text="${voucher} "></span></p>
+  <h3>Tổng giá trị đơn hàng: <span th:text="${totalAmount} "></span></h3>
+</div>
+<h2 style="text-align: center;">Book Bazaar</h2>
+</body>
+</html>

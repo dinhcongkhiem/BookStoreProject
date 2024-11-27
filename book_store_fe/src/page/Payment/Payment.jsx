@@ -112,7 +112,15 @@ function Payment() {
 
     const createOrderMutation = useMutation({
         mutationFn: (data) => OrderService.createOrder(data),
-        onError: (error) => console.log(error),
+        onError: (error) => {
+            if(error.response.status === 409) {
+                localStorage.removeItem('cartIdsForPayment');
+                localStorage.removeItem('productForPayment');
+                localStorage.removeItem('selectedVoucher');
+                toast.error('Sản phẩm đã hết hàng hoặc số lượng không đủ, xin thông cảm!');
+                navigate('/');
+            }
+        },
         onSuccess: (data) => {
             if (data.data.paymentType === 'cash_on_delivery') {
                 localStorage.removeItem('cartIdsForPayment');
@@ -169,7 +177,12 @@ function Payment() {
     const calculateDiscount = () => {
         if (selectedVoucher.type === 'PERCENT') {
             const percentageDiscount = (checkoutData?.grandTotal * selectedVoucher.value) / 100;
-            return Math.min(percentageDiscount, selectedVoucher.maxValue);
+            if(selectedVoucher.maxValue !== null) {
+               return Math.min(percentageDiscount, selectedVoucher.maxValue);
+            }
+
+            return percentageDiscount;
+            
         }
         return selectedVoucher.value;
     };
