@@ -40,11 +40,11 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CrudRep
                                                 @Param("productId") Long productId, Pageable pageable);
 
     @Query("""
-    SELECT p 
-    FROM Product p 
-    WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) OR p.id = :id)
-    AND p.status = :status
-""")
+                SELECT p 
+                FROM Product p 
+                WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) OR p.id = :id)
+                AND (:status is null or p.status = :status)
+            """)
     Page<Product> searchByNameOrIdAndStatus(
             @Param("name") String name,
             @Param("id") Long id,
@@ -52,12 +52,13 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CrudRep
             Pageable pageable);
 
     List<Product> findAllByIdNotIn(List<Long> ids);
+
     Optional<Product> findByProductCode(Long productCode);
 
     @Query("""
                 SELECT p AS product,\s
                        SUM(CASE\s
-                               WHEN o.status = 'COMPLETED' THEN 1\s
+                               WHEN o.status = 'COMPLETED' THEN od.quantity\s
                                ELSE 0\s
                            END) AS product_count
                 FROM Product p
@@ -67,6 +68,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CrudRep
                 GROUP BY p.id
             """)
     Tuple findProductWithQtySold(@Param("productId") Long productId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id = :id")
     Optional<Product> findByIdWithLock(@Param("id") Long id);
