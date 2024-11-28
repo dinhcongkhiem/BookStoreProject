@@ -67,7 +67,7 @@ function ProductDetail() {
     const addProductToCartMutation = useMutation({
         mutationFn: (data) => CartService.addProductToCart(data),
         onError: (error) => {
-            toast.error("Tổng số lượng trong giỏ hàng vượt quá số lượng có sẵn trong kho. Vui lòng thử lại!");
+            toast.error('Tổng số lượng trong giỏ hàng vuợt quá số lượng có sẵn trong kho. Vui lòng thử lại.');
         },
         onSuccess: () => {
             toast.success('Đã thêm sản phẩm vào giỏ hàng!');
