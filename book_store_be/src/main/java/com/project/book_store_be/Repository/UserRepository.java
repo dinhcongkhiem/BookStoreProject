@@ -25,9 +25,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 
     @Query(value = "SELECT * FROM users u WHERE " +
-            "(:keyword IS NULL OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%'))) OR " +
+            "((:keyword IS NULL OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%'))) OR " +
             "(:keyword IS NULL OR LOWER(u.phone_num) LIKE LOWER(CONCAT('%', :keyword, '%'))) OR " +
-            "(:keyword IS NULL OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :keyword, '%')))",
+            "(:keyword IS NULL OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :keyword, '%'))))" +
+            "AND u.role like 'USER'",
             nativeQuery = true)
     Page<User> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 }

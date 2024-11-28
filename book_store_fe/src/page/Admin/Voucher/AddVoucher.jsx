@@ -200,11 +200,11 @@ function AddVoucher() {
                 isAll: isAll,
             };
 
-            // if (voucherId) {
-            //     updateiscountMutation.mutate({ id: voucherId, data });
-            // } else {
-            //     createVoucherMutation.mutate({ data });
-            // }
+            if (voucherId) {
+                updateiscountMutation.mutate({ id: voucherId, data });
+            } else {
+                createVoucherMutation.mutate({ data });
+            }
         },
         validateOnBlur: false,
         validateOnChange: false,
