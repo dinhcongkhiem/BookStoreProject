@@ -73,18 +73,24 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
             predicates.add(cb.between(discountedPrice, minPrice, maxPrice));
         }
 
-        Expression<Long> count = cb.count(
+//        Expression<Long> count = cb.count(
+//                cb.selectCase()
+//                        .when(cb.equal(orderJoin.get("status"), "COMPLETED"), orderDetailJoin.get("product").get("id"))
+//                        .otherwise(cb.literal(null)));
+        Expression<Long> count = cb.sum(
                 cb.selectCase()
-                        .when(cb.equal(orderJoin.get("status"), "COMPLETED"), orderDetailJoin.get("product").get("id"))
-                        .otherwise(cb.literal(null)));
+                        .when(cb.equal(orderJoin.get("status"), "COMPLETED"), orderDetailJoin.get("quantity"))
+                        .otherwise(cb.literal(0)).as(Long.class)
+        );
+
 
         Expression<Long> countInTimeRange = cb.count(
                 cb.selectCase()
                         .when(cb.and(
                                 cb.equal(orderJoin.get("status"), "COMPLETED"),
                                 cb.between(orderJoin.get("orderDate"), LocalDateTime.now().minusWeeks(1), LocalDateTime.now())
-                        ), orderDetailJoin.get("product").get("id"))
-                        .otherwise(cb.literal(null)));
+                        ), orderDetailJoin.get("quantity"))
+                        .otherwise(cb.literal(0)).as(Long.class));
 
         query.select(cb.tuple(productRoot, count.alias("quantitySold")));
 

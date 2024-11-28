@@ -70,7 +70,7 @@ public class ProductService {
 
     }
 
-    public Page<?> getAllProducts(int pageNumber, int pageSize, String sort, String keyword) {
+    public Page<?> getAllProducts(int pageNumber, int pageSize, String sort, String keyword, Integer status) {
         SoftProductType sortType = SoftProductType.fromValue(sort);
 
         Sort sortValue = switch (sortType) {
@@ -101,7 +101,8 @@ public class ProductService {
         } catch (NumberFormatException e) {
             id = -1L;
         }
-        return productRepository.searchByNameContainingIgnoreCaseOrId(keyword, id, pageRequest)
+        ProductStatus productStatus = status == 1 ? ProductStatus.AVAILABLE : null;
+        return productRepository.searchByNameOrIdAndStatus(keyword, id, productStatus,pageRequest)
                 .map(this::convertToForManagerRes);
     }
 
@@ -285,7 +286,7 @@ public class ProductService {
                 .id(product.getId())
                 .name(product.getName())
                 .originalPrice(product.getOriginal_price())
-                .price(product.getOriginal_price().subtract(discountVal))
+                .price(product.getOriginal_price().subtract(discountVal).setScale(0, RoundingMode.HALF_UP))
                 .quantity(product.getQuantity())
                 .status(product.getStatus())
                 .createDate(product.getCreateDate())
@@ -305,7 +306,7 @@ public class ProductService {
             }
         }
         BigDecimal discountValue = p.getOriginal_price().multiply(BigDecimal.valueOf(discountRate))
-                .divide(ONE_HUNDRED, RoundingMode.HALF_UP);
+                .divide(ONE_HUNDRED, RoundingMode.HALF_UP).setScale(0, RoundingMode.HALF_UP);
         return Map.of("discountRate", discountRate, "discountVal", discountValue);
     }
 

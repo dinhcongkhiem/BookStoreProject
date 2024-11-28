@@ -278,7 +278,7 @@ function ProductDetail() {
                                 </button>
                             </div>
                             <span style={{ opacity: 0.6, fontSize: '1.4rem', marginLeft: '1rem' }}>
-                                (còn lại: {product?.quantity - quantityProduct})
+                                (còn lại: {product?.quantity})
                             </span>
                         </div>
                     </div>

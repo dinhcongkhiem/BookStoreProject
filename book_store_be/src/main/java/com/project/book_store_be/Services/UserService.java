@@ -99,7 +99,7 @@ public class UserService {
     }
 
 
-    public Page<?> getAllUser(int page, int size, String keyword) {
+    public Page<?> getAllUserRoleUser(int page, int size, String keyword) {
         Pageable pageable = PageRequest.of(page, size);
         return userRepository.searchByKeyword(keyword, pageable).map(this::getUserInfor);
     }

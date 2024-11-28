@@ -129,7 +129,7 @@ class ProductServiceClass {
         return axios.request(config);
     };
 
-    getAllProductForMng = ({ page = 1, pageSize = 20, keyword, sort }) => {
+    getAllProductForMng = ({ page = 1, pageSize = 20, keyword, sort, status = -1 }) => {
         let config = {
             method: 'get',
             url: PRODUCT_URL + '/all',
@@ -141,6 +141,7 @@ class ProductServiceClass {
                 pageSize,
                 keyword: keyword,
                 sort,
+                status,
             },
             withCredentials: true,
         };

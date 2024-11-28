@@ -100,7 +100,24 @@ function AddVoucher() {
         type: Yup.string().required('Vui lòng chọn loại giảm giá'),
         quantity: Yup.number().required('Vui lòng nhập số lượng').min(1, 'Số lượng tối thiểu là 1'),
         maxValue: Yup.number().nullable().min(1, 'Giá trị tối thiểu là 1'),
-        condition: Yup.number().required('Vui lòng nhập điều kiện sử dụng'),
+        condition: Yup.lazy((condition, context) => {
+            const { type, value } = context.parent;
+    
+            if (type === 'PERCENT') {
+                return Yup.number()
+                    .transform((val, originalVal) => (originalVal ? parseFloat(originalVal) : null))
+                    .required('Vui lòng nhập điều kiện sử dụng');
+            }
+    
+            if (type === 'CASH') {
+                return Yup.number()
+                    .transform((val, originalVal) => (originalVal ? parseFloat(originalVal) : null))
+                    .required('Vui lòng nhập điều kiện sử dụng')
+                    .min(value + 1, `Điều kiện phải lớn hơn giá trị giảm giá`);
+            }
+    
+            return Yup.mixed().notRequired();
+        }),
         start: Yup.string()
             .required('Vui lòng nhập ngày bắt đầu.')
             .test('is-valid-date', 'Ngày bắt đầu không hợp lệ', (value) => {
@@ -222,7 +239,11 @@ function AddVoucher() {
     const handleChangeInput = (e,key) => {
         const inputValue = e.target.value;
         const numericValue = inputValue.replace(/[^0-9]/g, '');
-        formik.setFieldValue(key, numericValue);
+        if (inputValue === '') {
+            formik.setFieldValue(key, '');
+            return;
+        }
+        formik.setFieldValue(key, parseInt(numericValue));
     }
     return (
         <Box component="form" noValidate className={cx('form')}>
