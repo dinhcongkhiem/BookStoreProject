@@ -68,9 +68,9 @@ function Attributes() {
             .min(2, 'Tên phải có ít nhất 2 ký tự')
             .max(50, 'Tên không được vượt quá 50 ký tự')
             .matches(/^[a-zA-Z\s\u00C0-\u1EF9]+$/, 'Tên chỉ được chứa chữ cái và khoảng trắng')
-            .test('no-leading-trailing-spaces', 'Tên không được bắt đầu hoặc kết thúc bằng khoảng trắng', 
+            .test('no-leading-trailing-spaces', 'Tên không được bắt đầu hoặc kết thúc bằng khoảng trắng',
                 value => value && value.trim() === value)
-            .test('no-consecutive-spaces', 'Tên không được chứa nhiều khoảng trắng liên tiếp', 
+            .test('no-consecutive-spaces', 'Tên không được chứa nhiều khoảng trắng liên tiếp',
                 value => value && !value.includes('  '))
             .test('not-only-spaces', 'Tên không thể chỉ chứa khoảng trắng',
                 value => value && value.trim().length > 0)
@@ -524,7 +524,7 @@ function Attributes() {
                         validationSchema={validationSchema}
                         onSubmit={handleSave}
                     >
-                        {({ errors, touched, isSubmitting }) => (
+                        {({ errors, touched, isSubmitting, values }) => (
                             <Form>
                                 <DialogContent className={cx('modalBody')}>
                                     <Field
@@ -537,8 +537,8 @@ function Attributes() {
                                         type="text"
                                         fullWidth
                                         variant="outlined"
-                                        error={touched.name && errors.name}
-                                        helperText={touched.name && errors.name}
+                                        error={touched.name && errors.name && values.name !== ''}
+                                        helperText={touched.name && errors.name && values.name !== '' ? errors.name : ''}
                                         className={cx('inputField')}
                                         InputProps={{
                                             classes: {
@@ -562,7 +562,7 @@ function Attributes() {
                                         type="submit"
                                         variant="contained"
                                         className={cx('confirmButton')}
-                                        disabled={isSubmitting}
+                                        disabled={isSubmitting || !values.name.trim()}
                                     >
                                         {modalType.startsWith('add') ? 'Thêm' : 'Lưu'}
                                     </Button>
