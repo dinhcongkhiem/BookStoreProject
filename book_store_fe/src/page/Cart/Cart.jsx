@@ -385,13 +385,15 @@ function Cart() {
                 type={'warn'}
             />
             <ModalLoading isLoading={isLoading || updateCartMutation.isPending} />
-            <ChooseVoucherModal
-                open={voucherDialogOpen}
-                setOpen={() => setVoucherDialogOpen(false)}
-                setVoucher={(v) => setSelectedVoucher(v)}
-                voucher={selectedVoucher}
-                grandTotal={grandTotal - totalDiscount}
-            />
+            {voucherDialogOpen && (
+                <ChooseVoucherModal
+                    open={voucherDialogOpen}
+                    setOpen={() => setVoucherDialogOpen(false)}
+                    setVoucher={(v) => setSelectedVoucher(v)}
+                    voucher={selectedVoucher}
+                    grandTotal={grandTotal - totalDiscount}
+                />
+            )}
         </div>
     );
 }

@@ -255,17 +255,7 @@ const Voucher = () => {
                                     >
                                         <EditIcon />
                                     </IconButton>
-                                    <IconButton
-                                        size="small"
-                                        aria-label="delete"
-                                        sx={{ color: 'red' }}
-                                        onClick={() => {
-                                            setIdToRemove(voucher.id);
-                                            setIsOpen(true);
-                                        }}
-                                    >
-                                        <DeleteIcon />
-                                    </IconButton>
+                                  
                                     <CustomTooltip
                                         arrow={false}
                                         title={

@@ -113,7 +113,7 @@ function Payment() {
     const createOrderMutation = useMutation({
         mutationFn: (data) => OrderService.createOrder(data),
         onError: (error) => {
-            if(error.response.status === 409) {
+            if (error.response.status === 409) {
                 localStorage.removeItem('cartIdsForPayment');
                 localStorage.removeItem('productForPayment');
                 localStorage.removeItem('selectedVoucher');
@@ -177,12 +177,11 @@ function Payment() {
     const calculateDiscount = () => {
         if (selectedVoucher.type === 'PERCENT') {
             const percentageDiscount = (checkoutData?.grandTotal * selectedVoucher.value) / 100;
-            if(selectedVoucher.maxValue !== null) {
-               return Math.min(percentageDiscount, selectedVoucher.maxValue);
+            if (selectedVoucher.maxValue !== null) {
+                return Math.min(percentageDiscount, selectedVoucher.maxValue);
             }
 
             return percentageDiscount;
-            
         }
         return selectedVoucher.value;
     };
@@ -385,8 +384,7 @@ function Payment() {
                             <div className="d-flex justify-content-between">
                                 <p className={cx('label')}>Giảm giá từ mã khuyến mãi</p>
                                 <p className={cx('discount')}>
-                                    -
-                                    {calculateDiscount()?.toLocaleString('vi-VN')}
+                                    -{calculateDiscount()?.toLocaleString('vi-VN')}
                                     <span>₫</span>
                                 </p>
                             </div>
@@ -398,10 +396,7 @@ function Payment() {
                             <div>
                                 <p className={cx('total')}>
                                     {selectedVoucher
-                                        ? (
-                                              checkoutData?.grandTotal -
-                                              calculateDiscount()
-                                          ).toLocaleString('vi-VN')
+                                        ? (checkoutData?.grandTotal - calculateDiscount()).toLocaleString('vi-VN')
                                         : checkoutData?.grandTotal.toLocaleString('vi-VN')}
                                     <span>₫</span>
                                 </p>
@@ -431,13 +426,15 @@ function Payment() {
                     data={paymentData}
                 />
             )}
-            <ChooseVoucherModal
-                open={voucherDialogOpen}
-                setOpen={() => setVoucherDialogOpen(false)}
-                setVoucher={(v) => setSelectedVoucher(v)}
-                voucher={selectedVoucher}
-                grandTotal={checkoutData?.grandTotal}
-            />
+            {voucherDialogOpen && (
+                <ChooseVoucherModal
+                    open={voucherDialogOpen}
+                    setOpen={() => setVoucherDialogOpen(false)}
+                    setVoucher={(v) => setSelectedVoucher(v)}
+                    voucher={selectedVoucher}
+                    grandTotal={checkoutData?.grandTotal}
+                />
+            )}
         </div>
     );
 }

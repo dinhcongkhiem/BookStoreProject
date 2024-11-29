@@ -48,7 +48,10 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, voucher, grandTotal }) 
         isLoading,
     } = useQuery({
         queryKey: ['vouchers', page],
-        queryFn: () => VoucherService.getByUser({page: page}).then((res) => res.data),
+        queryFn: () => VoucherService.getByUser({page: page}).then((res) => {
+            setDisplayedPromos((prev) => [...prev, ...res.data.content]);
+            return res.data;
+        }),
         retry: 1,
     });
 
@@ -65,13 +68,6 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, voucher, grandTotal }) 
         },
         [isLoading, vouchers]
     );
-
-
-    useEffect(() => {
-        if (vouchers) {
-            setDisplayedPromos((prev) => [...prev, ...vouchers.content]);
-        }
-    }, [vouchers]);
 
     const handleApplyPromo = (promo) => {
         if (promo.id === voucher?.id) {
