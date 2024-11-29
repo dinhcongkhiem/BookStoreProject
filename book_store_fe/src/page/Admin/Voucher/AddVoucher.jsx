@@ -86,8 +86,8 @@ function AddVoucher() {
         }
     };
     const validationSchema = Yup.object({
-        code: Yup.string().required('Vui lòng nhập mã giảm giá'),
-        name: Yup.string().required('Vui lòng nhập tên đợt giảm giá'),
+        code: Yup.string().required('Vui lòng nhập mã giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
+        name: Yup.string().required('Vui lòng nhập tên đợt giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
         value: Yup.lazy((value, context) => {
             if (context.parent.type === 'PERCENT') {
                 return Yup.number()
@@ -98,22 +98,22 @@ function AddVoucher() {
             return Yup.number().required('Vui lòng nhập giá trị giảm giá').min(1, 'Giá trị tối thiểu là 1');
         }),
         type: Yup.string().required('Vui lòng chọn loại giảm giá'),
-        quantity: Yup.number().required('Vui lòng nhập số lượng').min(1, 'Số lượng tối thiểu là 1'),
-        maxValue: Yup.number().nullable().min(1, 'Giá trị tối thiểu là 1'),
+        quantity: Yup.number().required('Vui lòng nhập số lượng').min(1, 'Số lượng tối thiểu là 1').max(2000000000, 'Giá trị tối đa là 2 tỷ'),
+        maxValue: Yup.number().nullable().min(1, 'Giá trị tối thiểu là 1').max(2000000000, 'Giá trị tối đa là 2 tỷ'),
         condition: Yup.lazy((condition, context) => {
             const { type, value } = context.parent;
     
             if (type === 'PERCENT') {
                 return Yup.number()
                     .transform((val, originalVal) => (originalVal ? parseFloat(originalVal) : null))
-                    .required('Vui lòng nhập điều kiện sử dụng');
+                    .required('Vui lòng nhập điều kiện sử dụng').max(2000000000, 'Giá trị tối đa là 2 tỷ');
             }
     
             if (type === 'CASH') {
                 return Yup.number()
                     .transform((val, originalVal) => (originalVal ? parseFloat(originalVal) : null))
                     .required('Vui lòng nhập điều kiện sử dụng')
-                    .min(value + 1, `Điều kiện phải lớn hơn giá trị giảm giá`);
+                    .min(value + 1, `Điều kiện phải lớn hơn giá trị giảm giá`).max(2000000000, 'Giá trị tối đa là 2 tỷ');
             }
     
             return Yup.mixed().notRequired();
@@ -147,6 +147,9 @@ function AddVoucher() {
     const createVoucherMutation = useMutation({
         mutationFn: ({ data }) => VoucherService.create(data),
         onError: (error) => {
+            if(error.response.status === 409){
+                toast.error(error.response.data);
+            }
             console.log(error);
         },
         onSuccess: () => {
@@ -158,6 +161,9 @@ function AddVoucher() {
     const updateiscountMutation = useMutation({
         mutationFn: ({ id, data }) => VoucherService.update({ id, data }),
         onError: (error) => {
+            if(error.response.status === 409){
+                toast.error(error.response.data);
+            }
             console.log(error);
         },
         onSuccess: () => {

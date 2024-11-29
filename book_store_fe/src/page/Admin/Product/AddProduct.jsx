@@ -51,17 +51,26 @@ function AddProduct() {
     const validationSchema = Yup.object({
         name: Yup.string().required('Vui lòng nhập tên sách.'),
         size: Yup.object({
-            x: Yup.number().required('x is required').min(1, 'min is 200'),
-            y: Yup.number().required('y is required').min(1, 'min is 200'),
-            z: Yup.number().required('z is required').min(1, 'min is 200'),
+            x: Yup.number().required('x is required').min(1, 'min is 200').max(500, 'max is 500').integer('x must be an integer'),
+            y: Yup.number().required('y is required').min(1, 'min is 200').max(500, 'max is 500').integer('y must be an integer'),
+            z: Yup.number().required('z is required').min(1, 'min is 200').max(500, 'max is 500').integer('z must be an integer'),
         }),
         weight: Yup.number()
             .required('Vui lòng nhập khối lượng.')
             .min(0, 'Phải lớn hơn 0')
-            .max(2000, 'Tối đa 2000 gam'),
-        quantity: Yup.number().required('Vui lòng nhập số lượng.').min(1, 'Phải lớn hơn 0').max(2000000000, 'Tối đa là 2.000.000.000') ,
-        numberOfPages: Yup.number().required('Vui lòng nhập số trang.').min(1, 'Phải lớn hơn 0').max(2000000000, 'Tối đa là 2.000.000.000') ,
-        cost: Yup.number().required('Vui lòng nhập giá nhập.').min(1, 'Phải lớn hơn 0').max(2000000000, 'Tối đa là 2.000.000.000 ₫') ,
+            .max(3000, 'Tối đa 3000 gam'),
+        quantity: Yup.number()
+            .required('Vui lòng nhập số lượng.')
+            .min(1, 'Phải lớn hơn 0')
+            .max(2000000000, 'Tối đa là 2.000.000.000'),
+        numberOfPages: Yup.number()
+            .required('Vui lòng nhập số trang.')
+            .min(1, 'Phải lớn hơn 0')
+            .max(2000000000, 'Tối đa là 2.000.000.000'),
+        cost: Yup.number()
+            .required('Vui lòng nhập giá nhập.')
+            .min(1, 'Phải lớn hơn 0')
+            .max(2000000000, 'Tối đa là 2.000.000.000 ₫'),
         originalPrice: Yup.number()
             .required('Vui lòng nhập giá bán.')
             .min(1, 'Phải lớn hơn 0')
@@ -75,10 +84,10 @@ function AddProduct() {
                     }),
             }),
         publisherId: Yup.string().required('Vui lòng chọn nhà phát hành.'),
-        manufacturer: Yup.string().required('Vui lòng nhập NXB.'),
+        manufacturer: Yup.string().required('Vui lòng nhập NXB.').max(255, 'NXB không được vượt quá 255 ký tự.'),
         categoriesId: Yup.array().of(Yup.string()).min(1, 'Vui lòng chọn ít nhất 1 thể loại.'),
         authorsId: Yup.array().of(Yup.string()).min(1, 'Vui lòng chọn ít nhất 1 tác giả.'),
-        translator: Yup.string().nullable(),
+        translator: Yup.string().max(255, 'NXB không được vượt quá 255 ký tự.').nullable(),
         selectedImages: Yup.array().of(Yup.string()).min(1, 'Vui lòng chọn ít nhất 1 ảnh sản phẩm.'),
         description: Yup.string().required('Vui lòng nhập mô tả sản phẩm'),
     });
@@ -98,6 +107,9 @@ function AddProduct() {
         },
         onError: (error) => {
             console.log(error);
+            if(error.response.status === 409) {
+                toast.error(error.response.data);
+            }
         },
         onSuccess: () => {
             toast.success('Thành công!');
@@ -117,6 +129,9 @@ function AddProduct() {
         },
         onError: (error) => {
             console.log(error);
+            if(error.response.status === 409) {
+                toast.error(error.response.data);
+            }
         },
         onSuccess: () => {
             toast.success('Cập nhật thành công!');
@@ -428,7 +443,7 @@ function AddProduct() {
                                 )}
 
                                 <FormHelperText sx={{ color: '#d32f2f' }}>
-                                    {formik.errors.size ? `Kích thước là bắt buộc và phải lớn hơn 0` : ''}
+                                    {formik.errors.size ? `Kích thước là bắt buộc và phải là số nguyên nằm trong khoảng 0 - 500` : ''}
                                 </FormHelperText>
                             </div>
                             {renderTextField('weight', 'KL(gram)', 'number', true, null, {

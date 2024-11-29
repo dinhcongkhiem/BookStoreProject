@@ -1,5 +1,6 @@
 package com.project.book_store_be.Controller;
 
+import com.project.book_store_be.Exception.PublisherAlreadyExistsException;
 import com.project.book_store_be.Model.Publisher;
 import com.project.book_store_be.Services.PublisherService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,20 +30,26 @@ public class PublisherController {
         }
         return ResponseEntity.ok(publishers);
     }
+
     @GetMapping("/{id}")
-    public ResponseEntity<Publisher> getPublisherById(@PathVariable Long id){
+    public ResponseEntity<Publisher> getPublisherById(@PathVariable Long id) {
         Optional<Publisher> publisher = publisherService.getPublisherById(id);
         return publisher.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 
     @PostMapping
-    public Publisher createPublisher(@RequestBody Publisher publisher){
-        return publisherService.savePublisher(publisher);
+    public ResponseEntity createPublisher(@RequestBody Publisher publisher) {
+        try {
+            publisherService.savePublisher(publisher);
+            return ResponseEntity.ok("Publisher created successfully");
+        } catch (PublisherAlreadyExistsException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deletePublisher(@PathVariable Long id){
+    public ResponseEntity<String> deletePublisher(@PathVariable Long id) {
         try {
             publisherService.deletePublisher(id);
             return ResponseEntity.ok("Publisher delete successfully");
@@ -52,11 +59,13 @@ public class PublisherController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Publisher> updatePublisher(@PathVariable Long id, @RequestBody Publisher publisherDetails){
+    public ResponseEntity<?> updatePublisher(@PathVariable Long id, @RequestBody Publisher publisherDetails) {
         try {
             Publisher updatePublisher = publisherService.updatePublisher(id, publisherDetails);
             return ResponseEntity.ok(updatePublisher);
-        }catch (RuntimeException e){
+        } catch (PublisherAlreadyExistsException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }

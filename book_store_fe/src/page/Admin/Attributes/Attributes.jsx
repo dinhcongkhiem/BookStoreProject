@@ -31,7 +31,7 @@ import {
     Close as CloseIcon,
     Search as SearchIcon
 } from '@mui/icons-material';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import classNames from 'classnames/bind';
 import { useSearchParams } from 'react-router-dom';
@@ -130,7 +130,11 @@ function Attributes() {
             }
             handleCloseModal();
         } catch (error) {
-            toast.error('Đã xảy ra lỗi khi thêm mới!');
+            if(error.response.status === 409) {
+                toast.error(error.response.data);
+            }else {
+                toast.error('Đã xảy ra lỗi khi thêm mới!');
+            }
             setErrors({ submit: 'Đã xảy ra lỗi khi thêm mới.' });
         }
         setSubmitting(false);
@@ -522,6 +526,8 @@ function Attributes() {
                         initialValues={{ name: selectedAttribute ? selectedAttribute.name : '' }}
                         validationSchema={validationSchema}
                         onSubmit={modalType.startsWith('add') ? handleSave : handleUpdate}
+                        validateOnChange={false}
+                        validateOnBlur={false}
                     >
                         {({ errors, touched, isSubmitting, submitForm, values }) => (
                             <Form>
@@ -623,8 +629,6 @@ function Attributes() {
                         </Button>
                     </DialogActions>
                 </Dialog>
-
-                <ToastContainer />
             </Container>
         </div>
     );

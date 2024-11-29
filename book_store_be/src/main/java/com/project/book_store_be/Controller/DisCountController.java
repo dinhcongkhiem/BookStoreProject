@@ -1,5 +1,6 @@
 package com.project.book_store_be.Controller;
 
+import com.project.book_store_be.Exception.DiscountNameAlreadyExistsException;
 import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Request.DisCountRequest;
 import com.project.book_store_be.Services.DisCountService;
@@ -42,6 +43,8 @@ public class DisCountController {
         try {
             service.createDiscount(disCountRequest);
             return new ResponseEntity<>(HttpStatus.CREATED);
+        }catch (DiscountNameAlreadyExistsException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -52,6 +55,8 @@ public class DisCountController {
         try {
             Discount updatedDiscount = service.updateDiscount(id, disCountRequest);
             return new ResponseEntity<>(updatedDiscount, HttpStatus.OK);
+        }catch (DiscountNameAlreadyExistsException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {

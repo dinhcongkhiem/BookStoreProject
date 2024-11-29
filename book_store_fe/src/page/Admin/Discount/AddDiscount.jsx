@@ -85,7 +85,7 @@ function AddDiscount() {
         }
     };
     const validationSchema = Yup.object({
-        name: Yup.string().required('Vui lòng nhập tên đợt giảm giá'),
+        name: Yup.string().required('Vui lòng nhập tên đợt giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
         value: Yup.number()
             .required('Vui lòng nhập giá trị giảm giá')
             .min(5, 'Giá trị tối thiếu là 5%')
@@ -142,6 +142,9 @@ function AddDiscount() {
     const createDiscountMutation = useMutation({
         mutationFn: ({ data }) => DiscountService.createDiscount(data),
         onError: (error) => {
+            if(error.response.status === 409){
+                toast.error(error.response.data);
+            }
             console.log(error);
         },
         onSuccess: () => {
@@ -153,6 +156,9 @@ function AddDiscount() {
     const updateiscountMutation = useMutation({
         mutationFn: ({ id, data }) => DiscountService.updateDiscount(id, data),
         onError: (error) => {
+            if(error.response.status === 409){
+                toast.error(error.response.data);
+            }
             console.log(error);
         },
         onSuccess: () => {

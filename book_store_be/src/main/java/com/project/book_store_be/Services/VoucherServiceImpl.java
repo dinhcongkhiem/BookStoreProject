@@ -2,6 +2,7 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Enum.VoucherType;
+import com.project.book_store_be.Exception.VoucherCodeAlreadyExistsException;
 import com.project.book_store_be.Interface.VoucherService;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Model.Voucher;
@@ -96,7 +97,7 @@ public class VoucherServiceImpl implements VoucherService {
 
         Optional<Voucher> voucherOptional = voucherRepository.findByCode(voucherRequest.getCode());
         if (voucherOptional.isPresent()) {
-            throw new IllegalArgumentException("Mã voucher " + voucherRequest.getCode() + " đã tồn tại");
+            throw new VoucherCodeAlreadyExistsException("Mã voucher " + voucherRequest.getCode() + " đã tồn tại");
         }
         List<User> users = getUsersForVoucher(voucherRequest);
         Voucher voucher = Voucher.builder()
@@ -126,7 +127,7 @@ public class VoucherServiceImpl implements VoucherService {
         List<User> users = getUsersForVoucher(voucherRequest);
         Optional<Voucher> voucherOptional = voucherRepository.findByCode(voucherRequest.getCode());
         if (voucherOptional.isPresent() && !voucherOptional.get().getId().equals(id)) {
-            throw new IllegalArgumentException("Mã voucher " + voucherRequest.getCode() + " đã tồn tại");
+            throw new VoucherCodeAlreadyExistsException("Mã voucher " + voucherRequest.getCode() + " đã tồn tại");
         }
         voucher.setCode(voucherRequest.getCode());
         voucher.setName(voucherRequest.getName());

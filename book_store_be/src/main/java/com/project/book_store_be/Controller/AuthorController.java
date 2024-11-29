@@ -1,7 +1,7 @@
 package com.project.book_store_be.Controller;
 
+import com.project.book_store_be.Exception.AuthorAlreadyExistsException;
 import com.project.book_store_be.Exception.AuthorNotFoundException;
-import com.project.book_store_be.Exception.DuplicatePseudonymException;
 import com.project.book_store_be.Interface.AuthorService;
 import com.project.book_store_be.Model.Author;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,27 +36,30 @@ public class AuthorController {
     @PutMapping("/{id}")
     public ResponseEntity<String> updateAuthor(@PathVariable Long id, @RequestBody Author authorDetails) {
         try {
-            Author updatedAuthor = authorService.updateAuthor(id, authorDetails);
+            authorService.updateAuthor(id, authorDetails);
             return ResponseEntity.ok("Author updated successfully");
         } catch (AuthorNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (AuthorAlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        } catch (DuplicatePseudonymException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+
     @PostMapping
     public ResponseEntity<String> createAuthor(@RequestBody Author author) {
-        try{
-            Author savedAuthor = authorService.saveAuthor(author);
+        try {
+            authorService.saveAuthor(author);
             return ResponseEntity.ok("Author crated successfully");
-        }catch (IllegalArgumentException e) {
-            return ResponseEntity.status(409).body(e.getMessage());
+        } catch (AuthorAlreadyExistsException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
 
     @DeleteMapping("/{id}")
-    public  ResponseEntity<String> deleteAuthor(@PathVariable Long id){
+    public ResponseEntity<String> deleteAuthor(@PathVariable Long id) {
         try {
             authorService.deleteAuthor(id);
             return ResponseEntity.ok("Author delete successfully");

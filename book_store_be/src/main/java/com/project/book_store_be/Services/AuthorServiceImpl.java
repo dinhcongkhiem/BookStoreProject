@@ -1,13 +1,10 @@
 package com.project.book_store_be.Services;
 
-import com.project.book_store_be.Exception.AuthorNotFoundException;
-import com.project.book_store_be.Exception.DuplicatePseudonymException;
+import com.project.book_store_be.Exception.AuthorAlreadyExistsException;
 import com.project.book_store_be.Interface.AuthorService;
 import com.project.book_store_be.Model.Author;
-import com.project.book_store_be.Model.Category;
 import com.project.book_store_be.Repository.AuthorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,14 +37,20 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public Author saveAuthor(Author author) {
+        if (repo.findByNameContainingIgnoreCase(author.getName()).size() > 0) {
+            throw new AuthorAlreadyExistsException("Tác giả " + author.getName() + " đã tồn , vui lòng thử lại!");
+        }
         return repo.save(author);
     }
 
     @Override
-    public Author updateAuthor(Long id, Author authorDetails) {
+    public void updateAuthor(Long id, Author authorDetails) {
         Author author = repo.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
+        if (repo.findByNameContainingIgnoreCase(author.getName()).size() > 0 && !author.getName().equalsIgnoreCase(authorDetails.getName())) {
+            throw new AuthorAlreadyExistsException("Tác giả " + author.getName() + " đã tồn , vui lòng thử lại!");
+        }
         author.setName(authorDetails.getName());
-        return repo.save(author);
+        repo.save(author);
     }
 
     @Override

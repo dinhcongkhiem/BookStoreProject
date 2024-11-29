@@ -1,6 +1,7 @@
 package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Enum.VoucherStatus;
+import com.project.book_store_be.Exception.VoucherCodeAlreadyExistsException;
 import com.project.book_store_be.Model.Voucher;
 import com.project.book_store_be.Request.VoucherRequest;
 import com.project.book_store_be.Response.VoucherRes.VoucherResponse;
@@ -28,6 +29,8 @@ public class VoucherController {
             Voucher voucher = voucherService.createVoucher(voucherRequest);
             VoucherResponse response = voucherService.mapToResponse(voucher, false);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+        }catch (VoucherCodeAlreadyExistsException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
         } catch (IllegalStateException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         }
@@ -66,6 +69,8 @@ public class VoucherController {
             Voucher voucher = voucherService.updateVoucher(id, voucherRequest);
             VoucherResponse response = voucherService.mapToResponse(voucher, false);
             return ResponseEntity.ok(response);
+         }catch (VoucherCodeAlreadyExistsException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
         } catch (NoSuchElementException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Voucher not found.");
         } catch (IllegalStateException ex) {

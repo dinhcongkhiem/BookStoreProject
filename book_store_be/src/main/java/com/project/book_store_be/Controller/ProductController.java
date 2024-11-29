@@ -2,6 +2,7 @@ package com.project.book_store_be.Controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.book_store_be.Exception.ProductNameAlreadyExistsException;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Request.ProductFilterRequest;
 import com.project.book_store_be.Request.ProductRequest;
@@ -73,7 +74,8 @@ public class ProductController {
             }
             productService.addProduct(productRequest, images, indexThumbnail);
             return ResponseEntity.status(HttpStatus.CREATED).body("Thành công");
-
+        }catch (ProductNameAlreadyExistsException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Dữ liệu JSON không hợp lệ");
@@ -107,9 +109,11 @@ public class ProductController {
             if (productRequest == null || images.isEmpty()) {
                 return ResponseEntity.badRequest().body("Dữ liệu không hợp lệ");
             }
-            productService.updateProduct(id, productRequest, images, indexThumbnail,listOldImg);
+            productService.updateProduct(id, productRequest, images, indexThumbnail, listOldImg);
             return ResponseEntity.status(HttpStatus.CREATED).body("Thành công");
 
+        }catch (ProductNameAlreadyExistsException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Dữ liệu JSON không hợp lệ");

@@ -18,7 +18,7 @@ class ReviewServiceClass {
         return axios.request(config);
     };
 
-    getReviews = (productId) => {
+    getReviews = ({ productId, page = 1, size }) => {
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
@@ -26,11 +26,12 @@ class ReviewServiceClass {
             headers: {
                 'Content-Type': 'application/json',
             },
+            params: { page: page - 1, size },
             withCredentials: true,
         };
-
         return axios.request(config);
-    };
+
+    }
 
     likeReview = (reviewId) => {
         let config = {

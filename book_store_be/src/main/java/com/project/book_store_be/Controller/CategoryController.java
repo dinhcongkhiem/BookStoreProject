@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -37,16 +38,22 @@ public class CategoryController {
     }
 
     @PostMapping("/api/v1/admin/category")
-    public Category createCategory(@RequestBody Category category) {
-        return categoryService.createCategory(category);
+    public ResponseEntity<?> createCategory(@RequestBody Category category) {
+         try  {
+             categoryService.createCategory(category);
+             return ResponseEntity.ok().build();
+         }catch (ResponseStatusException e) {
+             return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+         }
     }
     @PutMapping("/api/v1/admin/category/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category categoryDetails) {
-        Category updatedCategory = categoryService.updateCategory(id, categoryDetails);
-        if (updatedCategory == null) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> updateCategory(@PathVariable Long id, @RequestBody Category categoryDetails) {
+        try {
+            categoryService.updateCategory(id, categoryDetails);
+            return ResponseEntity.ok().build();
+        }catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         }
-        return ResponseEntity.ok(updatedCategory);
     }
     @DeleteMapping("/api/v1/admin/category/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {

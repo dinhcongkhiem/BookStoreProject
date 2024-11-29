@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Exception.DiscountNameAlreadyExistsException;
 import com.project.book_store_be.Model.Discount;
 import com.project.book_store_be.Repository.ProductRepository;
 import com.project.book_store_be.Request.DisCountRequest;
@@ -19,10 +20,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class DisCountService {
@@ -59,7 +57,6 @@ public class DisCountService {
             throw new IllegalArgumentException("Discount rate must be between 0% and 30% ");
         }
     }
-
     private void validateDiscountDates(LocalDateTime startDate, LocalDateTime endDate) {
         LocalDateTime today = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
         if (startDate.isAfter(endDate) || startDate.isEqual(endDate)) {
@@ -73,6 +70,11 @@ public class DisCountService {
     public void createDiscount(DisCountRequest disCountRequest) {
         validateDiscountRate(disCountRequest.getValue());
         validateDiscountDates(disCountRequest.getStartDate(), disCountRequest.getEndDate());
+
+        if(this.repo.getDiscount( PageRequest.of(0, 1), disCountRequest.getName(), null).getContent().size() > 0){
+            throw new DiscountNameAlreadyExistsException("Đã có đợt giảm giá " + disCountRequest.getName() + " đang hoạt động, vui lòng thử lại!");
+        }
+
         List<Product> products = new ArrayList<>();
         if (disCountRequest.getIsAll()) {
             if (disCountRequest.getProductIds().isEmpty()) {
@@ -104,8 +106,12 @@ public class DisCountService {
 
     public Discount updateDiscount(Long id, DisCountRequest disCountRequest) {
         Optional<Discount> optionalDiscount = repo.findById(id);
+        Discount discountExistsName = repo.getDiscount( PageRequest.of(0, 1), disCountRequest.getName(), null).getContent().get(0);
         if (optionalDiscount.isEmpty()) {
             throw new RuntimeException("Discount not found");
+        }
+        if(discountExistsName != null && !Objects.equals(discountExistsName.getId(), id)){
+            throw new DiscountNameAlreadyExistsException("Đã có đợt giảm giá " + disCountRequest.getName() + " đang hoạt động, vui lòng thử lại!");
         }
         Discount existingDiscount = optionalDiscount.get();
         List<Product> products = new ArrayList<>();

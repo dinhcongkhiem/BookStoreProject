@@ -2,6 +2,7 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Enum.SoftProductType;
+import com.project.book_store_be.Exception.ProductNameAlreadyExistsException;
 import com.project.book_store_be.Exception.ProductQuantityNotEnough;
 import com.project.book_store_be.Interface.AuthorService;
 import com.project.book_store_be.Interface.ProductRepositoryCustom;
@@ -56,7 +57,7 @@ public class ProductService {
         Sort sortValue = null;
 
         if (sortType != SoftProductType.PRICE_ASC && sortType != SoftProductType.PRICE_DESC) {
-            sortValue = Sort.by(Sort.Direction.ASC, "createDate");
+            sortValue = Sort.by(Sort.Direction.DESC, "createDate");
         }
 
         Pageable pageable = PageRequest.of(page, pageSize, sortValue != null ? sortValue : Sort.unsorted());
@@ -124,9 +125,14 @@ public class ProductService {
         return this.convertToProductDetailResponse(product, qtySold.intValue());
     }
 
+    private Boolean isValidateProductName(String name) {
+        return productRepository.searchByNameOrIdAndStatus(name, -1L, null, PageRequest.of(0, 1)).hasContent();
+    }
     public void addProduct(ProductRequest request, List<MultipartFile> images, Integer indexThumbnail) {
         Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
-
+        if (isValidateProductName(request.getName())) {
+            throw new ProductNameAlreadyExistsException("Sản phẩm tên " + request.getName() + " đã tồn tại, vui lòng thử lại!");
+        }
 
         Product product = Product.builder()
                 .productCode(generateUniqueLong())
@@ -180,8 +186,10 @@ public class ProductService {
 
     public void updateProduct(Long productId, ProductRequest request, List<MultipartFile> images, Integer indexThumbnail, List<Long> listOldImg) {
         Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
-
         Product currentProduct = productRepository.findById(productId).orElseThrow(() -> new NoSuchElementException("Khong co product nao"));
+        if (isValidateProductName(request.getName()) && !currentProduct.getName().equalsIgnoreCase(request.getName())) {
+            throw new ProductNameAlreadyExistsException("Sản phẩm tên " + request.getName() + " đã tồn tại, vui lòng thử lại!");
+        }
         Product product = Product.builder()
                 .id(productId)
                 .name(request.getName())
@@ -200,7 +208,7 @@ public class ProductService {
                 .translatorName(request.getTranslator())
                 .authors(authorService.getAuthors(request.getAuthorsId()))
                 .description(request.getDescription())
-                .createDate(new Date())
+                .createDate(currentProduct.getCreateDate())
                 .updateDate(new Date())
                 .discounts(currentProduct.getDiscounts())
                 .build();

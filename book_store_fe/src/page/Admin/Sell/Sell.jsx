@@ -212,6 +212,10 @@ export default function Sell() {
     };
 
     const handleChangeValueCash = (value) => {
+        if(value > 2000000000) {
+            toast.warn('Số tiền không được vượt quá 2 tỷ');
+            return;
+        }
         setAmount(value);
         handleAddCustomerPayment('cash', value, false);
     };
@@ -699,6 +703,10 @@ export default function Sell() {
                                                     value={amout}
                                                     onChange={(e) => {
                                                         const value = e.target.value;
+                                                        if(value > 2000000000) {
+                                                            toast.warn('Số tiền không được vượt quá 2 tỷ');
+                                                            return;
+                                                        }
                                                         if (/^\d*$/.test(value)) {
                                                             setAmount(value);
                                                         }

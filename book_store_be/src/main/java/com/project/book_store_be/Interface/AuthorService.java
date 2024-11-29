@@ -11,6 +11,6 @@ public interface AuthorService {
     Optional<Author> getAuthorById(Long id);
     List<Author> getAuthors(List<Long> authorsId) ;
     Author saveAuthor(Author author);
-    Author updateAuthor(Long id, Author authorDetails);
+    void updateAuthor(Long id, Author authorDetails);
     void  deleteAuthor(Long id);
 }

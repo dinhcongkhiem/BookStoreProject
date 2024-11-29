@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Exception.PublisherAlreadyExistsException;
 import com.project.book_store_be.Model.Publisher;
 import com.project.book_store_be.Repository.PublisherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,29 +14,36 @@ public class PublisherService {
     @Autowired
     private PublisherRepository repo;
 
-    public List<Publisher> getAllPublisher(){
+    public List<Publisher> getAllPublisher() {
         return repo.findAll();
     }
+
     public List<Publisher> searchPublishersByName(String keyword) {
         return repo.findByNameContainingIgnoreCase(keyword);
     }
 
-    public Optional<Publisher> getPublisherById(Long id){
+    public Optional<Publisher> getPublisherById(Long id) {
         return repo.findById(id);
     }
 
-    public Publisher savePublisher(Publisher publisher){
+    public Publisher savePublisher(Publisher publisher) {
+        if(repo.findByNameContainingIgnoreCase(publisher.getName()).size() > 0){
+            throw new PublisherAlreadyExistsException("Nhà phát hành " +  publisher.getName() + " đã tồn tại, vui lòng thử lại");
+        }
         return repo.save(publisher);
     }
 
-    public Publisher updatePublisher(Long id, Publisher publisherDetails){
-        Publisher publisher = repo.findById(id).orElseThrow(() ->new RuntimeException("Publisher not found"));
+    public Publisher updatePublisher(Long id, Publisher publisherDetails) {
+        Publisher publisher = repo.findById(id).orElseThrow(() -> new RuntimeException("Publisher not found"));
+        if(repo.findByNameContainingIgnoreCase(publisherDetails.getName()).size() > 0 && !publisher.getName().equalsIgnoreCase(publisherDetails.getName())){
+            throw new PublisherAlreadyExistsException("Nhà phát hành " +  publisher.getName() + " đã tồn tại, vui lòng thử lại");
+        }
         publisher.setName(publisherDetails.getName());
         return repo.save(publisher);
     }
 
-    public  void deletePublisher(Long id){
-        Publisher publisher = repo.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
+    public void deletePublisher(Long id) {
+        repo.findById(id).orElseThrow(() -> new RuntimeException("Author not found"));
         repo.deleteById(id);
     }
 }

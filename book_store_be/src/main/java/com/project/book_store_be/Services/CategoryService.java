@@ -27,23 +27,23 @@ public class CategoryService {
     }
 
     public Category createCategory(Category category) {
-        if (categoryRepository.findByName(category.getName()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên danh mục đã tồn tại");
+        if (categoryRepository.findByNameContainingIgnoreCase(category.getName()).size() > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Danh mục " + category.getName() + " đã tồn tại");
+
         }
         return categoryRepository.save(category);
     }
 
-    public Category updateCategory(Long id, Category categoryDetails) {
+    public void updateCategory(Long id, Category categoryDetails) {
         Category category = categoryRepository.findById(id).orElse(null);
         if (category != null) {
             if (category.getName().equals(categoryDetails.getName())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên danh mục mới phải khác với tên cũ");
             }
-            if (categoryRepository.findByName(categoryDetails.getName()).isPresent()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên danh mục đã tồn tại");
+            if (categoryRepository.findByNameContainingIgnoreCase(categoryDetails.getName()).size() > 0 && !category.getName().equalsIgnoreCase(categoryDetails.getName())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Danh mục " + category.getName() + " đã tồn tại");
             }
             category.setName(categoryDetails.getName());
-            return categoryRepository.save(category);
         }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục");
     }
