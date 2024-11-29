@@ -43,7 +43,6 @@ import CategoryService from '../../../service/CategoryService';
 import useDebounce from '../../../hooks/useDebounce';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
-
 const cx = classNames.bind(styles);
 
 function Attributes() {
@@ -53,15 +52,14 @@ function Attributes() {
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState(null);
     const [confirmSaveDialogOpen, setConfirmSaveDialogOpen] = useState(false);
-    const [saveAction, setSaveAction] = useState(null);
     const queryClient = useQueryClient();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [authorSearchTerm, setAuthorSearchTerm] = useState('');
     const [publisherSearchTerm, setPublisherSearchTerm] = useState('');
     const [categorySearchTerm, setCategorySearchTerm] = useState('');
     const authorSearchDebounceVal = useDebounce(authorSearchTerm, 500);
     const publisherSearchDebounceVal = useDebounce(publisherSearchTerm, 500);
     const categorySearchDebounceVal = useDebounce(categorySearchTerm, 500);
-
     const validationSchema = Yup.object().shape({
         name: Yup.string()
             .required('Tên là bắt buộc')
@@ -114,13 +112,13 @@ function Attributes() {
         queryFn: () => CategoryService.getAll({ keyword: categorySearchDebounceVal }).then((response) => response.data),
     });
 
-    const handleSave = async (values, { setSubmitting, resetForm }) => {
+    const handleSave = async (values, { setSubmitting, setErrors }) => {
         setConfirmSaveDialogOpen(false);
         try {
             if (modalType === 'addPublisher') {
                 await publisherService.create({ name: values.name });
                 queryClient.invalidateQueries(['publishers']);
-                toast.success('Nhà xuất bản đã được thêm thành công!');
+                toast.success('Nhà phát hành đã được thêm thành công!');
             } else if (modalType === 'addAuthor') {
                 await authorService.create({ name: values.name });
                 queryClient.invalidateQueries(['authors']);
@@ -131,34 +129,35 @@ function Attributes() {
                 toast.success('Thể loại đã được thêm thành công!');
             }
             handleCloseModal();
-            resetForm();
         } catch (error) {
             toast.error('Đã xảy ra lỗi khi thêm mới!');
-        } finally {
-            setSubmitting(false);
+            setErrors({ submit: 'Đã xảy ra lỗi khi thêm mới.' });
         }
+        setSubmitting(false);
     };
 
-    const handleConfirmUpdate = async () => {
+    const handleUpdate = async (values, { setSubmitting, setErrors }) => {
         setConfirmSaveDialogOpen(false);
         try {
             if (modalType === 'editAuthor' && selectedAttribute?.id) {
-                await authorService.update(selectedAttribute.id, { name: selectedAttribute.name });
+                await authorService.update(selectedAttribute.id, { name: values.name });
                 queryClient.invalidateQueries(['authors']);
                 toast.success('Tác giả đã được cập nhật thành công!');
             } else if (modalType === 'editPublisher' && selectedAttribute?.id) {
-                await publisherService.update(selectedAttribute.id, { name: selectedAttribute.name });
+                await publisherService.update(selectedAttribute.id, { name: values.name });
                 queryClient.invalidateQueries(['publishers']);
-                toast.success('Nhà xuất bản đã được cập nhật thành công!');
+                toast.success('Nhà phát hành đã được cập nhật thành công!');
             } else if (modalType === 'editGenre' && selectedAttribute?.id) {
-                await CategoryService.update(selectedAttribute.id, { name: selectedAttribute.name });
+                await CategoryService.update(selectedAttribute.id, { name: values.name });
                 queryClient.invalidateQueries(['categories']);
                 toast.success('Thể loại đã được cập nhật thành công!');
             }
             handleCloseModal();
         } catch (error) {
             toast.error('Đã xảy ra lỗi khi cập nhật!');
+            setErrors({ submit: 'Đã xảy ra lỗi khi cập nhật.' });
         }
+        setSubmitting(false);
     };
 
     const handleDeleteAuthor = async (id) => {
@@ -175,7 +174,7 @@ function Attributes() {
     const handleDeletePublisher = async (id) => {
         try {
             await publisherService.delete(id);
-            toast.success('Nhà xuất bản đã được xóa!');
+            toast.success('Nhà phát hành đã được xóa!');
             queryClient.invalidateQueries(['publishers']);
         } catch (error) {
             console.error('Error deleting publisher:', error);
@@ -321,10 +320,10 @@ function Attributes() {
                                 <div className={cx('titleWrapper')}>
                                     <BusinessIcon className={cx('sectionIcon', 'BusinessIcon')} />
                                     <Typography variant="h6" className={cx('sectionTitle')}>
-                                        Nhà xuất bản
+                                        Nhà phát hành
                                     </Typography>
                                 </div>
-                                <Tooltip title="Thêm nhà xuất bản" arrow>
+                                <Tooltip title="Thêm nhà phát hành" arrow>
                                     <IconButton
                                         className={cx('addButton')}
                                         size="small"
@@ -339,7 +338,7 @@ function Attributes() {
                                 size='small'
                                 fullWidth
                                 variant="outlined"
-                                placeholder="Tìm kiếm nhà xuất bản..."
+                                placeholder="Tìm kiếm nhà phát hành..."
                                 value={publisherSearchTerm}
                                 onChange={(e) => setPublisherSearchTerm(e.target.value)}
                                 InputProps={{
@@ -512,7 +511,7 @@ function Attributes() {
                             {modalType.includes('Author')
                                 ? 'Tác giả'
                                 : modalType.includes('Publisher')
-                                    ? 'Nhà xuất bản'
+                                    ? 'Nhà phát hành'
                                     : 'Thể loại'}
                         </Typography>
                         <IconButton aria-label="close" onClick={handleCloseModal} className={cx('closeButton')}>
@@ -520,11 +519,11 @@ function Attributes() {
                         </IconButton>
                     </DialogTitle>
                     <Formik
-                        initialValues={{ name: '' }}
+                        initialValues={{ name: selectedAttribute ? selectedAttribute.name : '' }}
                         validationSchema={validationSchema}
-                        onSubmit={handleSave}
+                        onSubmit={modalType.startsWith('add') ? handleSave : handleUpdate}
                     >
-                        {({ errors, touched, isSubmitting, values }) => (
+                        {({ errors, touched, isSubmitting, submitForm, values }) => (
                             <Form>
                                 <DialogContent className={cx('modalBody')}>
                                     <Field
@@ -537,8 +536,8 @@ function Attributes() {
                                         type="text"
                                         fullWidth
                                         variant="outlined"
-                                        error={touched.name && errors.name && values.name !== ''}
-                                        helperText={touched.name && errors.name && values.name !== '' ? errors.name : ''}
+                                        error={touched.name && errors.name && values.name.trim() !== ''}
+                                        helperText={touched.name && errors.name && values.name.trim() !== '' ? errors.name : ''}
                                         className={cx('inputField')}
                                         InputProps={{
                                             classes: {
@@ -559,7 +558,7 @@ function Attributes() {
                                         Hủy
                                     </Button>
                                     <Button
-                                        type="submit"
+                                        onClick={submitForm}
                                         variant="contained"
                                         className={cx('confirmButton')}
                                         disabled={isSubmitting || !values.name.trim()}
@@ -599,11 +598,11 @@ function Attributes() {
                     aria-describedby="alert-dialog-description"
                 >
                     <DialogTitle id="alert-dialog-title">
-                        {saveAction === 'add' ? 'Xác nhận thêm mới' : 'Xác nhận cập nhật'}
+                        {modalType.startsWith('add') ? 'Xác nhận thêm mới' : 'Xác nhận cập nhật'}
                     </DialogTitle>
                     <DialogContent>
                         <Typography>
-                            {saveAction === 'add'
+                            {modalType.startsWith('add')
                                 ? 'Bạn có chắc chắn muốn thêm mục này?'
                                 : 'Bạn có chắc chắn muốn cập nhật mục này?'}
                         </Typography>
@@ -613,7 +612,10 @@ function Attributes() {
                             Hủy
                         </Button>
                         <Button
-                            onClick={saveAction === 'add' ? handleSave : handleConfirmUpdate}
+                            onClick={() => {
+                                setConfirmSaveDialogOpen(false);
+                                document.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                            }}
                             color="primary"
                             autoFocus
                         >
@@ -628,4 +630,4 @@ function Attributes() {
     );
 }
 
-export default Attributes;
+export default Attributes; 
