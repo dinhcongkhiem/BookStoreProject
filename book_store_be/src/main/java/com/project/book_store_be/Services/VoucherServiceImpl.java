@@ -11,7 +11,6 @@ import com.project.book_store_be.Repository.VoucherRepository;
 import com.project.book_store_be.Request.VoucherRequest;
 import com.project.book_store_be.Response.VoucherRes.VoucherResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -142,6 +141,15 @@ public class VoucherServiceImpl implements VoucherService {
         voucher.setUsers(users);
 
         return voucherRepository.save(voucher);
+    }
+
+    @Override
+    @Transactional
+    public void returnVoucherWhenCancelOrder(Long id, User user) {
+        Voucher voucher = getVoucherById(id);
+        voucher.getUsers().add(user);
+        voucher.setQuantity(voucher.getQuantity() + 1);
+        voucherRepository.save(voucher);
     }
 
     @Override

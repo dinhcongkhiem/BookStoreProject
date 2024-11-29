@@ -31,7 +31,6 @@ import com.project.book_store_be.Response.VoucherRes.VoucherInOrderResponse;
 import jakarta.persistence.Tuple;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -578,6 +577,10 @@ public class OrderServiceImpl implements OrderService {
                 Product product = orderDetail.getProduct();
                 productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity());
             });
+            if(order.getVoucher() != null) {
+                this.voucherService.returnVoucherWhenCancelOrder(order.getVoucher().getId(), order.getUser());
+
+            }
         }
         order.setStatus(orderStatus);
         orderRepository.save(order);
