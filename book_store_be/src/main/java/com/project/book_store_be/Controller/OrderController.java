@@ -99,12 +99,13 @@ public class OrderController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "15") Integer pageSize,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) LocalDateTime orderDate,
+            @RequestParam(required = false) LocalDateTime start,
+            @RequestParam(required = false) LocalDateTime end,
             @RequestParam(required = false) OrderStatus status
     ) {
         try {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(orderService.findAllOrders(page, pageSize, status, orderDate, keyword));
+                    .body(orderService.findAllOrders(page, pageSize, status, start,end, keyword));
 
         } catch (Exception e) {
             e.printStackTrace();

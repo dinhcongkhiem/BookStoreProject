@@ -80,14 +80,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null, keyword);
+        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null,null, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
 
     @Override
-    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime orderDate, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(null, status, orderDate, keyword);
+    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start,LocalDateTime end, String keyword) {
+        Specification<Order> spec = OrderSpecification.getOrders(null, status, start,end, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         Page<GetAllOrderResponse> ordersPage = orderRepository.findAll(spec, pageable).map(this::convertToResMng);
         Tuple count = orderRepository.countOrder();

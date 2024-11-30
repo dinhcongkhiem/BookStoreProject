@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OrderSpecification {
-    public static Specification<Order> getOrders(User user, OrderStatus status, LocalDateTime orderDate, String keyword) {
+    public static Specification<Order> getOrders(User user, OrderStatus status, LocalDateTime start, LocalDateTime end, String keyword) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (user != null) {
@@ -22,9 +22,9 @@ public class OrderSpecification {
             if (status != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));
             }
-            if(orderDate != null) {
-                LocalDateTime startDate = orderDate.withHour(0).withMinute(0).withSecond(0);
-                LocalDateTime endDate = orderDate.withHour(23).withMinute(59).withSecond(59);
+            if (start != null && end != null) {
+                LocalDateTime startDate = start.withHour(0).withMinute(0).withSecond(0);
+                LocalDateTime endDate = end.withHour(23).withMinute(59).withSecond(59);
                 predicates.add(criteriaBuilder.between(root.get("orderDate"), startDate, endDate));
             }
             if (keyword != null && !keyword.isEmpty()) {

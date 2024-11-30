@@ -231,7 +231,8 @@
     }
 }
 .input-date {
-    // width: 100%;
+    display: flex;
+    gap: 2rem;
     position: relative;
     >input[type='date'] {
         position: absolute;

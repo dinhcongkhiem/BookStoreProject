@@ -3,6 +3,7 @@ package com.project.book_store_be.Services;
 import com.project.book_store_be.Model.Category;
 import com.project.book_store_be.Repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,11 +16,11 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+        return categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     public List<Category> searchCategoriesByName(String keyword) {
-        return categoryRepository.findByNameContainingIgnoreCase(keyword);
+        return categoryRepository.findByNameContainingIgnoreCaseOrderByIdAsc(keyword);
     }
 
     public List<Category> getCategories(List<Long> categoryId) {
@@ -27,7 +28,7 @@ public class CategoryService {
     }
 
     public Category createCategory(Category category) {
-        if (categoryRepository.findByNameContainingIgnoreCase(category.getName()).size() > 0) {
+        if (categoryRepository.findByNameIgnoreCase(category.getName()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Danh mục " + category.getName() + " đã tồn tại");
 
         }
@@ -36,16 +37,19 @@ public class CategoryService {
 
     public void updateCategory(Long id, Category categoryDetails) {
         Category category = categoryRepository.findById(id).orElse(null);
-        if (category != null) {
-            if (category.getName().equals(categoryDetails.getName())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên danh mục mới phải khác với tên cũ");
-            }
-            if (categoryRepository.findByNameContainingIgnoreCase(categoryDetails.getName()).size() > 0 && !category.getName().equalsIgnoreCase(categoryDetails.getName())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Danh mục " + category.getName() + " đã tồn tại");
-            }
-            category.setName(categoryDetails.getName());
+        if (category == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục");
         }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục");
+        if (category.getName().equals(categoryDetails.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên danh mục mới phải khác với tên cũ");
+        }
+
+        if (categoryRepository.findByNameIgnoreCase(categoryDetails.getName()).isPresent() && !category.getName().equalsIgnoreCase(categoryDetails.getName())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Danh mục " + categoryDetails.getName() + " đã tồn tại");
+        }
+        category.setName(categoryDetails.getName());
+        categoryRepository.save(category);
+
     }
 
     public void deleteCategory(Long id) {

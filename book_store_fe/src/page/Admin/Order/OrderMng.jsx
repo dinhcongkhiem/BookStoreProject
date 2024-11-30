@@ -54,11 +54,17 @@ const cx = classNames.bind(style);
 
 export default function OrderMng() {
     const navigate = useNavigate();
-    const orderDateRef = useRef(null);
+    const endDateRef = useRef(null);
+    const startDateRef = useRef(null);
+
     const queryClient = useQueryClient();
-    const [orderDateValue, setOrderDateValue] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [searchDate, setSearchDate] = useState('');
+    const [startDateValue, setStartDateValue] = useState(null);
+    const [endDateValue, setEndDateValue] = useState(null);
+
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+
     const [currentStatus, setCurrentStatus] = useState('all');
     const [page, setPage] = useState(1);
     const [detailOpen, setDetailOpen] = useState(false);
@@ -74,12 +80,13 @@ export default function OrderMng() {
         error,
         isLoading,
     } = useQuery({
-        queryKey: ['orderMng', currentStatus, debounceSearchTerm, searchDate, page],
+        queryKey: ['orderMng', currentStatus, debounceSearchTerm, startDate, endDate, page],
         queryFn: () =>
             OrderService.getAllOrders({
                 page,
                 status: currentStatus,
-                orderDate: searchDate.trim().length > 0 ? convertToISOString(searchDate) : '',
+                start: startDate.trim().length > 0 ? convertToISOString(startDate) : '',
+                end: endDate.trim().length > 0 ? convertToISOString(endDate) : '',
                 keyword: debounceSearchTerm,
             }).then((res) => res.data),
         retry: 1,
@@ -90,14 +97,19 @@ export default function OrderMng() {
         setPage(1);
     };
 
-    const handleDateChange = (event) => {
+    const handleDateChange = (event, type) => {
         const date = event.target.value;
         let formattedDate = formatDate(date);
         if (date.length === 0) {
             formattedDate = '';
         }
-        setOrderDateValue(date);
-        setSearchDate(formattedDate);
+        if (type === 1) {
+            setStartDateValue(date);
+            setStartDate(formattedDate);
+        } else {
+            setEndDateValue(date);
+            setEndDate(formattedDate);
+        }
         setPage(1);
     };
 
@@ -193,17 +205,16 @@ export default function OrderMng() {
                             }}
                             size="small"
                             fullWidth
-                            label="Ngày mua hàng"
+                            label="Từ ngày..."
                             type="text"
-                            required
                             autoComplete="off"
                             margin="normal"
                             placeholder="dd/MM/yyyy"
                             variant="outlined"
                             onClick={() => {
-                                orderDateRef.current && orderDateRef.current.showPicker();
+                                startDateRef.current && startDateRef.current.showPicker();
                             }}
-                            value={searchDate}
+                            value={startDate}
                             sx={{ margin: 0 }}
                             InputProps={{
                                 endAdornment: (
@@ -217,9 +228,44 @@ export default function OrderMng() {
                         />
                         <input
                             type="date"
-                            ref={orderDateRef}
-                            value={orderDateValue}
+                            ref={startDateRef}
+                            value={startDateValue}
                             onChange={(e) => handleDateChange(e, 1)}
+                        />
+                        <TextField
+                            slotProps={{
+                                input: {
+                                    readOnly: true,
+                                },
+                            }}
+                            size="small"
+                            fullWidth
+                            label="Đến ngày"
+                            type="text"
+                            autoComplete="off"
+                            margin="normal"
+                            placeholder="dd/MM/yyyy"
+                            variant="outlined"
+                            onClick={() => {
+                                endDateRef.current && endDateRef.current.showPicker();
+                            }}
+                            value={endDate}
+                            sx={{ margin: 0 }}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <div className={cx('custom-datepicker')}>
+                                            <CalendarToday />
+                                        </div>
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+                        <input
+                            type="date"
+                            ref={endDateRef}
+                            value={endDateValue}
+                            onChange={(e) => handleDateChange(e, 2)}
                         />
                     </div>
                 </div>
