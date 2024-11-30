@@ -65,7 +65,7 @@ function Attributes() {
             .required('Tên là bắt buộc')
             .min(2, 'Tên phải có ít nhất 2 ký tự')
             .max(50, 'Tên không được vượt quá 50 ký tự')
-            .matches(/^[a-zA-Z\s\u00C0-\u1EF9]+$/, 'Tên chỉ được chứa chữ cái và khoảng trắng')
+            .matches(/^[a-zA-Z0-9\s\u00C0-\u1EF9.-]+$/, 'Tên chỉ được chứa chữ cái và khoảng trắng')
             .test('no-leading-trailing-spaces', 'Tên không được bắt đầu hoặc kết thúc bằng khoảng trắng',
                 value => value && value.trim() === value)
             .test('no-consecutive-spaces', 'Tên không được chứa nhiều khoảng trắng liên tiếp',
