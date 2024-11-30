@@ -39,12 +39,11 @@
 </div>
 <h3>Thông tin đơn hàng: <span th:text="${orderCode}"></span></h3>
 <p>Ngày đặt hàng: <span th:text="${#temporals.format(orderDate, 'dd/MM/yyyy')}"></span></p>
-<h4>Thông tin người dùng:</h4>
+<h4>Địa chỉ giao hàng:</h4>
 <p>
-    <strong th:text="${user.fullName}"></strong><br>
-    <span th:text="${fullAddress}"></span><br>
-    <span th:text="${user.phoneNum}"></span><br>
-    <span th:text="${user.email}"></span>
+    <strong th:text="${ordername}"></strong><br>
+    <span th:text="${fullAddress1}"></span><br>
+    <span th:text="${orderBuyerPhoneNum}"></span><br>
 </p>
 <strong>Trạng thái đơn hàng:</strong> <span style="color: #e74c3c;">Hủy đơn hàng</span>
 </p>
