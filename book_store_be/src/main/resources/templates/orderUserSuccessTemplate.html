@@ -39,17 +39,16 @@
 <p>Ngày đặt hàng: <span th:text="${#temporals.format(orderDate, 'dd/MM/yyyy')}"></span></p>
 <h4>Thông tin khách hàng:</h4>
 <p>
-  <strong th:text="${user.fullName}"></strong><br>
+  <strong th:text="${user1.fullName}"></strong><br>
   <span th:text="${fullAddress}"></span><br>
-  <span th:text="${user.phoneNum}"></span><br>
-  <span th:text="${user.email}"></span>
+  <span th:text="${user1.phoneNum}"></span><br>
+  <span th:text="${user1.email}"></span>
 </p>
 <h4>Địa chỉ giao hàng:</h4>
 <p>
-  <strong th:text="${user.fullName}"></strong><br>
-  <span th:text="${fullAddress}"></span><br>
-  <span th:text="${user.phoneNum}"></span><br>
-  <span th:text="${user.email}"></span>
+  <strong th:text="${ordername}"></strong><br>
+  <span th:text="${fullAddress1}"></span><br>
+  <span th:text="${orderBuyerPhoneNum}"></span><br>
 </p>
 <table>
   <thead>
