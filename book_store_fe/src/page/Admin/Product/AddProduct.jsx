@@ -49,11 +49,11 @@ function AddProduct() {
     const navigate = useNavigate();
     const [indexRemove, setIndexRemove] = useState(null);
     const validationSchema = Yup.object({
-        name: Yup.string().required('Vui lòng nhập tên sách.'),
+        name: Yup.string().required('Vui lòng nhập tên sách.').max(255, 'Tên sản phẩm không được vượt quá 255 ký tự.'),
         size: Yup.object({
-            x: Yup.number().required('x is required').min(1, 'min is 200').max(500, 'max is 500').integer('x must be an integer'),
-            y: Yup.number().required('y is required').min(1, 'min is 200').max(500, 'max is 500').integer('y must be an integer'),
-            z: Yup.number().required('z is required').min(1, 'min is 200').max(500, 'max is 500').integer('z must be an integer'),
+            x: Yup.number().required('x is required').min(1, 'min is 200').max(500, 'max is 500'),
+            y: Yup.number().required('y is required').min(1, 'min is 200').max(500, 'max is 500'),
+            z: Yup.number().required('z is required').min(1, 'min is 200').max(500, 'max is 500'),
         }),
         weight: Yup.number()
             .required('Vui lòng nhập khối lượng.')
@@ -443,7 +443,7 @@ function AddProduct() {
                                 )}
 
                                 <FormHelperText sx={{ color: '#d32f2f' }}>
-                                    {formik.errors.size ? `Kích thước là bắt buộc và phải là số nguyên nằm trong khoảng 0 - 500` : ''}
+                                    {formik.errors.size ? `Kích thước là bắt buộc và phải nằm trong khoảng 0 - 500` : ''}
                                 </FormHelperText>
                             </div>
                             {renderTextField('weight', 'KL(gram)', 'number', true, null, {

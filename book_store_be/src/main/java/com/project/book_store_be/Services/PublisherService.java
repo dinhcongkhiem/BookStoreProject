@@ -4,6 +4,7 @@ import com.project.book_store_be.Exception.PublisherAlreadyExistsException;
 import com.project.book_store_be.Model.Publisher;
 import com.project.book_store_be.Repository.PublisherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,11 +16,11 @@ public class PublisherService {
     private PublisherRepository repo;
 
     public List<Publisher> getAllPublisher() {
-        return repo.findAll();
+        return repo.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     public List<Publisher> searchPublishersByName(String keyword) {
-        return repo.findByNameContainingIgnoreCase(keyword);
+        return repo.findByNameContainingIgnoreCaseOrderByIdAsc(keyword);
     }
 
     public Optional<Publisher> getPublisherById(Long id) {
@@ -27,7 +28,7 @@ public class PublisherService {
     }
 
     public Publisher savePublisher(Publisher publisher) {
-        if(repo.findByNameContainingIgnoreCase(publisher.getName()).size() > 0){
+        if(repo.findByNameIgnoreCase(publisher.getName()).isPresent()){
             throw new PublisherAlreadyExistsException("Nhà phát hành " +  publisher.getName() + " đã tồn tại, vui lòng thử lại");
         }
         return repo.save(publisher);
@@ -35,8 +36,8 @@ public class PublisherService {
 
     public Publisher updatePublisher(Long id, Publisher publisherDetails) {
         Publisher publisher = repo.findById(id).orElseThrow(() -> new RuntimeException("Publisher not found"));
-        if(repo.findByNameContainingIgnoreCase(publisherDetails.getName()).size() > 0 && !publisher.getName().equalsIgnoreCase(publisherDetails.getName())){
-            throw new PublisherAlreadyExistsException("Nhà phát hành " +  publisher.getName() + " đã tồn tại, vui lòng thử lại");
+        if(repo.findByNameIgnoreCase(publisher.getName()).isPresent() && !publisher.getName().equalsIgnoreCase(publisherDetails.getName())){
+            throw new PublisherAlreadyExistsException("Nhà phát hành " +  publisherDetails.getName() + " đã tồn tại, vui lòng thử lại");
         }
         publisher.setName(publisherDetails.getName());
         return repo.save(publisher);

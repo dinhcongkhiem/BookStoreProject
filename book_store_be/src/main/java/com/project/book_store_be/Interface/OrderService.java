@@ -15,8 +15,8 @@ import java.util.Map;
 
 public interface OrderService {
     Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword);
-    
-    OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime orderDate, String keyword);
+
+    OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, String keyword);
 
     CreateOrderResponse createOrder(OrderRequest request);
 
@@ -25,6 +25,7 @@ public interface OrderService {
     OrderDetailResponse getOrderDetailById(Long id);
 
     CreateOrderResponse rePaymentOrder(Long orderId, PaymentType paymentType);
+
     Map<?, ?> createOrderCounterSales();
 
     @Transactional
@@ -36,6 +37,7 @@ public interface OrderService {
     void createOrderDetail(List<OrderRequest.OrderDetailRequest> request, Long orderId);
 
     byte[] successOrderInCounter(Long id, UpdateOrderRequest request);
+
     void updateOrderStatus(Long orderId, OrderStatus status);
 
     void cancelOrderInCounter(Long orderId);

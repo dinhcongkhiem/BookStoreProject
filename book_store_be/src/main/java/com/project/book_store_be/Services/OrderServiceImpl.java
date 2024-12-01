@@ -80,14 +80,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null, keyword);
+        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null,null, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
 
     @Override
-    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime orderDate, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(null, status, orderDate, keyword);
+    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start,LocalDateTime end, String keyword) {
+        Specification<Order> spec = OrderSpecification.getOrders(null, status, start,end, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         Page<GetAllOrderResponse> ordersPage = orderRepository.findAll(spec, pageable).map(this::convertToResMng);
         Tuple count = orderRepository.countOrder();
@@ -740,6 +740,7 @@ public class OrderServiceImpl implements OrderService {
     }
     private Map<String, Object> prepareEmailVariables(Order order) {
         User user = order.getUser();
+        User currentUser = userService.getCurrentUser();
         if (user == null) {
             throw new IllegalArgumentException("Không tìm thấy thông tin khách hàng cho đơn hàng");
         }
@@ -754,6 +755,15 @@ public class OrderServiceImpl implements OrderService {
                 (address.getProvince() != null && address.getProvince().getLabel() != null ? address.getProvince().getLabel() : "")
                 : "Địa chỉ không có";
 
+        Address address1 = order.getAddress();
+        String fullAddress1 = (address1 != null)
+                ? address1.getAddressDetail() + ", " +
+                (address1.getDistrict() != null && address1.getDistrict().getLabel() != null ? address1.getDistrict().getLabel() : "") + ", " +
+                (address1.getCommune() != null && address1.getCommune().getLabel() != null ? address1.getCommune().getLabel() : "") + ", " +
+                (address1.getProvince() != null && address1.getProvince().getLabel() != null ? address1.getProvince().getLabel() : "")
+                : "Địa chỉ không có";
+        String orderBuyerPhoneNum = order.getBuyerPhoneNum();
+        String ordername = order.getBuyerName();
         List<OrderDetail> orderDetails = order.getOrderDetails() != null ? order.getOrderDetails() : Collections.emptyList();
 
         List<Map<String, Object>> productList = orderDetails.stream()
@@ -778,14 +788,25 @@ public class OrderServiceImpl implements OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalDiscount = orderDetails.stream()
-                .map(orderDetail -> orderDetail.getDiscount() != null ? orderDetail.getDiscount() : BigDecimal.ZERO)
+                .map(orderDetail -> {
+                    BigDecimal discount = orderDetail.getDiscount() != null ? orderDetail.getDiscount() : BigDecimal.ZERO;
+                    return discount.multiply(BigDecimal.valueOf(orderDetail.getQuantity()));
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal shippingFee = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
         BigDecimal totalAmountBeforeVoucher = subTotal.add(shippingFee).subtract(totalDiscount);
         BigDecimal voucherAmount = BigDecimal.ZERO;
         if (order.getVoucher() != null) {
-            voucherAmount = totalAmountBeforeVoucher.multiply(order.getVoucher().getValue()).divide(BigDecimal.valueOf(100)); // Tính số tiền giảm từ voucher
+            if (order.getVoucher().getType() == VoucherType.PERCENT) {
+                voucherAmount = totalAmountBeforeVoucher.multiply(order.getVoucher().getValue()).divide(BigDecimal.valueOf(100));
+                BigDecimal maxDiscount = order.getVoucher().getMaxValue();
+                if (voucherAmount.compareTo(maxDiscount) > 0) {
+                    voucherAmount = maxDiscount;
+                }
+            } else if (order.getVoucher().getType() == VoucherType.CASH) {
+                voucherAmount = order.getVoucher().getValue();
+            }
         }
         BigDecimal totalAmount = totalAmountBeforeVoucher.subtract(voucherAmount);
 
@@ -798,10 +819,13 @@ public class OrderServiceImpl implements OrderService {
         Map<String, Object> emailVariables = new HashMap<>();
         emailVariables.put("orderCode", order.getId());
         emailVariables.put("orderDate", order.getOrderDate());
-        emailVariables.put("user", user);
+        emailVariables.put("user1", currentUser);
         emailVariables.put("adminLink", adminLink);
         emailVariables.put("userLink", userLink);
         emailVariables.put("cancelLink", cancelLink);
+        emailVariables.put("fullAddress1", fullAddress1);
+        emailVariables.put("orderBuyerPhoneNum", orderBuyerPhoneNum);
+        emailVariables.put("ordername", ordername);
         emailVariables.put("fullAddress", fullAddress);
         emailVariables.put("productList", productList);
         emailVariables.put("subTotal", formatPrice(subTotal));

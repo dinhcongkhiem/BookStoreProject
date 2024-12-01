@@ -168,7 +168,11 @@ function Attributes() {
             }
             handleCloseModal();
         } catch (error) {
-            toast.error('Đã xảy ra lỗi khi cập nhật!');
+            if(error.response.status === 409) {
+                toast.error(error.response.data);
+            }else {
+                toast.error('Đã xảy ra lỗi khi cập nhật!');
+            }
             setErrors({ submit: 'Đã xảy ra lỗi khi cập nhật.' });
         }
         setSubmitting(false);
