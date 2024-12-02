@@ -2,6 +2,7 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Enum.OrderStatus;
+import com.project.book_store_be.Enum.VoucherType;
 import com.project.book_store_be.Interface.PaymentService;
 import com.project.book_store_be.Model.*;
 import com.project.book_store_be.Repository.OrderRepository;
@@ -44,6 +45,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private Map<String, Object> prepareEmailVariables(Order order) {
         User user = order.getUser();
+        User currentUser = userService.getCurrentUser();
         if (user == null) {
             throw new IllegalArgumentException("Không tìm thấy thông tin khách hàng cho đơn hàng");
         }
@@ -58,6 +60,15 @@ public class PaymentServiceImpl implements PaymentService {
                 (address.getProvince() != null && address.getProvince().getLabel() != null ? address.getProvince().getLabel() : "")
                 : "Địa chỉ không có";
 
+        Address address1 = order.getAddress();
+        String fullAddress1 = (address1 != null)
+                ? address1.getAddressDetail() + ", " +
+                (address1.getDistrict() != null && address1.getDistrict().getLabel() != null ? address1.getDistrict().getLabel() : "") + ", " +
+                (address1.getCommune() != null && address1.getCommune().getLabel() != null ? address1.getCommune().getLabel() : "") + ", " +
+                (address1.getProvince() != null && address1.getProvince().getLabel() != null ? address1.getProvince().getLabel() : "")
+                : "Địa chỉ không có";
+        String orderBuyerPhoneNum = order.getBuyerPhoneNum();
+        String ordername = order.getBuyerName();
         List<OrderDetail> orderDetails = order.getOrderDetails() != null ? order.getOrderDetails() : Collections.emptyList();
 
         List<Map<String, Object>> productList = orderDetails.stream()
@@ -82,14 +93,25 @@ public class PaymentServiceImpl implements PaymentService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalDiscount = orderDetails.stream()
-                .map(orderDetail -> orderDetail.getDiscount() != null ? orderDetail.getDiscount() : BigDecimal.ZERO)
+                .map(orderDetail -> {
+                    BigDecimal discount = orderDetail.getDiscount() != null ? orderDetail.getDiscount() : BigDecimal.ZERO;
+                    return discount.multiply(BigDecimal.valueOf(orderDetail.getQuantity()));
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal shippingFee = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
         BigDecimal totalAmountBeforeVoucher = subTotal.add(shippingFee).subtract(totalDiscount);
         BigDecimal voucherAmount = BigDecimal.ZERO;
         if (order.getVoucher() != null) {
-            voucherAmount = totalAmountBeforeVoucher.multiply(order.getVoucher().getValue()).divide(BigDecimal.valueOf(100)); // Tính số tiền giảm từ voucher
+            if (order.getVoucher().getType() == VoucherType.PERCENT) {
+                voucherAmount = totalAmountBeforeVoucher.multiply(order.getVoucher().getValue()).divide(BigDecimal.valueOf(100));
+                BigDecimal maxDiscount = order.getVoucher().getMaxValue();
+                if (voucherAmount.compareTo(maxDiscount) > 0) {
+                    voucherAmount = maxDiscount;
+                }
+            } else if (order.getVoucher().getType() == VoucherType.CASH) {
+                voucherAmount = order.getVoucher().getValue();
+            }
         }
         BigDecimal totalAmount = totalAmountBeforeVoucher.subtract(voucherAmount);
 
@@ -98,14 +120,17 @@ public class PaymentServiceImpl implements PaymentService {
         String frontendBaseUrl = "http://localhost:3000";
         String adminLink = String.format("%s/admin/orderMng/%d", frontendBaseUrl, order.getId());
         String userLink = String.format("%s/order/detail/%d", frontendBaseUrl, order.getId());
-        String canCelLink = String.format("%s/order/detail/%d", frontendBaseUrl, currentOrder.getId());
+        String cancelLink = String.format("%s/order/detail/%d", frontendBaseUrl, currentOrder.getId());
         Map<String, Object> emailVariables = new HashMap<>();
         emailVariables.put("orderCode", order.getId());
         emailVariables.put("orderDate", order.getOrderDate());
-        emailVariables.put("user", user);
+        emailVariables.put("user1", currentUser);
         emailVariables.put("adminLink", adminLink);
         emailVariables.put("userLink", userLink);
-        emailVariables.put("canCelLink", canCelLink);
+        emailVariables.put("cancelLink", cancelLink);
+        emailVariables.put("fullAddress1", fullAddress1);
+        emailVariables.put("orderBuyerPhoneNum", orderBuyerPhoneNum);
+        emailVariables.put("ordername", ordername);
         emailVariables.put("fullAddress", fullAddress);
         emailVariables.put("productList", productList);
         emailVariables.put("subTotal", formatPrice(subTotal));
