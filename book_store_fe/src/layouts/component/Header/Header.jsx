@@ -139,7 +139,7 @@ function Header() {
 
     const handleNavigateSearch = () => {
         if (keyword.trim().length > 0) {
-            navigate(`/product?q=${encodeURIComponent(keyword)}`);
+            navigate(`/product?q=${encodeURIComponent(keyword.trim())}`);
         }
     };
 

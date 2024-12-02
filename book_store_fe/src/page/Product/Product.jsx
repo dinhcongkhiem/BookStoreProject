@@ -50,7 +50,7 @@ function Product() {
                 categoryId: searchParams.get('c') || null,
                 price: `${searchParams.get('min') || null},${searchParams.get('max') || null}`,
                 publisher: searchParams.get('pub') ? decodeURIComponent(searchParams.get('pub')) : null,
-                keyword: searchParams.get('q') ? decodeURIComponent(searchParams.get('q')) : null,
+                keyword: searchParams.get('q') ? decodeURIComponent(searchParams.get('q').trim()) : null,
             }).then((response) => response.data),
         retry: 1,
     });
@@ -61,7 +61,7 @@ function Product() {
     const handleChangeOrderBy = (e) => {
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.delete('p');
-        newSearchParams.set('sort', e.target.value)
+        newSearchParams.set('sort', e.target.value);
         setSearchParams(Object.fromEntries(newSearchParams.entries()));
         setOrderBy(e.target.value);
     };
@@ -91,32 +91,40 @@ function Product() {
 
             <div className={cx('col-main col-lg-9 col-md-9 col-sm-12 col-xs-12', 'main-body')}>
                 <div className={cx('toolbar')}>
-                    <p>Sắp xếp theo: </p>
-                    <div>
-                        <FormControl fullWidth size="small">
-                            <Select
-                                sx={{ borderRadius: '2rem' }}
-                                defaultValue={'Hàng mới'}
-                                value={orderBy}
-                                onChange={handleChangeOrderBy}
-                            >
-                                {listOrderBy.map((orderBy, index) => {
-                                    return (
-                                        <MenuItem key={index} value={orderBy.code}>
-                                            {orderBy.label}
-                                        </MenuItem>
-                                    );
-                                })}
-                            </Select>
-                        </FormControl>
+                    {searchParams.get('q') && (
+                        <div className={cx('search-result')}>
+                        <p>Kết quả tìm kiếm:<span>{` "${searchParams.get('q').trim()}"`}</span></p>
+                    </div>
+                    )}
+                    <div className={cx('sort')}>
+                        <p>Sắp xếp theo: </p>
+                        <div>
+                            <FormControl fullWidth size="small">
+                                <Select
+                                    sx={{ borderRadius: '2rem' }}
+                                    defaultValue={'Hàng mới'}
+                                    value={orderBy}
+                                    onChange={handleChangeOrderBy}
+                                >
+                                    {listOrderBy.map((orderBy, index) => {
+                                        return (
+                                            <MenuItem key={index} value={orderBy.code}>
+                                                {orderBy.label}
+                                            </MenuItem>
+                                        );
+                                    })}
+                                </Select>
+                            </FormControl>
+                        </div>
                     </div>
                 </div>
+
                 <div className={cx('products')}>
                     {(() => {
                         const datas = products?.content;
                         if (datas && datas.length > 0) {
                             return datas.map((p) => (
-                                    <ProductsComponent product={p} key={p.id} to={`/product/detail?id=${p.id}`} />
+                                <ProductsComponent product={p} key={p.id} to={`/product/detail?id=${p.id}`} />
                             ));
                         } else {
                             return (
