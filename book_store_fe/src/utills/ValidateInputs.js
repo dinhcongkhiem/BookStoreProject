@@ -54,13 +54,15 @@ const loginRules = [
 
 const forgetPassRules = [
     { field: 'email', validations: [{ type: 'required' }, { type: 'emailFormat' }] },
-    { field: 'verifyCode', validations: [{ type: 'required' }] },
-    { field: 'newPassword', validations: [{ type: 'required' }] },
-    { field: 'confirmPassword', validations: [{ type: 'required' }, { type: 'match', matchField: 'newPassword' }] },
 ];
 
 const changePassRules = [
     { field: 'password', validations: [{ type: 'required' }] },
+    { field: 'newPassword', validations: [{ type: 'required' }] },
+    { field: 'confirmPassword', validations: [{ type: 'required' }, { type: 'match', matchField: 'newPassword' }] },
+];
+
+const setNewPass = [
     { field: 'newPassword', validations: [{ type: 'required' }] },
     { field: 'confirmPassword', validations: [{ type: 'required' }, { type: 'match', matchField: 'newPassword' }] },
 ];
@@ -73,4 +75,6 @@ export const validateInputsForgetPass = (listErr, fields, setListErr) =>
     validateInputs(listErr, fields, forgetPassRules, setListErr);
 export const validateInputChangePass = (listErr, fields, setListErr) =>
     validateInputs(listErr, fields, changePassRules, setListErr);
+export const validateInputSetNewPass = (listErr, fields, setListErr) =>
+    validateInputs(listErr, fields, setNewPass, setListErr);
 

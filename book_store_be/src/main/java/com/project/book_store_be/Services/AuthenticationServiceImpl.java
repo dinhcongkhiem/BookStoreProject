@@ -119,6 +119,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
         User user = userRepository.findByEmail(forgetPasswordRequest.getEmail())
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
+        if(user.getVerifyKey() == null) {
+            user.setVerifyKey(generateVerifyKey());
+            userRepository.save(user);
+        }
         sendMailService.sendEmail(user, "Reset password",
                 "forgetPasswordTemplate", Map.of("clientUrl", clientUrl));
     }

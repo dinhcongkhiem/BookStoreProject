@@ -53,8 +53,6 @@ function Login() {
     };
 
     useEffect(() => {
-        console.log(authentication.isAuthen);
-
         if (authentication.isAuthen) {
             navigate('/');
         }
@@ -134,13 +132,13 @@ function Login() {
                             }
                             label={<Typography sx={{ fontWeight: 600 }}>Ghi nhớ đăng nhập</Typography>}
                         />
-                        <Link underline="hover">{'Quên mật khẩu?'}</Link>
+                        <Link underline="hover" onClick={() => navigate('/forgot-pass')} >{'Quên mật khẩu?'}</Link>
                     </div>
 
                     <div className={cx('action')}>
                         <p>
                             Bạn chưa có tài khoản,
-                            <Link underline="hover" onClick={() => navigate('/register')}>
+                            <Link underline="hover" sx={{cursor: 'pointer'}} onClick={() => navigate('/register')}>
                                 {' Đăng ký'}
                             </Link>
                         </p>

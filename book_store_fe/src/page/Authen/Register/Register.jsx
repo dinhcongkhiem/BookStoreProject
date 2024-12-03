@@ -370,7 +370,7 @@ function Register() {
                 </div>
 
                 <div className="d-flex justify-content-end align-items-center">
-                    <Link href="#" underline="hover">
+                    <Link onClick={() => navigate('/forgot-pass')} underline="hover">
                         {'Quên mật khẩu?'}
                     </Link>
                 </div>
