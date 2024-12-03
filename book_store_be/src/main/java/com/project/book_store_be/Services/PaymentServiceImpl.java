@@ -103,14 +103,14 @@ public class PaymentServiceImpl implements PaymentService {
         BigDecimal totalAmountBeforeVoucher = subTotal.add(shippingFee).subtract(totalDiscount);
         BigDecimal voucherAmount = BigDecimal.ZERO;
         if (order.getVoucher() != null) {
-            if (order.getVoucher().getType() == VoucherType.PERCENT) {
-                voucherAmount = totalAmountBeforeVoucher.multiply(order.getVoucher().getValue()).divide(BigDecimal.valueOf(100));
-                BigDecimal maxDiscount = order.getVoucher().getMaxValue();
-                if (voucherAmount.compareTo(maxDiscount) > 0) {
-                    voucherAmount = maxDiscount;
+            if (order.getVoucher() .getType() == VoucherType.PERCENT) {
+                if (order.getVoucher() .getMaxValue() != null && order.getVoucher() .getMaxValue().compareTo(order.getVoucher() .getValue()) < 0) {
+                    voucherAmount = order.getVoucher() .getMaxValue().multiply(order.getTotalPrice().add(shippingFee)).divide(BigDecimal.valueOf(100));
+                } else if (order.getVoucher() .getMaxValue() == null) {
+                    voucherAmount = order.getVoucher() .getValue().multiply(order.getTotalPrice().add(shippingFee)).divide(BigDecimal.valueOf(100));
                 }
             } else if (order.getVoucher().getType() == VoucherType.CASH) {
-                voucherAmount = order.getVoucher().getValue();
+                voucherAmount = order.getVoucher() .getValue();
             }
         }
         BigDecimal totalAmount = totalAmountBeforeVoucher.subtract(voucherAmount);
@@ -202,7 +202,7 @@ public class PaymentServiceImpl implements PaymentService {
                 BigDecimal finalPrice = totalPrice[0]
                         .add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
                 String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(),
-                        finalPrice);
+                        this.formatPrice(finalPrice));
                 notificationService.sendAdminNotification("Thanh toán đơn hàng", message, NotificationType.ORDER,
                         "/admin/orderMng/" + order.getId());
 
