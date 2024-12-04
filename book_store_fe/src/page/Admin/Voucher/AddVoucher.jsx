@@ -47,23 +47,7 @@ function AddVoucher() {
     const [startDateVal, setStartDateVal] = useState();
     const [endDateVal, setEndDateVal] = useState();
 
-    const [page, setPage] = useState(1);
-    const [searchTerm, setSearchTerm] = useState('');
-    const searchTermDebouce = useDebounce(searchTerm.trim(), 0);
-    const { data: userRes, error } = useQuery({
-        queryKey: ['userToVoucher', searchTermDebouce, page],
-        queryFn: () =>
-            UserService.getAllUser({
-                page: page,
-                size: 8,
-                keyword: searchTermDebouce.length > 0 ? searchTermDebouce : null,
-            }).then((response) => response.data),
-        retry: 1,
-    });
 
-    useEffect(() => {
-        console.log(error);
-    }, [error]);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -140,9 +124,6 @@ function AddVoucher() {
                 const endDate = parseDate(value);
                 return endDate > startDate;
             }),
-        userIds: Yup.array()
-            .min(1, 'Bạn phải chọn ít nhất một người dùng')
-            .required('Bạn phải chọn ít nhất một người dùng'),
     });
 
     const createVoucherMutation = useMutation({
@@ -480,129 +461,6 @@ function AddVoucher() {
                         </Paper>
                     </Grid>
                 </Grid>
-                <Paper elevation={3} className={cx('paper')}>
-                    <h4>Danh sách khách hàng</h4>
-                    <TextField
-                        fullWidth
-                        id="searchDiscount"
-                        className={cx('search-input')}
-                        size="small"
-                        variant="outlined"
-                        placeholder="Tìm kiếm khách hàng..."
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <Search />
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
-                    {formik.errors.userIds && (
-                        <FormHelperText sx={{ color: '#d32f2f' }}>{formik.errors.userIds}</FormHelperText>
-                    )}
-                    <span style={{ fontSize: '1.4rem', marginTop: '1rem', opacity: 0.8 }}>
-                        Đã chọn: {formik.values.userIds.length}
-                    </span>
-                    <TableContainer component={Paper} className={cx('product-table')}>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell padding="checkbox" sx={{ width: '50px', minWidth: '50px' }}>
-                                        <Checkbox
-                                            checked={
-                                                Array.isArray(formik.values.userIds) &&
-                                                formik.values.userIds[0] === -1 &&
-                                                formik.values.userIds.length === 1
-                                            }
-                                            onChange={() => {
-                                                const updateduserIds = Array.isArray(formik.values.userIds)
-                                                    ? formik.values.userIds.includes(-1)
-                                                        ? []
-                                                        : [-1]
-                                                    : [-1];
-
-                                                formik.setFieldValue('userIds', updateduserIds);
-                                            }}
-                                        />
-                                    </TableCell>
-                                    <TableCell size="small" sx={{ paddingRight: '.5rem' }}>
-                                        <b>Họ tên</b>
-                                    </TableCell>
-                                    <TableCell size="small" sx={{ paddingRight: '.5rem', width: '200px' }}>
-                                        <b>Email</b>
-                                    </TableCell>
-                                    <TableCell size="small" sx={{ paddingRight: '.5rem', width: '100px' }}>
-                                        <b>SĐT</b>
-                                    </TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {userRes?.content.map((user) => (
-                                    <TableRow key={user.id}>
-                                        <TableCell padding="checkbox">
-                                            <Checkbox
-                                                checked={
-                                                    Array.isArray(formik.values.userIds) &&
-                                                    formik.values.userIds[0] === -1
-                                                        ? !formik.values.userIds.includes(user.id)
-                                                        : formik.values.userIds.includes(user.id)
-                                                }
-                                                onChange={() => {
-                                                    const updateduserIds = Array.isArray(formik.values.userIds)
-                                                        ? formik.values.userIds.includes(user.id)
-                                                            ? formik.values.userIds.filter((id) => id !== user.id)
-                                                            : [...formik.values.userIds, user.id]
-                                                        : [user.id];
-
-                                                    formik.setFieldValue('userIds', updateduserIds);
-                                                }}
-                                            />
-                                        </TableCell>
-                                        <TableCell
-                                            size="small"
-                                            sx={{
-                                                width: '250px',
-                                                maxWidth: '250px',
-                                                paddingRight: '.5rem',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                            }}
-                                        >
-                                            {user.fullName}
-                                        </TableCell>
-                                        <TableCell
-                                            size="small"
-                                            sx={{
-                                                paddingRight: '.5rem',
-                                                width: '200px',
-                                                maxWidth: '200px',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                            }}
-                                        >
-                                            {user.email}
-                                        </TableCell>
-                                        <TableCell size="small" sx={{ paddingRight: '.5rem', width: '100px' }}>
-                                            {user.phoneNum}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                    <div className="d-flex justify-content-center mt-4">
-                        <Pagination
-                            color="primary"
-                            onChange={(e, v) => setPage(v)}
-                            variant="outlined"
-                            page={parseInt(page)}
-                            count={userRes?.totalPages < 1 ? 1 : userRes?.totalPages}
-                        />
-                    </div>
-                </Paper>
             </div>
             <ModalLoading isLoading={createVoucherMutation.isLoading || updateiscountMutation.isLoading} />
         </Box>

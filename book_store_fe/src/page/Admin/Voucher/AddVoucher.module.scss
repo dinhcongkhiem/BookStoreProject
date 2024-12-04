@@ -13,7 +13,7 @@
     }
 
     .paper {
-        padding: 2.4rem;
+        padding: 2.4rem 5rem;
         box-shadow: none;
         border-radius: 0;
     }
@@ -30,7 +30,6 @@
     justify-content: flex-end;
     gap: 1.62rem;
     margin-top: 3rem;
-    flex-direction: row-reverse;
 
     .submit-button {
         background-color: var(--primary);

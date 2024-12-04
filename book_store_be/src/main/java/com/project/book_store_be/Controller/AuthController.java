@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.NoSuchElementException;
@@ -28,6 +29,18 @@ public class AuthController {
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         try {
             authenticationService.register(request);
+            return ResponseEntity.ok("Please check your email to active account");
+        } catch (UserAlreadyExistsException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("User with email " + request.getEmail() + " already exists");
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/create-by-admin")
+    public ResponseEntity<String> createByAdmin(@RequestBody RegisterRequest request) {
+        try {
+            authenticationService.registerByAdmin(request);
             return ResponseEntity.ok("Please check your email to active account");
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

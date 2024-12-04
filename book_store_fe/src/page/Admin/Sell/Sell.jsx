@@ -56,6 +56,7 @@ import { toast } from 'react-toastify';
 import QRCodeModal from '../../../component/Modal/QRCodeModal/QRCodeModal';
 import ConfirmModal from '../../../component/Modal/ConfirmModal/ConfirmModal';
 import UserService from '../../../service/UserService';
+import UserInfo from '../../User/UserInfo';
 
 const cx = classNames.bind(styles);
 
@@ -65,6 +66,7 @@ export default function Sell() {
     const [activeInvoiceData, setActiveInvoiceData] = useState(null);
     const [showScanner, setShowScanner] = useState(false);
     const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+    const [isAddnewUser, setIsAddnewUser] = useState(false);
 
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -90,10 +92,14 @@ export default function Sell() {
     } = useQuery({
         queryKey: ['productsMng', debouncedSearchValue, page],
         queryFn: () =>
-            ProductService.getAllProductForMng({ page: page, pageSize: 20, keyword: debouncedSearchValue, status: 1 }).then(
-                (res) => res.data,
-            ),
+            ProductService.getAllProductForMng({
+                page: page,
+                pageSize: 20,
+                keyword: debouncedSearchValue,
+                status: 1,
+            }).then((res) => res.data),
         retry: 1,
+        enabled: !!isProductDialogOpen,
     });
 
     const {
@@ -212,7 +218,7 @@ export default function Sell() {
     };
 
     const handleChangeValueCash = (value) => {
-        if(value > 2000000000) {
+        if (value > 2000000000) {
             toast.warn('Số tiền không được vượt quá 2 tỷ');
             return;
         }
@@ -325,7 +331,8 @@ export default function Sell() {
         mutationFn: () =>
             OrderService.successOrderMutation(activeInvoice, {
                 userId: selectedUser ? selectedUser.id : -1,
-                paymentType: paymentType === 'cash' ? 'cash_on_delivery' : paymentType === 'bank' ? 'bank_transfer' : 'both',
+                paymentType:
+                    paymentType === 'cash' ? 'cash_on_delivery' : paymentType === 'bank' ? 'bank_transfer' : 'both',
                 amountPaid: totalUserPayment,
             }),
         onError: (error) => console.log(error),
@@ -336,11 +343,11 @@ export default function Sell() {
             iframe.style.display = 'none';
             iframe.src = url;
             document.body.appendChild(iframe);
-        
+
             URL.revokeObjectURL(url);
-        
+
             iframe.onload = () => {
-              iframe.contentWindow?.print();
+                iframe.contentWindow?.print();
             };
             deleteInvoice(activeInvoice);
             toast.success('Đã hoàn thành đơn hàng');
@@ -350,7 +357,7 @@ export default function Sell() {
     const [searchUserTerm, setSearchUserTerm] = useState('');
     const searchUserTermDebouce = useDebounce(searchUserTerm.trim(), 600);
     const { data: userRes } = useQuery({
-        queryKey: ['userByInCount', searchUserTermDebouce, page],
+        queryKey: ['userByInCount', searchUserTermDebouce, isAddnewUser],
         queryFn: () =>
             UserService.getAllUser({
                 page: page,
@@ -454,11 +461,11 @@ export default function Sell() {
                                                     <TableCell align="right">
                                                         {(item.originalPrice - item.discount).toLocaleString('vi-VN')}₫
                                                         {item.discount > 0 && (
-                                                <p className={cx('originalPrice')}>
-                                                    {item.originalPrice.toLocaleString('vi-VN')}
-                                                    <span>₫</span>
-                                                </p>
-                                            )}{' '}
+                                                            <p className={cx('originalPrice')}>
+                                                                {item.originalPrice.toLocaleString('vi-VN')}
+                                                                <span>₫</span>
+                                                            </p>
+                                                        )}{' '}
                                                     </TableCell>
                                                     <TableCell align="center">
                                                         <div className={cx('quantity-container')}>
@@ -513,7 +520,11 @@ export default function Sell() {
                                                         </div>
                                                     </TableCell>
                                                     <TableCell align="right">
-                                                        {(item.quantity * (item.originalPrice - item.discount)).toLocaleString('vi-VN')}₫
+                                                        {(
+                                                            item.quantity *
+                                                            (item.originalPrice - item.discount)
+                                                        ).toLocaleString('vi-VN')}
+                                                        ₫
                                                     </TableCell>
                                                     <TableCell align="center">
                                                         <IconButton
@@ -576,16 +587,26 @@ export default function Sell() {
                                     name="user"
                                     options={
                                         userRes
-                                            ? userRes.content.map((item) => ({
-                                                  label: item.fullName,
-                                                  id: item.id,
-                                              }))
-                                            : []
+                                            ? [
+                                                  ...userRes.content.map((item) => ({
+                                                      label: `${item.fullName} - ${item.phoneNum}`,
+                                                      id: item.id,
+                                                  })),
+                                                  { label: 'Thêm mới người dùng', id: 'new' },
+                                              ]
+                                            : [{ label: 'Thêm mới người dùng', id: 'new' }]
                                     }
                                     value={selectedUser}
                                     filterOptions={(x) => x}
                                     onInputChange={(e, value) => setSearchUserTerm(value)}
-                                    onChange={(event, value) => handleAddSelectedUser(value)}
+                                    onChange={(event, value) => {
+                                        if (value?.id === 'new') {
+                                            console.log('Thêm mới người dùng được chọn');
+                                            setIsAddnewUser(true);
+                                        } else {
+                                            handleAddSelectedUser(value);
+                                        }
+                                    }}
                                     renderInput={(params) => <TextField {...params} label="Người mua" />}
                                     noOptionsText="Không tìm thấy người dùng"
                                     size="small"
@@ -628,7 +649,7 @@ export default function Sell() {
                                         value={paymentType}
                                         onChange={(e) => {
                                             setPaymentType(e.target.value);
-                                            if(e.target.value === 'bank') {
+                                            if (e.target.value === 'bank') {
                                                 setTotalUserPayment(productInOrderRes?.grandTotal);
                                             }
                                             clearPaymentValues();
@@ -654,21 +675,23 @@ export default function Sell() {
                                         />
                                     </RadioGroup>
                                 </FormControl>
-                                {paymentType === 'bank' && activeInvoice !== null && productInOrderRes?.grandTotal > 0 && (
-                                    <div className='d-flex align-items-start' style={{userSelect: 'none'}}>
-                                        <img
-                                            src={`https://api.vietqr.io/image/970422-0842888559-bXU1iBq.jpg?addInfo=BookBazaar&amount=${productInOrderRes?.grandTotal}`}
-                                            alt="qrcode"
-                                            width={150}
-                                        />
-                                        <button
-                                            className={cx('show-barcode')}
-                                            onClick={() => setOpenQRCodeModal(productInOrderRes?.grandTotal)}
-                                        >
-                                            <ZoomIn />
-                                        </button>
-                                    </div>
-                                )}
+                                {paymentType === 'bank' &&
+                                    activeInvoice !== null &&
+                                    productInOrderRes?.grandTotal > 0 && (
+                                        <div className="d-flex align-items-start" style={{ userSelect: 'none' }}>
+                                            <img
+                                                src={`https://api.vietqr.io/image/970422-0842888559-bXU1iBq.jpg?addInfo=BookBazaar&amount=${productInOrderRes?.grandTotal}`}
+                                                alt="qrcode"
+                                                width={150}
+                                            />
+                                            <button
+                                                className={cx('show-barcode')}
+                                                onClick={() => setOpenQRCodeModal(productInOrderRes?.grandTotal)}
+                                            >
+                                                <ZoomIn />
+                                            </button>
+                                        </div>
+                                    )}
                                 {paymentType === 'cash' && (
                                     <>
                                         <div className="d-flex justify-content-between align-items-center">
@@ -703,7 +726,7 @@ export default function Sell() {
                                                     value={amout}
                                                     onChange={(e) => {
                                                         const value = e.target.value;
-                                                        if(value > 2000000000) {
+                                                        if (value > 2000000000) {
                                                             toast.warn('Số tiền không được vượt quá 2 tỷ');
                                                             return;
                                                         }
@@ -783,10 +806,10 @@ export default function Sell() {
                                     variant="contained"
                                     className={cx('checkoutButton')}
                                     disabled={
-                                        (
-                                        !activeInvoiceData ||
-                                        totalUserPayment < productInOrderRes?.grandTotal ||
-                                        !productInOrderRes?.items.length > 0) && paymentType !== 'bank'
+                                        (!activeInvoiceData ||
+                                            totalUserPayment < productInOrderRes?.grandTotal ||
+                                            !productInOrderRes?.items.length > 0) &&
+                                        paymentType !== 'bank'
                                     }
                                     startIcon={
                                         isLoading ? <CircularProgress size={24} color="inherit" /> : <AttachMoneyIcon />
@@ -844,7 +867,7 @@ export default function Sell() {
                                                 onChange={() => handleSelectProduct(product)}
                                             />
                                         </TableCell>
-                                        <TableCell sx={{maxWidth: '45rem'}}>
+                                        <TableCell sx={{ maxWidth: '45rem' }}>
                                             <Box display="flex" alignItems="center">
                                                 <img
                                                     alt={product.name}
@@ -856,7 +879,7 @@ export default function Sell() {
                                                 </Typography>
                                             </Box>
                                         </TableCell>
-                                        <TableCell align="right" >
+                                        <TableCell align="right">
                                             {product.price.toLocaleString('vi-VN')} <span>₫</span>
                                             {product.price !== product.originalPrice && (
                                                 <p className={cx('originalPrice')}>
@@ -888,6 +911,19 @@ export default function Sell() {
                         Thêm ({selectedProducts.length})
                     </Button>
                 </DialogActions>
+            </Dialog>
+            <Dialog
+                open={isAddnewUser}
+                onClose={() => {
+                    setIsAddnewUser(false);
+                }}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle>Thêm mới người dùng</DialogTitle>
+                <DialogContent>
+                    <UserInfo onClose={() => setIsAddnewUser(false)}/>
+                </DialogContent>
             </Dialog>
             {openQRCodeModal && (
                 <QRCodeModal

@@ -15,4 +15,5 @@ public interface AuthenticationService {
     boolean validVerifyKey(String activeKey);
     String generateVerifyKey();
     String generateRefreshToken(String email);
+    void registerByAdmin(RegisterRequest request);
 }
