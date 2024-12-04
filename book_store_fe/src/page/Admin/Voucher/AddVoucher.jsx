@@ -96,7 +96,7 @@ function AddVoucher() {
                     .min(5, 'Giá trị tối thiểu là 5%')
                     .max(30, 'Giá trị tối đa là 30%');
             }
-            return Yup.number().required('Vui lòng nhập giá trị giảm giá').min(1, 'Giá trị tối thiểu là 1');
+            return Yup.number().required('Vui lòng nhập giá trị giảm giá').min(1, 'Giá trị tối thiểu là 1').max(1000000, 'Giá trị tối đa là 1 triệu.');
         }),
         type: Yup.string().required('Vui lòng chọn loại giảm giá'),
         quantity: Yup.number().required('Vui lòng nhập số lượng').min(1, 'Số lượng tối thiểu là 1').max(2000000000, 'Giá trị tối đa là 2 tỷ'),
