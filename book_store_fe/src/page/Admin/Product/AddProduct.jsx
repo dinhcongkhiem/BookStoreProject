@@ -49,7 +49,7 @@ function AddProduct() {
     const navigate = useNavigate();
     const [indexRemove, setIndexRemove] = useState(null);
     const validationSchema = Yup.object({
-        name: Yup.string().required('Vui lòng nhập tên sách.').max(255, 'Tên sản phẩm không được vượt quá 255 ký tự.'),
+        name: Yup.string().trim().required('Vui lòng nhập tên sách.').max(255, 'Tên sản phẩm không được vượt quá 255 ký tự.'),
         size: Yup.object({
             x: Yup.number().required('x is required').min(1, 'min is 200').max(500, 'max is 500'),
             y: Yup.number().required('y is required').min(1, 'min is 200').max(500, 'max is 500'),
@@ -84,7 +84,7 @@ function AddProduct() {
                     }),
             }),
         publisherId: Yup.string().required('Vui lòng chọn nhà phát hành.'),
-        manufacturer: Yup.string().required('Vui lòng nhập NXB.').max(255, 'NXB không được vượt quá 255 ký tự.'),
+        manufacturer: Yup.string().trim().required('Vui lòng nhập NXB.').max(255, 'NXB không được vượt quá 255 ký tự.'),
         categoriesId: Yup.array().of(Yup.string()).min(1, 'Vui lòng chọn ít nhất 1 thể loại.'),
         authorsId: Yup.array().of(Yup.string()).min(1, 'Vui lòng chọn ít nhất 1 tác giả.'),
         translator: Yup.string().max(255, 'NXB không được vượt quá 255 ký tự.').nullable(),

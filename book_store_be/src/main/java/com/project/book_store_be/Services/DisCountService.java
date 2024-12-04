@@ -106,12 +106,12 @@ public class DisCountService {
 
     public Discount updateDiscount(Long id, DisCountRequest disCountRequest) {
         Optional<Discount> optionalDiscount = repo.findById(id);
-        Discount discountExistsName = repo.getDiscount( PageRequest.of(0, 1), disCountRequest.getName(), null).getContent().get(0);
+        List<Discount> discountExistsName = repo.getDiscount( PageRequest.of(0, 1), disCountRequest.getName(), null).getContent();
         if (optionalDiscount.isEmpty()) {
             System.out.println("Discount not found");
             throw new RuntimeException("Discount not found");
         }
-        if(discountExistsName != null && !Objects.equals(discountExistsName.getId(), id)){
+        if(!discountExistsName.isEmpty() && !Objects.equals(discountExistsName.get(0).getId(), id)){
             throw new DiscountNameAlreadyExistsException("Đã có đợt giảm giá " + disCountRequest.getName() + " đang hoạt động, vui lòng thử lại!");
         }
         Discount existingDiscount = optionalDiscount.get();
@@ -126,6 +126,7 @@ public class DisCountService {
             products = productService.findAllByIds(disCountRequest.getProductIds());
         }
         Discount updatedDiscount = existingDiscount.toBuilder()
+                .name(disCountRequest.getName())
                 .discountRate(disCountRequest.getValue())
                 .startDate(disCountRequest.getStartDate())
                 .endDate(disCountRequest.getEndDate().withHour(23).withMinute(59).withSecond(59))

@@ -86,7 +86,7 @@ function AddDiscount() {
         }
     };
     const validationSchema = Yup.object({
-        name: Yup.string().required('Vui lòng nhập tên đợt giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
+        name: Yup.string().trim().required('Vui lòng nhập tên đợt giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
         value: Yup.number()
             .required('Vui lòng nhập giá trị giảm giá')
             .min(5, 'Giá trị tối thiếu là 5%')
@@ -184,7 +184,7 @@ function AddDiscount() {
                 isAll = true;
             }
             const data = {
-                name: values.name,
+                name: values.name.trim(),
                 value: values.value,
                 startDate: convertToISOString(values.start),
                 endDate: convertToISOString(values.end),

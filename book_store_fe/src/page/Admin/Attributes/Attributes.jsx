@@ -62,7 +62,7 @@ function Attributes() {
     const categorySearchDebounceVal = useDebounce(categorySearchTerm, 500);
 
     const validationSchema = Yup.object().shape({
-        name: Yup.string()
+        name: Yup.string().trim()
             .required('Tên là bắt buộc')
             .min(2, 'Tên phải có ít nhất 2 ký tự')
             .max(50, 'Tên không được vượt quá 50 ký tự')

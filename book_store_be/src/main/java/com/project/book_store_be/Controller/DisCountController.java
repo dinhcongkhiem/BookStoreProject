@@ -58,6 +58,7 @@ public class DisCountController {
         }catch (DiscountNameAlreadyExistsException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
