@@ -31,7 +31,7 @@ const ResizableTextField = styled(TextField)({
 function ReviewProductModal({ open, handleClose, data }) {
     const validationSchema = Yup.object({
         rate: Yup.number().required('Vui lòng để lại đánh giá của bạn!').min(0.5, 'Vui lòng để lại đánh giá của bạn!'),
-        content: Yup.string().max(250, 'Tối đa 250 kí tự'),
+        content: Yup.string().trim().max(250, 'Tối đa 250 kí tự'),
     });
 
     const createReviewMutation = useMutation({

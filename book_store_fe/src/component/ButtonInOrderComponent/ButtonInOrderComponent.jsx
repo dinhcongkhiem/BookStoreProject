@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import OrderService from '../../service/OrderService';
 import ConfirmModal from '../Modal/ConfirmModal/ConfirmModal';
 import CartService from '../../service/CartService';
+import ModalLoading from '../Modal/ModalLoading/ModalLoading';
 function ButtonInOrder({ status, orderId, onClose, onRefetch, productIds }) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -134,6 +135,7 @@ function ButtonInOrder({ status, orderId, onClose, onRefetch, productIds }) {
                     }
                 />
             )}
+            <ModalLoading open={updateStatusOrderMutation.isPending} />
         </>
     );
 }

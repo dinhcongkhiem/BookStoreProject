@@ -17,8 +17,8 @@ const UpdateAddressModal = ({ open, onClose, setValue }) => {
     const [communes, setCommunes] = useState();
 
     const validationSchema = Yup.object({
-        name: Yup.string().required('Vui lòng nhập tên người nhận hàng.'),
-        phoneNum: Yup.string()
+        name: Yup.string().trim().required('Vui lòng nhập tên người nhận hàng.'),
+        phoneNum: Yup.string().trim()
             .required('Vui lòng nhập số điện thoại.')
             .matches(/^0\d*$/, 'Định dạng không hợp lệ!')
             .length(10, 'Số điện thoại phải có 10 chữ số.'),
@@ -34,7 +34,7 @@ const UpdateAddressModal = ({ open, onClose, setValue }) => {
             .nullable()
             .required('Vui lòng chọn xã.')
             .test('is-valid', 'Vui lòng chọn xã.', (value) => value && value.code),
-        addressDetail: Yup.string().required('Vui lòng nhập địa chỉ cụ thể.'),
+        addressDetail: Yup.string().trim().required('Vui lòng nhập địa chỉ cụ thể.'),
     });
 
     const formik = useFormik({

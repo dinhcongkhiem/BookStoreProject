@@ -7,6 +7,8 @@ const publicRoutes = [
     { path: '/', component: Pages.Home },
     { path: '/login', component: Pages.Login, layout: null },
     { path: '/register', component: Pages.Register, layout: null },
+    { path: '/forgot-pass', component: Pages.ForgetPassword, layout: null },
+    { path: '/set-newpassword', component: Pages.SetNewPassword, layout: null },
     { path: '/about', component: Pages.About },
     { path: '/contact', component: Pages.Contact },
     { path: '/product', component: Pages.Product },

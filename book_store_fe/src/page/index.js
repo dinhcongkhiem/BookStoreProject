@@ -2,6 +2,8 @@ import Home from './Home/Home';
 import Profile from './Profile/Profile';
 import Login from './Authen/Login/Login';
 import Register from './Authen/Register/Register';
+import ForgetPassword from './Authen/ForgetPassword/ForgetPassword';
+import SetNewPassword from './Authen/SetNewPassword/SetNewPassword';
 import About from './About/About';
 import Contact from './Contact/Contact';
 import Product from './Product/Product';
@@ -28,6 +30,8 @@ export {
     Order,
     OrderDetail,
     ChangePassword,
+    ForgetPassword,
+    SetNewPassword,
     UserInfo,
     OrderMng,
     Sell,

@@ -52,6 +52,31 @@ class AuthServiceClass {
 
         return axios.request(config);
     };
+
+    forgetPass = (email) => {
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: AUTH_URL + '/forget-password',
+            withCredentials: true,
+            data: {email}
+        };
+
+        return axios.request(config);
+    };
+
+    setNewPass = ({newPassword, confirmNewPassword, verifyKey}) => {
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: AUTH_URL + '/set-newpassword',
+            withCredentials: true,
+            params: { verifyKey: verifyKey },
+            data: {newPassword, confirmNewPassword}
+        };
+
+        return axios.request(config);
+    };
 }
 const AuthService = new AuthServiceClass();
 export default AuthService;

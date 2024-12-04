@@ -53,11 +53,12 @@ public class DisCountController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateDiscount(@PathVariable Long id, @RequestBody DisCountRequest disCountRequest) {
         try {
-            Discount updatedDiscount = service.updateDiscount(id, disCountRequest);
-            return new ResponseEntity<>(updatedDiscount, HttpStatus.OK);
+            service.updateDiscount(id, disCountRequest);
+            return new ResponseEntity<>(HttpStatus.OK);
         }catch (DiscountNameAlreadyExistsException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

@@ -31,6 +31,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DiscountService from '../../../service/DiscountService';
 import { toast } from 'react-toastify';
 import { convertToISOString, formatDate } from '../../../utills/ConvertData';
+import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 
 const cx = classNames.bind(style);
 
@@ -85,7 +86,7 @@ function AddDiscount() {
         }
     };
     const validationSchema = Yup.object({
-        name: Yup.string().required('Vui lòng nhập tên đợt giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
+        name: Yup.string().trim().required('Vui lòng nhập tên đợt giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
         value: Yup.number()
             .required('Vui lòng nhập giá trị giảm giá')
             .min(5, 'Giá trị tối thiếu là 5%')
@@ -183,7 +184,7 @@ function AddDiscount() {
                 isAll = true;
             }
             const data = {
-                name: values.name,
+                name: values.name.trim(),
                 value: values.value,
                 startDate: convertToISOString(values.start),
                 endDate: convertToISOString(values.end),
@@ -466,6 +467,7 @@ function AddDiscount() {
                     </div>
                 </Paper>
             </div>
+            <ModalLoading isLoading={createDiscountMutation.isPending || updateiscountMutation.isPending}/>
         </Box>
     );
 }

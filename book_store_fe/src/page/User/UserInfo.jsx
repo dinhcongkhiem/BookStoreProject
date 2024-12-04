@@ -29,9 +29,9 @@ function UserInfo() {
 
     const [isLoading, setIsLoading] = useState(false);
     const validationSchema = Yup.object({
-        name: Yup.string().required('Vui lòng nhập họ và tên'),
-        email: Yup.string().required('Vui lòng nhập email').email('Email không hợp lệ'),
-        phoneNum: Yup.string().required('Vui lòng nhập số điện thoại.').length(10, 'Số điện thoại phải có 10 chữ số.'),
+        name: Yup.string().trim().required('Vui lòng nhập họ và tên'),
+        email: Yup.string().trim().required('Vui lòng nhập email').email('Email không hợp lệ'),
+        phoneNum: Yup.string().trim().required('Vui lòng nhập số điện thoại.').length(10, 'Số điện thoại phải có 10 chữ số.'),
         selectedProvince: Yup.object()
             .nullable()
             .required('Vui lòng chọn tỉnh.')
@@ -44,7 +44,7 @@ function UserInfo() {
             .nullable()
             .required('Vui lòng chọn xã.')
             .test('is-valid', 'Vui lòng chọn xã.', (value) => value && value.code),
-        addressDetail: Yup.string().required('Vui lòng nhập địa chỉ cụ thể.'),
+        addressDetail: Yup.string().trim().required('Vui lòng nhập địa chỉ cụ thể.'),
     });
 
     const formik = useFormik({

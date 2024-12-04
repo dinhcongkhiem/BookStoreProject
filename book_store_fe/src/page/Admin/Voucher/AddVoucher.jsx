@@ -34,6 +34,7 @@ import { faCircleInfo, faMoneyBillWave } from '@fortawesome/free-solid-svg-icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import UserService from '../../../service/UserService';
 import VoucherService from '../../../service/VoucherService';
+import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 
 const cx = classNames.bind(style);
 
@@ -86,8 +87,8 @@ function AddVoucher() {
         }
     };
     const validationSchema = Yup.object({
-        code: Yup.string().required('Vui lòng nhập mã giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
-        name: Yup.string().required('Vui lòng nhập tên đợt giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
+        code: Yup.string().trim().required('Vui lòng nhập mã giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
+        name: Yup.string().trim().required('Vui lòng nhập tên đợt giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
         value: Yup.lazy((value, context) => {
             if (context.parent.type === 'PERCENT') {
                 return Yup.number()
@@ -95,7 +96,7 @@ function AddVoucher() {
                     .min(5, 'Giá trị tối thiểu là 5%')
                     .max(30, 'Giá trị tối đa là 30%');
             }
-            return Yup.number().required('Vui lòng nhập giá trị giảm giá').min(1, 'Giá trị tối thiểu là 1');
+            return Yup.number().required('Vui lòng nhập giá trị giảm giá').min(1, 'Giá trị tối thiểu là 1').max(1000000, 'Giá trị tối đa là 1 triệu.');
         }),
         type: Yup.string().required('Vui lòng chọn loại giảm giá'),
         quantity: Yup.number().required('Vui lòng nhập số lượng').min(1, 'Số lượng tối thiểu là 1').max(2000000000, 'Giá trị tối đa là 2 tỷ'),
@@ -193,8 +194,8 @@ function AddVoucher() {
                 isAll = true;
             }
             const data = {
-                code: values.code,
-                name: values.name,
+                code: values.code.trim(),
+                name: values.name.trim(),
                 value: values.value,
                 type: values.type,
                 quantity: values.quantity,
@@ -245,7 +246,7 @@ function AddVoucher() {
     const handleChangeInput = (e,key) => {
         const inputValue = e.target.value;
         const numericValue = inputValue.replace(/[^0-9]/g, '');
-        if (inputValue === '') {
+        if (inputValue.trim() === '') {
             formik.setFieldValue(key, '');
             return;
         }
@@ -603,6 +604,7 @@ function AddVoucher() {
                     </div>
                 </Paper>
             </div>
+            <ModalLoading isLoading={createVoucherMutation.isLoading || updateiscountMutation.isLoading} />
         </Box>
     );
 }

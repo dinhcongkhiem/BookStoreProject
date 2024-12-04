@@ -1,6 +1,5 @@
 package com.project.book_store_be.Model;
 
-import com.project.book_store_be.Enum.VoucherStatus;
 import com.project.book_store_be.Enum.VoucherType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,7 +10,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 @Data

@@ -283,10 +283,11 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal finalPrice = totalPrice[0].add(order.getShippingFee()).subtract(voucherDiscount[0]);
 
         PaymentResponse paymentResponse = null;
+        order.setTotalPrice(totalPrice[0]);
         if (order.getPaymentType() == PaymentType.bank_transfer) {
             paymentResponse = this.handlePaymentRequest(order, finalPrice);
         } else {
-            String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), finalPrice);
+            String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), this.formatPrice(finalPrice));
             notificationService.sendAdminNotification("Đơn hàng mới", message, NotificationType.ORDER, "/admin/orderMng/" + order.getId());
             List<User> adminUsers = userService.getAdminUser();
             Map<String, Object> emailVariables = prepareEmailVariables(order);
@@ -298,7 +299,6 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        order.setTotalPrice(totalPrice[0]);
         orderRepository.save(order);
 
         if (voucher != null) {
@@ -341,7 +341,7 @@ public class OrderServiceImpl implements OrderService {
             paymentResponse = this.handlePaymentRequest(order, finalPrice);
         } else {
             order.setStatus(OrderStatus.PROCESSING);
-            String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), finalPrice);
+            String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", order.getUser().getFullName(), this.formatPrice(finalPrice));
             notificationService.sendAdminNotification("Đơn hàng", message, NotificationType.ORDER, "/admin/orderMng/" + order.getId());
             List<User> adminUsers = userService.getAdminUser();
             Map<String, Object> emailVariables = prepareEmailVariables(order);
@@ -796,18 +796,7 @@ public class OrderServiceImpl implements OrderService {
 
         BigDecimal shippingFee = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
         BigDecimal totalAmountBeforeVoucher = subTotal.add(shippingFee).subtract(totalDiscount);
-        BigDecimal voucherAmount = BigDecimal.ZERO;
-        if (order.getVoucher() != null) {
-            if (order.getVoucher().getType() == VoucherType.PERCENT) {
-                voucherAmount = totalAmountBeforeVoucher.multiply(order.getVoucher().getValue()).divide(BigDecimal.valueOf(100));
-                BigDecimal maxDiscount = order.getVoucher().getMaxValue();
-                if (voucherAmount.compareTo(maxDiscount) > 0) {
-                    voucherAmount = maxDiscount;
-                }
-            } else if (order.getVoucher().getType() == VoucherType.CASH) {
-                voucherAmount = order.getVoucher().getValue();
-            }
-        }
+        BigDecimal voucherAmount = this.calculateVoucherDiscount(order.getVoucher(), order.getTotalPrice(), shippingFee);
         BigDecimal totalAmount = totalAmountBeforeVoucher.subtract(voucherAmount);
 
         String formattedVoucherAmount = formatPrice(voucherAmount.negate());
@@ -837,7 +826,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private String formatPrice(BigDecimal amount) {
-        DecimalFormat formatter = new DecimalFormat("#,###");
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.getDefault());
+        symbols.setGroupingSeparator('.');
+        DecimalFormat formatter = new DecimalFormat("#,###",symbols);
         return formatter.format(amount) + " ₫";
     }
 
