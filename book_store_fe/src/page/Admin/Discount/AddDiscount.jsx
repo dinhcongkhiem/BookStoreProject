@@ -31,6 +31,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DiscountService from '../../../service/DiscountService';
 import { toast } from 'react-toastify';
 import { convertToISOString, formatDate } from '../../../utills/ConvertData';
+import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 
 const cx = classNames.bind(style);
 
@@ -466,6 +467,7 @@ function AddDiscount() {
                     </div>
                 </Paper>
             </div>
+            <ModalLoading isLoading={createDiscountMutation.isPending || updateiscountMutation.isPending}/>
         </Box>
     );
 }

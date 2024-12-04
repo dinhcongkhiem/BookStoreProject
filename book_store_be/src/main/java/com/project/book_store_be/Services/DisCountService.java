@@ -108,6 +108,7 @@ public class DisCountService {
         Optional<Discount> optionalDiscount = repo.findById(id);
         Discount discountExistsName = repo.getDiscount( PageRequest.of(0, 1), disCountRequest.getName(), null).getContent().get(0);
         if (optionalDiscount.isEmpty()) {
+            System.out.println("Discount not found");
             throw new RuntimeException("Discount not found");
         }
         if(discountExistsName != null && !Objects.equals(discountExistsName.getId(), id)){
@@ -147,13 +148,14 @@ public class DisCountService {
     private void updateProductsWithDiscount(List<Product> products, Discount discount) {
 
         List<Product> currentProducts = discount.getProducts();
-
-        List<Product> productsToRemove = currentProducts.stream()
-                .filter(product -> !products.contains(product))
-                .toList();
-        for (Product product : productsToRemove) {
-            product.getDiscounts().remove(discount);
-            productRepository.save(product);
+        if(currentProducts != null) {
+            List<Product> productsToRemove = currentProducts.stream()
+                    .filter(product -> !products.contains(product))
+                    .toList();
+            for (Product product : productsToRemove) {
+                product.getDiscounts().remove(discount);
+                productRepository.save(product);
+            }
         }
 
         for (Product product : products) {

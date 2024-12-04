@@ -34,6 +34,7 @@ import { faCircleInfo, faMoneyBillWave } from '@fortawesome/free-solid-svg-icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import UserService from '../../../service/UserService';
 import VoucherService from '../../../service/VoucherService';
+import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 
 const cx = classNames.bind(style);
 
@@ -603,6 +604,7 @@ function AddVoucher() {
                     </div>
                 </Paper>
             </div>
+            <ModalLoading isLoading={createVoucherMutation.isLoading || updateiscountMutation.isLoading} />
         </Box>
     );
 }
