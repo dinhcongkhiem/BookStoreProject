@@ -194,6 +194,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .isEnabled(true)
                 .build();
         userRepository.save(newUser);
-//       send mail to user ( cảm ơn .... đã đăng kí password mặc định của bạn là bookbazaar)
+        sendMailService.sendEmail(
+                newUser, "Thông tin tài khoản - BookBazaar", "notificationPasswordTemplate",
+                Map.of("user", newUser, "newPassword", password.toString())
+        );
     }
 }
