@@ -612,18 +612,17 @@ function AddProduct() {
                                 size="small"
                                 sx={{ flex: '1', margin: '0', padding: '0' }}
                             />
-                            <Autocomplete
-                                freeSolo
-                                options={[]}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        required
-                                        label="ISBN"
-                                    />
-                                )}
+                            <TextField
+                                name="isbn"
+                                label="ISBN"
+                                type="text"
+                                required
+                                value={formik.values.isbn}
+                                onChange={formik.handleChange}
+                                error={Boolean(formik.errors.isbn)}
+                                helperText={formik.errors.isbn}
                                 size="small"
-                                sx={{ flex: '1', margin: '0', padding: '0' }}
+                                style={{ flex: 1 }}
                             />
 
                         </div>
