@@ -19,19 +19,37 @@ import { toast } from 'react-toastify';
 import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
+import { useLocation } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
+import AuthService from '../../service/AuthService';
 const cx = classNames.bind(style);
 
-function UserInfo() {
+function UserInfo({ onClose }) {
+    const { pathname } = useLocation();
     const { authentication } = useContext(AuthenticationContext);
     const [provinces, setProvince] = useState(getProvinces());
     const [districts, setDistricts] = useState();
     const [communes, setCommunes] = useState();
 
     const [isLoading, setIsLoading] = useState(false);
+
+    const createByAdminMutation = useMutation({
+        mutationFn: (data) => AuthService.createByAdmin(data),
+        onSuccess: () => {
+            toast.success('Thêm mới khách hàng thành công!');
+            onClose();
+        },
+        onError: (error) => {
+            console.log(error);
+        },
+    });
     const validationSchema = Yup.object({
         name: Yup.string().trim().required('Vui lòng nhập họ và tên'),
         email: Yup.string().trim().required('Vui lòng nhập email').email('Email không hợp lệ'),
-        phoneNum: Yup.string().trim().required('Vui lòng nhập số điện thoại.').length(10, 'Số điện thoại phải có 10 chữ số.'),
+        phoneNum: Yup.string()
+            .trim()
+            .required('Vui lòng nhập số điện thoại.')
+            .length(10, 'Số điện thoại phải có 10 chữ số.'),
         selectedProvince: Yup.object()
             .nullable()
             .required('Vui lòng chọn tỉnh.')
@@ -70,21 +88,25 @@ function UserInfo() {
                     addressDetail: values.addressDetail,
                 },
             };
-            setIsLoading(true);
-            UserService.updateUser(data)
-                .then((response) => {
-                    if (response.status === 200) {
-                        toast.success('Cập nhật thông tin cá nhân thành công!');
-                        authentication.isRemember
-                            ? localStorage.setItem('user', JSON.stringify({ ...data, role: 'USER' }))
-                            : sessionStorage.setItem('user', JSON.stringify({ ...data, role: 'USER' }));
-                    }
-                })
-                .catch((error) => {
-                    toast.error(error.response.data);
-                    console.log();
-                })
-                .finally(() => setIsLoading(false));
+            if (pathname !== '/user') {
+                createByAdminMutation.mutate(data);
+            } else {
+                setIsLoading(true);
+                UserService.updateUser(data)
+                    .then((response) => {
+                        if (response.status === 200) {
+                            toast.success('Cập nhật thông tin cá nhân thành công!');
+                            authentication.isRemember
+                                ? localStorage.setItem('user', JSON.stringify({ ...data, role: 'USER' }))
+                                : sessionStorage.setItem('user', JSON.stringify({ ...data, role: 'USER' }));
+                        }
+                    })
+                    .catch((error) => {
+                        toast.error(error.response.data);
+                        console.log();
+                    })
+                    .finally(() => setIsLoading(false));
+            }
         },
         validateOnBlur: false,
         validateOnChange: false,
@@ -147,6 +169,7 @@ function UserInfo() {
         }
     };
     const fetchUserData = () => {
+        if (pathname !== '/user') return;
         let user =
             authentication?.user ||
             JSON.parse(localStorage.getItem('user')) ||
@@ -171,7 +194,7 @@ function UserInfo() {
     }, []);
     return (
         <div className={cx('section')}>
-            <h2>Thông tin tài khoản</h2>
+            {pathname === '/user' && <h2>Thông tin tài khoản</h2>}
             <form className={cx('form-wrapper')} style={{ margin: '0 10rem' }}>
                 <TextField
                     name="name"
@@ -315,7 +338,7 @@ function UserInfo() {
                         label="Địa chỉ cụ thể"
                         variant="outlined"
                         fullWidth
-                        name='addressDetail'
+                        name="addressDetail"
                         value={formik.values.addressDetail}
                         onChange={formik.handleChange}
                         margin="normal"
@@ -334,10 +357,10 @@ function UserInfo() {
                     className={cx('save-button')}
                     sx={{ mt: 2, padding: '1rem', width: '50%', mx: 'auto' }}
                 >
-                    <span className="fw-semibold">Lưu thay đổi</span>
+                    <span className="fw-semibold">{pathname === '/user' ? 'Lưu thay đổi' : 'Thêm mới'}</span>
                 </Button>
             </form>
-            <ModalLoading isLoading={isLoading} />
+            <ModalLoading isLoading={isLoading || createByAdminMutation.isPending} />
         </div>
     );
 }

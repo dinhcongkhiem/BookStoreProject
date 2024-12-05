@@ -262,7 +262,7 @@ public class OrderServiceImpl implements OrderService {
             productService.updateQuantity(product, product.getQuantity() - item.getQty());
             orderDetailList.add(orderDetail);
         });
-
+        totalPrice[0] = totalPrice[0].add(order.getShippingFee());
         order.setOrderDetails(orderDetailList);
         if (request.getVoucherCode() != null) {
             Optional<Voucher> optionalVoucher = voucherRepository.findByCode(request.getVoucherCode());
@@ -280,8 +280,7 @@ public class OrderServiceImpl implements OrderService {
             voucherDiscount[0] = this.calculateVoucherDiscount(voucher, totalPrice[0], order.getShippingFee());
             order.setVoucher(voucher);
         }
-        BigDecimal finalPrice = totalPrice[0].add(order.getShippingFee()).subtract(voucherDiscount[0]);
-
+        BigDecimal finalPrice = totalPrice[0].subtract(voucherDiscount[0]);
         PaymentResponse paymentResponse = null;
         order.setTotalPrice(totalPrice[0]);
         if (order.getPaymentType() == PaymentType.bank_transfer) {
@@ -300,7 +299,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderRepository.save(order);
-
+        //subtract qty voucher
         if (voucher != null) {
             this.voucherService.updateQuantity(voucher.getId(), 1);
             voucher.setUsers(
@@ -310,6 +309,7 @@ public class OrderServiceImpl implements OrderService {
             );
             voucherRepository.save(voucher);
         }
+        //subtract qty cart
         request.getItems().forEach(item -> {
             Long cartId = item.getCartId();
             if (cartId != null) {
@@ -627,10 +627,10 @@ public class OrderServiceImpl implements OrderService {
             return voucherDiscount;
         }
         if (voucher.getType() == VoucherType.PERCENT) {
-            if (voucher.getMaxValue() != null && voucher.getMaxValue().compareTo(voucher.getValue()) < 0) {
-                voucherDiscount = voucher.getMaxValue().multiply(totalPrice.add(shippingFee)).divide(BigDecimal.valueOf(100));
+            if (voucher.getMaxValue() != null && voucher.getMaxValue().compareTo(totalPrice) < 0) {
+                voucherDiscount = voucher.getValue().multiply(totalPrice).divide(BigDecimal.valueOf(100));
             } else if (voucher.getMaxValue() == null) {
-                voucherDiscount = voucher.getValue().multiply(totalPrice.add(shippingFee)).divide(BigDecimal.valueOf(100));
+                voucherDiscount = voucher.getValue().multiply(totalPrice).divide(BigDecimal.valueOf(100));
             }
         } else if (voucher.getType() == VoucherType.CASH) {
             voucherDiscount = voucher.getValue();

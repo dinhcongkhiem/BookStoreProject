@@ -25,7 +25,7 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     @Query(value = """
           SELECT v.*
                     FROM voucher v
-                    JOIN voucher_user vu ON v.id = vu.voucher_id\s
+                    LEFT JOIN voucher_user vu ON v.id = vu.voucher_id\s
                     where\s
                        (:keyword IS NULL OR
                                    UPPER(v.code) LIKE concat('%', UPPER(:keyword), '%')

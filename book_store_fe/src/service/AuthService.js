@@ -77,6 +77,21 @@ class AuthServiceClass {
 
         return axios.request(config);
     };
+
+    createByAdmin =  (data) => {
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: AUTH_URL + '/create-by-admin',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+            data: data,
+        };
+        console.log(data);
+        return axios.request(config);
+    };
 }
 const AuthService = new AuthServiceClass();
 export default AuthService;

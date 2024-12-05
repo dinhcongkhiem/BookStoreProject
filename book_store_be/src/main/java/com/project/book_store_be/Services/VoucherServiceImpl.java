@@ -1,6 +1,7 @@
 package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.NotificationType;
+import com.project.book_store_be.Enum.Role;
 import com.project.book_store_be.Enum.VoucherType;
 import com.project.book_store_be.Exception.VoucherCodeAlreadyExistsException;
 import com.project.book_store_be.Interface.VoucherService;
@@ -47,8 +48,8 @@ public class VoucherServiceImpl implements VoucherService {
         };
         Pageable pageable = PageRequest.of(page, size, c);
         return voucherRepository.searchVoucher(keyword, status,
-                forUser ? userService.getCurrentUser().getId() : null, pageable)
-                .map(p -> this.mapToResponse(p,false));
+                        forUser ? userService.getCurrentUser().getId() : null, pageable)
+                .map(p -> this.mapToResponse(p, false));
     }
 
     @Override
@@ -77,16 +78,8 @@ public class VoucherServiceImpl implements VoucherService {
         }
     }
 
-    private List<User> getUsersForVoucher(VoucherRequest voucherRequest) {
-        if (voucherRequest.getIsAll()) {
-            if (voucherRequest.getUserIds().isEmpty()) {
-                return userRepository.findAll();
-            } else {
-                return userRepository.findAllByIdNotIn(voucherRequest.getUserIds());
-            }
-        } else {
-            return userRepository.findAllById(voucherRequest.getUserIds());
-        }
+    private List<User> getUsersForVoucher() {
+        return userRepository.findByRole(Role.USER);
     }
 
     @Override
@@ -98,7 +91,7 @@ public class VoucherServiceImpl implements VoucherService {
         if (voucherOptional.isPresent()) {
             throw new VoucherCodeAlreadyExistsException("Mã voucher " + voucherRequest.getCode() + " đã tồn tại");
         }
-        List<User> users = getUsersForVoucher(voucherRequest);
+        List<User> users = getUsersForVoucher();
         Voucher voucher = Voucher.builder()
                 .code(voucherRequest.getCode())
                 .name(voucherRequest.getName())
@@ -123,7 +116,7 @@ public class VoucherServiceImpl implements VoucherService {
     public Voucher updateVoucher(Long id, VoucherRequest voucherRequest) {
         Voucher voucher = getVoucherById(id);
         validateVoucherRequest(voucherRequest);
-        List<User> users = getUsersForVoucher(voucherRequest);
+        List<User> users = getUsersForVoucher();
         Optional<Voucher> voucherOptional = voucherRepository.findByCode(voucherRequest.getCode());
         if (voucherOptional.isPresent() && !voucherOptional.get().getId().equals(id)) {
             throw new VoucherCodeAlreadyExistsException("Mã voucher " + voucherRequest.getCode() + " đã tồn tại");

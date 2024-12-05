@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Enum.Role;
 import com.project.book_store_be.Exception.UserAlreadyExistsException;
 import com.project.book_store_be.Interface.AuthenticationService;
 import com.project.book_store_be.Model.Address;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -162,5 +164,36 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
         String current = sdf.format(new Date(System.currentTimeMillis()));
         return String.valueOf(UUID.nameUUIDFromBytes((email + current).getBytes()));
+    }
+
+    @Override
+    public void registerByAdmin(RegisterRequest request) {
+        Optional<User> user = userRepository.findByEmail(request.getEmail());
+        if (user.isPresent()) {
+            throw new UserAlreadyExistsException("User with email " + request.getEmail() + " already exists");
+        }
+        String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        int PASSWORD_LENGTH = 6;
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder(PASSWORD_LENGTH);
+
+        for (int i = 0; i < PASSWORD_LENGTH; i++) {
+            int index = random.nextInt(CHARACTERS.length());
+            password.append(CHARACTERS.charAt(index));
+        }
+        Address address = addressService.createAddress(request.getAddress());
+        User newUser = User.builder()
+                .email(request.getEmail())
+                .fullName(request.getFullName())
+                .address(address)
+                .phoneNum(request.getPhoneNum())
+                .verifyKey(this.generateVerifyKey())
+                .password(passwordEncoder.encode(password.toString()))
+                .role(Role.USER)
+                .refreshToken(this.generateRefreshToken(request.getEmail()))
+                .isEnabled(true)
+                .build();
+        userRepository.save(newUser);
+//       send mail to user ( cảm ơn .... đã đăng kí password mặc định của bạn là bookbazaar)
     }
 }
