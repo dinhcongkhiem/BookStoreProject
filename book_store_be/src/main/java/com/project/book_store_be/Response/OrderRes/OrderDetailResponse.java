@@ -1,6 +1,7 @@
 package com.project.book_store_be.Response.OrderRes;
 
 import com.project.book_store_be.Enum.OrderStatus;
+import com.project.book_store_be.Enum.OrderType;
 import com.project.book_store_be.Enum.PaymentType;
 import com.project.book_store_be.Model.Address;
 import com.project.book_store_be.Response.VoucherRes.VoucherInOrderResponse;
@@ -27,6 +28,7 @@ public class OrderDetailResponse {
     private BigDecimal totalDiscount;
     private VoucherInOrderResponse voucher;
     private BigDecimal amountPaid;
+    private OrderType type;
 
     private BigDecimal shippingFee;
     private BigDecimal grandTotal;

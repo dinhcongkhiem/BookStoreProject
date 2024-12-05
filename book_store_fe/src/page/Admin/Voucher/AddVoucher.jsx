@@ -12,27 +12,14 @@ import {
     Grid,
     Paper,
     InputAdornment,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Pagination,
-    Checkbox,
-    FormHelperText,
     IconButton,
-    Tooltip,
 } from '@mui/material';
 import { CalendarToday, Percent, Search, South } from '@mui/icons-material';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import useDebounce from '../../../hooks/useDebounce';
-import DiscountService from '../../../service/DiscountService';
 import { toast } from 'react-toastify';
 import { convertToISOString, formatDate } from '../../../utills/ConvertData';
-import { faCircleInfo, faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
+import { faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import UserService from '../../../service/UserService';
 import VoucherService from '../../../service/VoucherService';
 import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 
@@ -164,16 +151,10 @@ function AddVoucher() {
             maxValue: '',
             start: '',
             end: '',
-            userIds: [],
             condition: '',
         },
         validationSchema: validationSchema,
         onSubmit: (values) => {
-            let isAll = false;
-            if (values.userIds[0] === -1) {
-                values.userIds.shift();
-                isAll = true;
-            }
             const data = {
                 code: values.code.trim(),
                 name: values.name.trim(),
@@ -183,9 +164,7 @@ function AddVoucher() {
                 maxValue: values.maxValue,
                 startDate: convertToISOString(values.start),
                 endDate: convertToISOString(values.end),
-                userIds: values.userIds,
                 condition: values.condition,
-                isAll: isAll,
             };
 
             if (voucherId) {
@@ -211,7 +190,6 @@ function AddVoucher() {
                     maxValue: resData.maxValue,
                     start: formatDate(resData.startDate),
                     end: formatDate(resData.endDate),
-                    userIds: resData.userIds,
                     condition: resData.condition,
                 };
                 setStartDateVal(resData.startDate.split('T')[0]);

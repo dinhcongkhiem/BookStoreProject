@@ -37,6 +37,10 @@
     align-items: flex-start;
 }
 
+.LinkToProduct {
+    cursor: pointer;
+}
+
 .productImageContainer {
     width: 10rem;
     height: 10rem;
@@ -62,7 +66,7 @@
 }
 
 .productName {
-    font-weight: bold;
+    font-weight: 600;
     margin-bottom: 8px;
     display: -webkit-box;
     -webkit-box-orient: vertical;

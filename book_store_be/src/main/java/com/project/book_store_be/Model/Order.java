@@ -1,6 +1,7 @@
 package com.project.book_store_be.Model;
 
 import com.project.book_store_be.Enum.OrderStatus;
+import com.project.book_store_be.Enum.OrderType;
 import com.project.book_store_be.Enum.PaymentType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -26,6 +27,8 @@ public class Order {
     private BigDecimal shippingFee;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
+    @Enumerated(EnumType.STRING)
+    private OrderType type;
     @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)

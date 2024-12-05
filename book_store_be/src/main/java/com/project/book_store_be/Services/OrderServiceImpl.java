@@ -106,6 +106,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Map<?, ?> createOrderCounterSales() {
         Order order = Order.builder()
+                .type(OrderType.IN_STORE)
                 .status(OrderStatus.PENDING)
                 .shippingFee(BigDecimal.ZERO)
                 .orderDate(LocalDateTime.now())
@@ -228,6 +229,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal[] voucherDiscount = {BigDecimal.ZERO};
         Voucher voucher = null;
         Order order = Order.builder()
+                .type(OrderType.ONLINE)
                 .paymentType(request.getPaymentType())
                 .shippingFee(request.getShippingFee())
                 .status(request.getPaymentType() == PaymentType.cash_on_delivery
@@ -458,6 +460,7 @@ public class OrderServiceImpl implements OrderService {
         }
         grandTotal[0] = grandTotal[0].subtract(discountWithVoucher[0]);
         return OrderDetailResponse.builder()
+                .type(order.getType())
                 .orderId(order.getId())
                 .status(order.getStatus())
                 .fullname(order.getBuyerName())
@@ -480,6 +483,7 @@ public class OrderServiceImpl implements OrderService {
 
     private GetAllOrderResponse convertToResMng(Order order) {
         return GetAllOrderResponse.builder()
+                .type(order.getType())
                 .orderId(order.getId())
                 .status(order.getStatus())
                 .buyerName(order.getBuyerName())
@@ -509,6 +513,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal finalPrice = totalPrice.add(shippingFee).subtract(voucherDiscount);
 
         return OrderResponse.builder()
+                .type(order.getType())
                 .orderId(order.getId())
                 .status(order.getStatus())
                 .finalPrice(finalPrice)
@@ -537,7 +542,7 @@ public class OrderServiceImpl implements OrderService {
         if (!order.getStatus().canTransitionTo(orderStatus)) {
             throw new IllegalArgumentException("Invalid status transition from " + order.getStatus() + " to " + orderStatus);
         }
-        if (currentUser.getRole() == Role.ADMIN) {
+        if (currentUser.getRole() == Role.ADMIN && order.getType() == OrderType.ONLINE) {
             if (order.getUser() != null) {
                 this.notificationService.sendNotification(order.getUser(), "Cập nhật đơn hàng",
                         "Đơn hàng " + order.getId() + " của bạn đã  " + this.convertStatus(orderStatus),
@@ -612,7 +617,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found with ID: " + orderId));
         order.setStatus(OrderStatus.CANCELED);
-        order.setBuyerName("Khách lẻ");
+        order.setBuyerName(order.getBuyerName());
         order.getOrderDetails().forEach(orderDetail -> {
             Product product = orderDetail.getProduct();
             productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity());

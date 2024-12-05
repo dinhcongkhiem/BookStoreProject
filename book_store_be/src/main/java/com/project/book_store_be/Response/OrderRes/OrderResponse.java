@@ -1,6 +1,7 @@
 package com.project.book_store_be.Response.OrderRes;
 
 import com.project.book_store_be.Enum.OrderStatus;
+import com.project.book_store_be.Enum.OrderType;
 import com.project.book_store_be.Model.Address;
 import lombok.Builder;
 import lombok.Data;
@@ -13,6 +14,7 @@ import java.util.List;
 public class OrderResponse {
     private List<OrderItemsResponse> items;
     private OrderStatus status;
+    private OrderType type;
     private BigDecimal finalPrice;
     private Long orderId;
 }

@@ -37,6 +37,19 @@ export const convertStatusOrderToVN = (status) => {
             return '';
     }
 };
+
+export const convertTypeOrderToVN = (type) => {
+    switch (type) {
+        case 'ONLINE':
+            return 'Trực tuyến (Online)';
+        case 'IN_STORE':
+            return 'Tại của hàng';
+        default:
+            return '';
+    }
+}
+
+
 export const getStatusOrderClass = (status) => {
     switch (status) {
         case 'AWAITING_PAYMENT':

@@ -39,6 +39,7 @@ import OrderService from '../../../service/OrderService';
 import {
     convertStatusOrderToVN,
     convertToISOString,
+    convertTypeOrderToVN,
     formatDate,
     getStatusOrderClass,
     orderTabs,
@@ -279,9 +280,12 @@ export default function OrderMng() {
                             <TableCell>Ngày đặt hàng</TableCell>
                             <TableCell>Tổng tiền</TableCell>
                             <TableCell align="center" sx={{ width: '13rem' }}>
+                                Loại
+                            </TableCell>
+                            <TableCell align="center" sx={{ width: '13rem' }}>
                                 Trạng thái
                             </TableCell>
-                            <TableCell align="center">Hành động</TableCell>
+                            <TableCell align="center" sx={{width : '145px'}}>Hành động</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -293,10 +297,17 @@ export default function OrderMng() {
                                 <TableCell>{order.finalPrice.toLocaleString('vi-VN')} đ</TableCell>
                                 <TableCell align="center">
                                     <Chip
+                                        label={convertTypeOrderToVN(order.type)}
+                                        className={cx1('status')}
+                                    />
+                                </TableCell>
+                                <TableCell align="center">
+                                    <Chip
                                         label={convertStatusOrderToVN(order.status)}
                                         className={cx1('status', getStatusOrderClass(order.status))}
                                     />
                                 </TableCell>
+                             
                                 <TableCell align="center">
                                     <IconButton size="small" color="primary" onClick={() => handleViewDetails(order)}>
                                         <VisibilityIcon />

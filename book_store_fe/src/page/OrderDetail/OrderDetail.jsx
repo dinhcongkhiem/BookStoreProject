@@ -22,7 +22,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import OrderService from '../../service/OrderService';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ReviewProductModal from '../../component/Modal/ReviewProductModal/ReviewProductModal';
-import { convertStatusOrderToVN } from '../../utills/ConvertData';
+import { convertStatusOrderToVN, convertTypeOrderToVN } from '../../utills/ConvertData';
 import ButtonInOrder from '../../component/ButtonInOrderComponent/ButtonInOrderComponent';
 
 const cx = classNames.bind(style);
@@ -106,15 +106,19 @@ function OrderDetail({ onClose }) {
                 {orderDataRes?.paymentType !== null && (
                     <Grid item xs={12} md={4}>
                         <SectionTitle className={cx('paymentTitle')} variant="h6">
-                            Hình thức thanh toán
+                            Hình thức
                         </SectionTitle>
                         <StyledPaper>
                             <Typography variant="body1" gutterBottom>
-                                {orderDataRes?.paymentType === 'bank_transfer'
-                                    ? 'Chuyển khoản ngân hàng'
-                                    : orderDataRes?.paymentType === 'cash_on_delivery'
-                                      ? 'Tiền mặt'
-                                      : 'Tiền mặt và chuyển khoản'}
+                                <p className='m-0'>Loại: {convertTypeOrderToVN(orderDataRes?.type)}</p>
+                                <p className="m-0">
+                                    Thanh toán: 
+                                    {orderDataRes?.paymentType === 'bank_transfer'
+                                        ? ' Chuyển khoản ngân hàng'
+                                        : orderDataRes?.paymentType === 'cash_on_delivery'
+                                          ? ' Tiền mặt'
+                                          : ' Tiền mặt và chuyển khoản'}
+                                </p>
                             </Typography>
                         </StyledPaper>
                     </Grid>
@@ -152,7 +156,7 @@ function OrderDetail({ onClose }) {
                                 Giảm giá
                             </TableCell>
                             <TableCell align="right" style={{ whiteSpace: 'nowrap' }}>
-                                Tạm tính
+                                Thành tiền
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -160,16 +164,23 @@ function OrderDetail({ onClose }) {
                         {orderDataRes?.items.map((product) => (
                             <TableRow key={product.id}>
                                 <TableCell>
-                                    <Box display="flex" className={cx('productInfo')}>
+                                    <Box display="flex" className={cx('productInfo' , 'LinkToProduct')} onClick={() => {
+                                        if(!pathname.startsWith('/admin')) {
+                                            navigate(`/product/detail?id=${product.productId}`);
+                                        }else {
+                                            navigate(`/admin/product`);
+                                        }
+                                    }}>
                                         <Box className={cx('productImageContainer')}>
                                             <img
                                                 src={product.thumbnailUrl}
-                                                alt={product.id}
+                                                alt={product.productId}
                                                 className={cx('productImage')}
                                             />
                                         </Box>
                                         <Box className={cx('productDetails')}>
                                             <Typography variant="body1" className={cx('productName')}>
+                                                ID: {product.productId} <span className='mx-2 fw-bold'>|</span> 
                                                 {product.productName}
                                             </Typography>
                                             {orderDataRes?.status === 'COMPLETED' && !pathname.startsWith('/admin') && (
