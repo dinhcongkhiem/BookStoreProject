@@ -88,16 +88,15 @@ public class RevenueService {
         LocalDate today = LocalDate.now();
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(23, 59, 59);
-        List<Order> todaysOrders = orderRepository.DateRange(startOfDay, endOfDay );
+//        List<Order> todaysOrders = orderRepository.DateRange(startOfDay, endOfDay );
         List<Order> todaysOrdersRevene = orderRepository.findByStatusAndDateRange(OrderStatus.COMPLETED,startOfDay, endOfDay );
-        int ordersPerDay = todaysOrders.size();
+        int ordersPerDay = todaysOrdersRevene.size();
         BigDecimal todayRevenue = todaysOrdersRevene.stream()
                 .map(Order::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        List<Order> allRevenue = orderRepository.findByStatus(OrderStatus.COMPLETED);
-        List<Order> allOrders = orderRepository.findAll();
+        List<Order> allOrders = orderRepository.findByStatus(OrderStatus.COMPLETED);
         int totalOrders = allOrders.size();
-        BigDecimal totalRevenue = allRevenue.stream()
+        BigDecimal totalRevenue = allOrders.stream()
                 .map(Order::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         statistics.put("ordersPerDay", ordersPerDay);
