@@ -11,6 +11,7 @@ import java.util.Map;
 @Data
 public class ProductRequest {
     private String name;
+    private String isbn;
     private Long publisherId;
     private Integer numberOfPages;
     private Integer yearOfPublication;

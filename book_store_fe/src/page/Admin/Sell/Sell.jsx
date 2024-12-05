@@ -90,7 +90,7 @@ export default function Sell() {
         error,
         isLoading: isLoadingProducts,
     } = useQuery({
-        queryKey: ['productsMng', debouncedSearchValue, page],
+        queryKey: ['productsMng', debouncedSearchValue, page,isProductDialogOpen],
         queryFn: () =>
             ProductService.getAllProductForMng({
                 page: page,
@@ -279,14 +279,7 @@ export default function Sell() {
         mutationFn: ({ qty, id }) => OrderService.updateQuantiyOrder({ quantity: qty, id: id }),
         onError: (error) => console.log(error),
         onSuccess: (data, d) => {
-            queryClient.setQueryData(['productInOrder', activeInvoice], (oldData) => {
-                return {
-                    ...oldData,
-                    cart: oldData.cart.map((item) =>
-                        item.id === d.cartId ? { ...item, initialQuantity: d.qty } : item,
-                    ),
-                };
-            });
+            queryClient.invalidateQueries(['productInOrder', activeInvoice]);
         },
     });
 

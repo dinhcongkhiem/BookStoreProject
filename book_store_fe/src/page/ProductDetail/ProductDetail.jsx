@@ -285,6 +285,11 @@ function ProductDetail() {
                     <div className={cx('detail-info', 'block')}>
                         <h5 className={cx('title', 'mb-3')}>Thông tin chi tiết</h5>
                         <DetailInfoProductComponent
+                            isLink={false}
+                            label={'ISBN'}
+                            value={product?.isbn}
+                        />
+                        <DetailInfoProductComponent
                             isLink={true}
                             label={'Tác giả'}
                             value={product?.authors?.map((item) => item.name)}

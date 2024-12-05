@@ -22,6 +22,7 @@ public class ProductDetailResponse extends ProductBaseResponse {
     private Integer year_of_publication;
     private Integer number_of_pages;
     private Integer review_count;
+    private String isbn;
     private Integer quantity;
     private String description;
     private Map<?,?> size;

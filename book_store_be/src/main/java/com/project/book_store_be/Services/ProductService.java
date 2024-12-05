@@ -96,14 +96,8 @@ public class ProductService {
                 return this.convertToForManagerRes(product);
             });
         }
-        long id;
-        try {
-            id = Long.parseLong(keyword);
-        } catch (NumberFormatException e) {
-            id = -1L;
-        }
         ProductStatus productStatus = status == 1 ? ProductStatus.AVAILABLE : null;
-        return productRepository.searchByNameOrIdAndStatus(keyword, id, productStatus,pageRequest)
+        return productRepository.searchByNameOrIdAndStatus(keyword, productStatus,pageRequest)
                 .map(this::convertToForManagerRes);
     }
 
@@ -126,7 +120,7 @@ public class ProductService {
     }
 
     private Boolean isValidateProductName(String name) {
-        return productRepository.searchByNameOrIdAndStatus(name, -1L, null, PageRequest.of(0, 1)).hasContent();
+        return productRepository.findByNameIgnoreCase(name).isPresent();
     }
     public void addProduct(ProductRequest request, List<MultipartFile> images, Integer indexThumbnail) {
         Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
@@ -135,7 +129,7 @@ public class ProductService {
         }
 
         Product product = Product.builder()
-                .productCode(generateUniqueLong())
+                .productCode(request.getIsbn())
                 .name(request.getName())
                 .publisher(publisherService.getPublisherById(request.getPublisherId()).orElse(null))
                 .number_of_pages(request.getNumberOfPages())
@@ -171,7 +165,7 @@ public class ProductService {
         Product p = productRepository.findByIdWithLock(product.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         if(quantity < 0){
-            throw new ProductQuantityNotEnough("Số luượng sản phẩm không đủ, vui lòng thử lại sau!");
+            throw new ProductQuantityNotEnough("Số lượng sản phẩm không đủ, vui lòng thử lại sau!");
         }
         if(quantity == 0) {
             p.setStatus(ProductStatus.UNAVAILABLE);
@@ -191,6 +185,7 @@ public class ProductService {
             throw new ProductNameAlreadyExistsException("Sản phẩm tên " + request.getName() + " đã tồn tại, vui lòng thử lại!");
         }
         Product product = Product.builder()
+                .productCode(request.getIsbn())
                 .id(productId)
                 .name(request.getName())
                 .publisher(publisherService.getPublisherById(request.getPublisherId()).orElse(null))
@@ -261,6 +256,7 @@ public class ProductService {
                 .id(product.getId())
                 .name(product.getName())
                 .cost(product.getCost())
+                .isbn(product.getProductCode())
                 .original_price(product.getOriginal_price())
                 .year_of_publication(product.getYear_of_publication())
                 .number_of_pages(product.getNumber_of_pages())
@@ -323,14 +319,7 @@ public class ProductService {
                 .orElseThrow(() -> new NoSuchElementException("No product found with id: " + id));
     }
 
-    public Long generateUniqueLong() {
-        long timestamp = System.currentTimeMillis();
-        String uniqueNumber = String.format("%016d", timestamp);
-        return Long.parseLong(uniqueNumber);
-    }
-
-
-    public Product findProductByCode(Long productCode) {
+    public Product findProductByCode(String productCode) {
         return productRepository.findByProductCode(productCode)
                 .orElseThrow(() -> new NoSuchElementException("No product found with code: " + productCode));
 

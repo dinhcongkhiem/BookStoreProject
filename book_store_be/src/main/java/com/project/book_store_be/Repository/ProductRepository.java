@@ -42,18 +42,20 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CrudRep
     @Query("""
                 SELECT p 
                 FROM Product p 
-                WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) OR p.id = :id)
+                WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                 OR LOWER(CAST(p.id as string)) LIKE LOWER(CONCAT('%', :keyword, '%')) 
+                 OR LOWER(p.productCode) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                 )
                 AND (:status is null or p.status = :status)
             """)
     Page<Product> searchByNameOrIdAndStatus(
-            @Param("name") String name,
-            @Param("id") Long id,
+            @Param("keyword") String keyword,
             @Param("status") ProductStatus status,
             Pageable pageable);
 
     List<Product> findAllByIdNotIn(List<Long> ids);
 
-    Optional<Product> findByProductCode(Long productCode);
+    Optional<Product> findByProductCode(String productCode);
 
     @Query("""
                 SELECT p AS product,\s
@@ -73,7 +75,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CrudRep
     @Query("SELECT p FROM Product p WHERE p.id = :id")
     Optional<Product> findByIdWithLock(@Param("id") Long id);
 
-
+    Optional<Product> findByNameIgnoreCase(String name);
 
 }
 

@@ -40,9 +40,16 @@ public class ProductSpecification {
 
                 Predicate categoryPredicate = criteriaBuilder.like(criteriaBuilder.lower(categoryJoin.get("name")), likePattern);
                 Predicate productPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), likePattern);
+                Predicate productIdPredicate = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("id").as(String.class)),
+                        likePattern);
+                Predicate productCodePredicate = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("productCode").as(String.class)),
+                        likePattern);
                 Predicate publisherPredicate = criteriaBuilder.like(criteriaBuilder.lower(publisherJoin.get("name")), likePattern);
                 Predicate authorPredicate = criteriaBuilder.like(criteriaBuilder.lower(authorJoin.get("name")), likePattern);
-                Predicate keywordPredicate = criteriaBuilder.or(categoryPredicate, productPredicate, publisherPredicate, authorPredicate);
+                Predicate keywordPredicate = criteriaBuilder.or(categoryPredicate, productPredicate
+                        ,productCodePredicate, productIdPredicate, publisherPredicate, authorPredicate);
                 predicates.add(keywordPredicate);
             }
 

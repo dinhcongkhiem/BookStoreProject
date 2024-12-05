@@ -1,6 +1,7 @@
 package com.project.book_store_be.Services;
 
 import java.util.stream.Collectors;
+
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.font.PdfFont;
@@ -80,14 +81,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null,null, keyword);
+        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null, null, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
 
     @Override
-    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start,LocalDateTime end, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(null, status, start,end, keyword);
+    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, String keyword) {
+        Specification<Order> spec = OrderSpecification.getOrders(null, status, start, end, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         Page<GetAllOrderResponse> ordersPage = orderRepository.findAll(spec, pageable).map(this::convertToResMng);
         Tuple count = orderRepository.countOrder();
@@ -117,7 +118,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional
-    public void createOrderDetailByBarcode(Long productCode, Long orderId) {
+    public void createOrderDetailByBarcode(String productCode, Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoSuchElementException("Order not found with ID: " + orderId));
         Product product = productService.findProductByCode(productCode);
@@ -133,7 +134,7 @@ public class OrderServiceImpl implements OrderService {
         } else {
             BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
             BigDecimal price = product.getOriginal_price().subtract(discountVal);
-
+            totalPrice[0] = totalPrice[0].add(price);
             OrderDetail orderDetail = OrderDetail.builder()
                     .product(product)
                     .quantity(1)
@@ -164,9 +165,10 @@ public class OrderServiceImpl implements OrderService {
         if (quantity > orderDetail.getProduct().getQuantity()) {
             throw new IllegalArgumentException("Số lượng không hợp lệ. Phải nhỏ hơn hoặc bằng số lượng có sẵn.");
         }
-        Product product = orderDetail.getProduct();
-        productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity() - quantity);
+        Order order = orderDetail.getOrder();
+        order.setTotalPrice(order.getTotalPrice().subtract(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(orderDetail.getQuantity()))));
         orderDetail.setQuantity(quantity);
+        order.setTotalPrice(order.getTotalPrice().add(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(quantity))));
         orderDetailRepository.save(orderDetail);
     }
 
@@ -176,9 +178,6 @@ public class OrderServiceImpl implements OrderService {
         OrderDetail orderDetail = orderDetailRepository.findById(orderDetailId)
                 .orElseThrow(() -> new NoSuchElementException("Order detail not found with ID: " + orderDetailId));
         orderDetailRepository.delete(orderDetail);
-        Product product = orderDetail.getProduct();
-        productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity());
-
     }
 
     @Transactional
@@ -213,7 +212,6 @@ public class OrderServiceImpl implements OrderService {
                 orderDetailRepository.save(orderDetail);
                 orderDetailList.add(orderDetail);
             }
-            productService.updateQuantity(product, product.getQuantity() - item.getQty());
         });
         order.setTotalPrice(totalPrice[0]);
         orderRepository.save(order);
@@ -577,12 +575,12 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
         }
-        if(orderStatus == OrderStatus.CANCELED) {
+        if (orderStatus == OrderStatus.CANCELED) {
             order.getOrderDetails().forEach(orderDetail -> {
                 Product product = orderDetail.getProduct();
                 productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity());
             });
-            if(order.getVoucher() != null) {
+            if (order.getVoucher() != null) {
                 this.voucherService.returnVoucherWhenCancelOrder(order.getVoucher().getId(), order.getUser());
 
             }
@@ -602,6 +600,10 @@ public class OrderServiceImpl implements OrderService {
         if (!order.getStatus().canTransitionTo(status)) {
             throw new IllegalArgumentException("Invalid status transition from " + order.getStatus() + " to " + status);
         }
+        order.getOrderDetails().forEach(item -> {
+            Product product = item.getProduct();
+            productService.updateQuantity(product, product.getQuantity() - item.getQuantity());
+        });
         order.setBuyerName(user != null ? user.getFullName() : "Khách lẻ");
         order.setBuyerPhoneNum(user != null ? user.getPhoneNum() : null);
         order.setStatus(status);
@@ -682,7 +684,7 @@ public class OrderServiceImpl implements OrderService {
             document.add(new Paragraph()
                     .add(new Text("Khách hàng: ").setBold())
                     .add(order.getBuyerName()).setMultipliedLeading(0.8f));
-            if(order.getBuyerPhoneNum() != null) {
+            if (order.getBuyerPhoneNum() != null) {
                 document.add(new Paragraph()
                         .add(new Text("SĐT: ").setBold())
                         .add(order.getBuyerPhoneNum()).setMultipliedLeading(0.8f));
@@ -743,6 +745,7 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException(e);
         }
     }
+
     private Map<String, Object> prepareEmailVariables(Order order) {
         User user = order.getUser();
         User currentUser = userService.getCurrentUser();
@@ -833,7 +836,7 @@ public class OrderServiceImpl implements OrderService {
     private String formatPrice(BigDecimal amount) {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.getDefault());
         symbols.setGroupingSeparator('.');
-        DecimalFormat formatter = new DecimalFormat("#,###",symbols);
+        DecimalFormat formatter = new DecimalFormat("#,###", symbols);
         return formatter.format(amount) + " ₫";
     }
 

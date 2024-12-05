@@ -59,7 +59,7 @@ public class Product {
     private List<OrderDetail> orderDetails;
     private Date createDate;
     private Date updateDate;
-    private Long productCode;
+    private String productCode;
 
 
 }

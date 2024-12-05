@@ -142,7 +142,7 @@ const Product = () => {
                 productIdsReq.shift();
                 isAll = true;
             }
-            ProductService.getBarcodes({ productIds: productIdsReq, isAll: isAll }).then(async res => {
+            ProductService.getBarcodes({ productIds: productIdsReq, isAll: isAll }).then(async (res) => {
                 if (res.status !== 200) {
                     throw new Error('Failed to fetch PDF');
                 }
@@ -158,7 +158,6 @@ const Product = () => {
                     iframe.contentWindow?.print();
                 };
             });
-
         },
         enabled: isClicked,
         retry: 1,
@@ -408,7 +407,7 @@ const Product = () => {
                     <>
                         <DialogTitle>
                             <Box display="flex" justifyContent="space-between" alignItems="center">
-                                <Typography variant="h6">{selectedProduct.name}</Typography>
+                                <Typography variant="h6">{productDetailRes.name}</Typography>
                                 <IconButton onClick={handleCloseDetail}>
                                     <CloseIcon />
                                 </IconButton>
@@ -428,22 +427,27 @@ const Product = () => {
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                             ID:
                                         </Typography>
-                                        <Typography variant="body1">{selectedProduct.id}</Typography>
+                                        <Typography variant="body1">{productDetailRes.id}</Typography>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                            ISBN
+                                            ISBN:
                                         </Typography>
-                                        <Typography variant="body1">1564845648</Typography>
+                                        <Typography variant="body1">{productDetailRes.isbn}</Typography>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                             Tên sách:
                                         </Typography>
-                                        <Typography variant="body1">{selectedProduct.name}</Typography>
+                                        <Typography variant="body1">{productDetailRes.name}</Typography>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                             Trạng thái:
                                         </Typography>
                                         <Chip
-                                            label={selectedProduct.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
-                                            color={selectedProduct.status === 'AVAILABLE' ? 'success' : 'error'}
+                                            label={productDetailRes?.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
+                                            color={productDetailRes?.status === 'AVAILABLE' ? 'success' : 'error'}
                                             size="small"
+                                            sx={{ width: 'fit-content', padding: '0 1rem' }}
+                                            className={cx1('status', {
+                                                'in-stock': productDetailRes.status === 'AVAILABLE',
+                                                'out-of-stock': productDetailRes.status !== 'AVAILABLE',
+                                            })}
                                         />
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                             Loại bìa:
@@ -478,7 +482,7 @@ const Product = () => {
                                             Giá nhập:
                                         </Typography>
                                         <Typography variant="body1">
-                                            {productDetailRes?.importPrice?.toLocaleString('vi-VN')}₫
+                                            {productDetailRes?.cost?.toLocaleString('vi-VN')}₫
                                         </Typography>
 
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
@@ -506,87 +510,112 @@ const Product = () => {
                                             overflowY: 'auto',
                                             display: 'flex',
                                             flexWrap: 'wrap',
+                                            marginBottom: 1,
                                             gap: 2,
                                         }}
                                     >
-                                        {productDetailRes?.images?.map((image, index) => (
-                                            <Item
-                                                key={index}
-                                                original={image.urlImage}
-                                                thumbnail={image.urlImage}
-                                                width="1024"
-                                                height="768"
-                                            >
-                                                {({ ref, open }) => (
-                                                    <img
-                                                        ref={ref}
-                                                        onClick={open}
-                                                        src={image.urlImage}
-                                                        alt={image.nameImage}
-                                                        style={{
-                                                            width: '100px',
-                                                            height: '150px',
-                                                            objectFit: 'cover',
-                                                            cursor: 'pointer',
+                                        <Gallery>
+                                            {productDetailRes?.images?.map((image, index) => (
+                                                <>
+                                                    <Item
+                                                        key={index}
+                                                        original={image.urlImage}
+                                                        thumbnail={image.urlImage}
+                                                        width="1600"
+                                                        height="1600"
+                                                    >
+                                                        {({ ref, open }) => {
+                                                            return (
+                                                                <img
+                                                                    ref={ref}
+                                                                    onClick={open}
+                                                                    src={image.urlImage}
+                                                                    alt={image.nameImage}
+                                                                    style={{
+                                                                        width: '100px',
+                                                                        height: '150px',
+                                                                        objectFit: 'cover',
+                                                                        cursor: 'pointer',
+                                                                    }}
+                                                                />
+                                                            );
                                                         }}
-                                                    />
-                                                )}
-                                            </Item>
-                                        ))}
+                                                    </Item>
+                                                </>
+                                            ))}
+                                        </Gallery>
                                     </Box>
-                                    <Grid item xs={12} md={6}>
-                                        <Box
-                                            sx={{
-                                                display: 'grid',
-                                                gridTemplateColumns: 'auto 1fr',
-                                                rowGap: 2,
-                                                columnGap: 2,
-                                                alignItems: 'center',
-                                            }}
+                                    <Box
+                                        sx={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'auto 1fr',
+                                            rowGap: 2,
+                                            columnGap: 2,
+                                            alignItems: 'center',
+                                        }}
+                                    >
+                                        <Typography
+                                            variant="subtitle1"
+                                            sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}
                                         >
-                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-                                                Nhà phát hành:
-                                            </Typography>
-                                            <Typography sx={{ whiteSpace: 'nowrap' }} variant="body1">
-                                                {productDetailRes.publisher?.name || 'Không có'}
-                                            </Typography>
+                                            Nhà phát hành:
+                                        </Typography>
+                                        <Typography sx={{ whiteSpace: 'nowrap' }} variant="body1">
+                                            {productDetailRes.publisher?.name || 'Không có'}
+                                        </Typography>
 
-                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                                NXB:
-                                            </Typography>
-                                            <Typography sx={{ whiteSpace: 'nowrap' }} variant="body1">{productDetailRes?.manufacturer}</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            NXB:
+                                        </Typography>
+                                        <Typography sx={{ whiteSpace: 'nowrap' }} variant="body1">
+                                            {productDetailRes?.manufacturer}
+                                        </Typography>
 
-                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                                Thể loại:
-                                            </Typography>
-                                            <Box>
-                                                {productDetailRes.categories?.map((category, index) => (
-                                                    <Chip key={index} label={category.name} size="small" sx={{ mr: 1, mb: 1 }} />
-                                                ))}
-                                            </Box>
-
-                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                                Tác giả:
-                                            </Typography>
-                                            <Box>
-                                                {productDetailRes.authors?.map((author, index) => (
-                                                    <Chip key={index} label={author.name} size="small" sx={{ mr: 1, mb: 1 }} />
-                                                ))}
-                                            </Box>
-                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                                Dịch giả:
-                                            </Typography>
-                                            <Typography variant="body1">{productDetailRes.translatorName}</Typography>
-
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Thể loại:
+                                        </Typography>
+                                        <Box>
+                                            {productDetailRes.categories?.map((category, index) => (
+                                                <Chip
+                                                    key={index}
+                                                    label={category.name}
+                                                    size="small"
+                                                    sx={{ mr: 1, mb: 1 }}
+                                                />
+                                            ))}
                                         </Box>
-                                    </Grid>
+
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                            Tác giả:
+                                        </Typography>
+                                        <Box>
+                                            {productDetailRes.authors?.map((author, index) => (
+                                                <Chip
+                                                    key={index}
+                                                    label={author.name}
+                                                    size="small"
+                                                    sx={{ mr: 1, mb: 1 }}
+                                                />
+                                            ))}
+                                        </Box>
+                                        {productDetailRes.translatorName && (
+                                            <>
+                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                                    Dịch giả:
+                                                </Typography>
+                                                <Typography variant="body1">
+                                                    {productDetailRes.translatorName}
+                                                </Typography>
+                                            </>
+                                        )}
+                                    </Box>
                                 </Grid>
-                                <Grid item xs={12}>
-                                    <Typography variant="h6" gutterBottom>
-                                        Mô tả sản phẩm
-                                    </Typography>
-                                    <div dangerouslySetInnerHTML={{ __html: productDetailRes?.description }} />
-                                </Grid>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="h6" gutterBottom>
+                                    Mô tả sản phẩm
+                                </Typography>
+                                <div dangerouslySetInnerHTML={{ __html: productDetailRes?.description }} />
                             </Grid>
                         </DialogContent>
                         <DialogActions>

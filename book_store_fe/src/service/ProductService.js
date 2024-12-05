@@ -38,8 +38,6 @@ class ProductServiceClass {
     };
 
     uploadImgInDescription = (formData) => {
-        console.log('haha');
-
         let config = {
             method: 'post',
             maxBodyLength: Infinity,

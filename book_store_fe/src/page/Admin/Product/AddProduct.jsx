@@ -157,6 +157,7 @@ function AddProduct() {
             weight: '',
             quantity: '',
             status: 0,
+            isbn: '',
             coverType: 0,
             manufacturer: '',
             categoriesId: [],
@@ -228,6 +229,7 @@ function AddProduct() {
                     manufacturer: resData.manufacturer,
                     categoriesId: resData.categories.map((c) => c.id),
                     authorsId: resData.authors.map((a) => a.id),
+                    isbn: resData.isbn,
                     translator: resData.translatorName ? resData.translatorName : '',
                     description: resData.description,
                     selectedImages: resData.images.map((image) => {

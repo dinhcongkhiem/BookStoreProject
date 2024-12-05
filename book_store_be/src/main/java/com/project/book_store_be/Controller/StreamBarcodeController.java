@@ -35,7 +35,7 @@ public class StreamBarcodeController {
             String test = barcodeService.readBarcode(image);
 
             if(test.length() > 0) {
-                orderService.createOrderDetailByBarcode(Long.valueOf(test), request.getOrderId());
+                orderService.createOrderDetailByBarcode(test, request.getOrderId());
             }
         } catch (NotFoundException | IOException e) {
             System.out.println("Error");
