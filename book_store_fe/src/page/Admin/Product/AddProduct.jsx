@@ -90,7 +90,14 @@ function AddProduct() {
         translator: Yup.string().max(255, 'NXB không được vượt quá 255 ký tự.').nullable(),
         selectedImages: Yup.array().of(Yup.string()).min(1, 'Vui lòng chọn ít nhất 1 ảnh sản phẩm.'),
         description: Yup.string().required('Vui lòng nhập mô tả sản phẩm'),
+        isbn: Yup.string()
+            .required('Vui lòng nhập ISBN.')
+            .matches(/^\d+$/, 'ISBN chỉ được chứa số.')
+            .test('isbn-length', 'ISBN phải dài 10 hoặc 13 ký tự.', (value) =>
+                value ? value.length === 10 || value.length === 13 : false
+            ),
     });
+
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const quillRef = useRef(null);
     const inputImgRef = useRef(null);
@@ -107,7 +114,7 @@ function AddProduct() {
         },
         onError: (error) => {
             console.log(error);
-            if(error.response.status === 409) {
+            if (error.response.status === 409) {
                 toast.error(error.response.data);
             }
         },
@@ -129,7 +136,7 @@ function AddProduct() {
         },
         onError: (error) => {
             console.log(error);
-            if(error.response.status === 409) {
+            if (error.response.status === 409) {
                 toast.error(error.response.data);
             }
         },
@@ -414,9 +421,9 @@ function AddProduct() {
                                 value={
                                     yearOfPublicationData.includes(formik.values.yearOfPublication)
                                         ? {
-                                              label: String(formik.values.yearOfPublication),
-                                              code: formik.values.yearOfPublication,
-                                          }
+                                            label: String(formik.values.yearOfPublication),
+                                            code: formik.values.yearOfPublication,
+                                        }
                                         : null
                                 }
                                 getOptionLabel={(option) => option.label}
@@ -605,6 +612,20 @@ function AddProduct() {
                                 size="small"
                                 sx={{ flex: '1', margin: '0', padding: '0' }}
                             />
+                            <Autocomplete
+                                freeSolo
+                                options={[]}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        required
+                                        label="ISBN"
+                                    />
+                                )}
+                                size="small"
+                                sx={{ flex: '1', margin: '0', padding: '0' }}
+                            />
+
                         </div>
                         <div className="row gap-3 m-0 my-3">
                             <Autocomplete
