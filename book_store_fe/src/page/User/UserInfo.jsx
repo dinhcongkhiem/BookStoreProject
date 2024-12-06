@@ -88,7 +88,7 @@ function UserInfo({ onClose }) {
                     addressDetail: values.addressDetail,
                 },
             };
-            if (pathname !== '/user') {
+            if (pathname !== '/user/info') {
                 createByAdminMutation.mutate(data);
             } else {
                 setIsLoading(true);
@@ -169,7 +169,7 @@ function UserInfo({ onClose }) {
         }
     };
     const fetchUserData = () => {
-        if (pathname !== '/user') return;
+        if (pathname !== '/user/info') return;
         let user =
             authentication?.user ||
             JSON.parse(localStorage.getItem('user')) ||
@@ -357,7 +357,7 @@ function UserInfo({ onClose }) {
                     className={cx('save-button')}
                     sx={{ mt: 2, padding: '1rem', width: '50%', mx: 'auto' }}
                 >
-                    <span className="fw-semibold">{pathname === '/user' ? 'Lưu thay đổi' : 'Thêm mới'}</span>
+                    <span className="fw-semibold">{pathname === '/user/info' ? 'Lưu thay đổi' : 'Thêm mới'}</span>
                 </Button>
             </form>
             <ModalLoading isLoading={isLoading || createByAdminMutation.isPending} />
