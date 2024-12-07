@@ -163,7 +163,7 @@ function Header() {
         const connect = async () => {
             const sockJSFactory = () => new SockJS('http://localhost:8080/ws-notifications');
             client = Stomp.over(sockJSFactory);
-            client.debug = () => {};
+            client.debug = () => { };
             client.connect({}, () => onConnected(client), onError);
         };
         connect();
@@ -456,23 +456,18 @@ function Header() {
                     <Navbar.Collapse id="basic-navbar-nav" className="justify-content-center">
                         <Nav>
                             <Nav.Link as={Link} to="/">
-                                Home
+                                Trang Chủ
                             </Nav.Link>
                             <Nav.Link as={Link} to="/product">
-                                Products
+                                Sản Phẩm
                             </Nav.Link>
-                            <Nav.Link as={Link} to="/pages">
-                                Pages
-                            </Nav.Link>
-                            {/* <Nav.Link as={Link} to="/blog">
-                                Blog
-                            </Nav.Link> */}
                             <Nav.Link as={Link} to="/about">
-                                About
+                                Giới Thiệu
                             </Nav.Link>
                             <Nav.Link as={Link} to="/contact">
-                                Contact
+                                Liên Hệ
                             </Nav.Link>
+
                         </Nav>
                     </Navbar.Collapse>
                 </Container>
