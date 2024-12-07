@@ -450,11 +450,7 @@ public class OrderServiceImpl implements OrderService {
         grandTotal[0] = grandTotal[0].add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
         Voucher voucher = order.getVoucher();
         if (voucher != null) {
-            if (voucher.getType().equals(VoucherType.PERCENT)) {
-                discountWithVoucher[0] = grandTotal[0].multiply(voucher.getValue()).divide(BigDecimal.valueOf(100));
-            } else {
-                discountWithVoucher[0] = voucher.getValue();
-            }
+            discountWithVoucher[0] = this.calculateVoucherDiscount(voucher, grandTotal[0], null);
         }
         grandTotal[0] = grandTotal[0].subtract(discountWithVoucher[0]);
         return OrderDetailResponse.builder()
@@ -505,10 +501,9 @@ public class OrderServiceImpl implements OrderService {
                     .build();
         }).toList();
         Voucher voucher = order.getVoucher();
-        BigDecimal shippingFee = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
 
-        BigDecimal voucherDiscount = this.calculateVoucherDiscount(voucher, totalPrice, shippingFee);
-        BigDecimal finalPrice = totalPrice.add(shippingFee).subtract(voucherDiscount);
+        BigDecimal voucherDiscount = this.calculateVoucherDiscount(voucher, totalPrice, null);
+        BigDecimal finalPrice = totalPrice.subtract(voucherDiscount);
 
         return OrderResponse.builder()
                 .type(order.getType())
@@ -634,10 +629,11 @@ public class OrderServiceImpl implements OrderService {
             return voucherDiscount;
         }
         if (voucher.getType() == VoucherType.PERCENT) {
-            if (voucher.getMaxValue() != null && voucher.getMaxValue().compareTo(totalPrice) < 0) {
-                voucherDiscount = voucher.getValue().multiply(totalPrice).divide(BigDecimal.valueOf(100));
-            } else if (voucher.getMaxValue() == null) {
-                voucherDiscount = voucher.getValue().multiply(totalPrice).divide(BigDecimal.valueOf(100));
+            BigDecimal voucherVal = voucher.getValue().multiply(totalPrice).divide(BigDecimal.valueOf(100));
+            if (voucher.getMaxValue() != null) {
+                voucherDiscount = voucherVal.compareTo(voucher.getMaxValue()) <= 0 ? voucherVal : voucher.getMaxValue();
+            } else {
+                voucherDiscount = voucherVal;
             }
         } else if (voucher.getType() == VoucherType.CASH) {
             voucherDiscount = voucher.getValue();

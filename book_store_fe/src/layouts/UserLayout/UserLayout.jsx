@@ -24,7 +24,7 @@ function UserLayout({ children }) {
                             <FontAwesomeIcon icon={faUser} style={{ marginRight: '10px' }} />
                             Thông tin tài khoản
                         </li>
-                        <li className={cx({ active: pathname === '/order' })} onClick={() => navigate('/order')}>
+                        <li className={cx({ active: pathname.startsWith('/order') })} onClick={() => navigate('/order')}>
                             <FontAwesomeIcon icon={faBook} style={{ marginRight: '10px' }} />
                             Quản lý đơn hàng
                         </li>

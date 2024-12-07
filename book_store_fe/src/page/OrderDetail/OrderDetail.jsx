@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box,
     Typography,
@@ -41,7 +41,9 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
 }));
 
 function OrderDetail({ onClose }) {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    }, []);
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const [reviewProduct, setReviewProduct] = useState(null);
@@ -80,7 +82,6 @@ function OrderDetail({ onClose }) {
                     </Typography>
                 </div>
             )}
-
             <Grid container spacing={3} className={cx('infoSections')}>
                 <Grid item xs={12} md={4}>
                     <SectionTitle className={cx('addressTitle')} variant="h6">
@@ -110,9 +111,9 @@ function OrderDetail({ onClose }) {
                         </SectionTitle>
                         <StyledPaper>
                             <Typography variant="body1" gutterBottom>
-                                <p className='m-0'>Loại: {convertTypeOrderToVN(orderDataRes?.type)}</p>
+                                <p className="m-0">Loại: {convertTypeOrderToVN(orderDataRes?.type)}</p>
                                 <p className="m-0">
-                                    Thanh toán: 
+                                    Thanh toán:
                                     {orderDataRes?.paymentType === 'bank_transfer'
                                         ? ' Chuyển khoản ngân hàng'
                                         : orderDataRes?.paymentType === 'cash_on_delivery'
@@ -140,7 +141,6 @@ function OrderDetail({ onClose }) {
                     </StyledPaper>
                 </Grid>
             </Grid>
-
             <TableContainer component={Paper} className={cx('productTable')}>
                 <Table>
                     <TableHead>
@@ -164,14 +164,17 @@ function OrderDetail({ onClose }) {
                         {orderDataRes?.items.map((product) => (
                             <TableRow key={product.id}>
                                 <TableCell>
-                                    <Box display="flex" className={cx('productInfo' , 'LinkToProduct')} onClick={() => {
-                                        if(!pathname.startsWith('/admin')) {
-                                            navigate(`/product/detail?id=${product.productId}`);
-                                        }else {
-                                            navigate(`/admin/product`);
-                                        }
-                                    }}>
-                                        <Box className={cx('productImageContainer')}>
+                                    <Box display="flex" className={cx('productInfo', 'LinkToProduct')}>
+                                        <Box
+                                            className={cx('productImageContainer')}
+                                            onClick={() => {
+                                                if (!pathname.startsWith('/admin')) {
+                                                    navigate(`/product/detail?id=${product.productId}`);
+                                                } else {
+                                                    navigate(`/admin/product`);
+                                                }
+                                            }}
+                                        >
                                             <img
                                                 src={product.thumbnailUrl}
                                                 alt={product.productId}
@@ -179,8 +182,18 @@ function OrderDetail({ onClose }) {
                                             />
                                         </Box>
                                         <Box className={cx('productDetails')}>
-                                            <Typography variant="body1" className={cx('productName')}>
-                                                ID: {product.productId} <span className='mx-2 fw-bold'>|</span> 
+                                            <Typography
+                                                variant="body1"
+                                                className={cx('productName')}
+                                                onClick={() => {
+                                                    if (!pathname.startsWith('/admin')) {
+                                                        navigate(`/product/detail?id=${product.productId}`);
+                                                    } else {
+                                                        navigate(`/admin/product`);
+                                                    }
+                                                }}
+                                            >
+                                                ID: {product.productId} <span className="mx-2 fw-bold">|</span>
                                                 {product.productName}
                                             </Typography>
                                             {orderDataRes?.status === 'COMPLETED' && !pathname.startsWith('/admin') && (
@@ -227,7 +240,6 @@ function OrderDetail({ onClose }) {
                     </TableBody>
                 </Table>
             </TableContainer>
-
             <Box className={cx('orderSummary')}>
                 <Grid container justifyContent="flex-end">
                     <Grid item xs={12} md={6}>
@@ -293,7 +305,6 @@ function OrderDetail({ onClose }) {
                     </Grid>
                 </Grid>
             </Box>
-
             <Box className={cx('orderActionButtons')}>
                 <ButtonInOrder
                     status={orderDataRes?.status}
@@ -303,7 +314,6 @@ function OrderDetail({ onClose }) {
                     productIds={orderDataRes?.items.map((i) => i.productId).join(',')}
                 />
             </Box>
-
             {!pathname.startsWith('/admin') && (
                 <Button
                     variant="text"
