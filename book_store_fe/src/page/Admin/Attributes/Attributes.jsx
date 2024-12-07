@@ -62,25 +62,33 @@ function Attributes() {
     const categorySearchDebounceVal = useDebounce(categorySearchTerm, 500);
 
     const validationSchema = Yup.object().shape({
-        name: Yup.string().trim()
-            .required('Tên là bắt buộc')
-            .min(2, 'Tên phải có ít nhất 2 ký tự')
-            .max(50, 'Tên không được vượt quá 50 ký tự')
-            .test('valid-dot', 'Dấu chấm chỉ được xuất hiện sau chữ cái',
-                value => !/\.(?![a-zA-Z])/.test(value) && !/^\./.test(value))
-            .test('valid-hyphen', 'Dấu gạch ngang chỉ được xuất hiện giữa các chữ cái hoặc số',
-                value => !/-(?![a-zA-Z0-9])/.test(value) && !/^-/.test(value) && !/[^a-zA-Z0-9]-/.test(value))
-            .test('no-special-characters', 'Tên không được chứa ký tự đặc biệt ngoài dấu chấm và gạch ngang',
-                value => /^[a-zA-Z0-9\s\u00C0-\u1EF9.-]*$/.test(value))
-            .test('valid-characters', 'Tên chỉ được chứa chữ cái, số, dấu chấm, dấu gạch ngang và khoảng trắng',
-                value => /^[a-zA-Z0-9\s\u00C0-\u1EF9.-]*$/.test(value))
-            .test('no-leading-trailing-spaces', 'Tên không được bắt đầu hoặc kết thúc bằng khoảng trắng',
-                value => value && value.trim() === value)
-            .test('no-consecutive-spaces', 'Tên không được chứa nhiều khoảng trắng liên tiếp',
-                value => value && !value.includes('  '))
-            .test('not-only-spaces', 'Tên không thể chỉ chứa khoảng trắng',
-                value => value && value.trim().length > 0)
-    });
+        name: Yup.string()
+          .required('Tên là bắt buộc')
+          .min(2, 'Tên phải có ít nhất 2 ký tự')
+          .max(50, 'Tên không được vượt quá 50 ký tự')
+          .test('no-leading-trailing-spaces', 'Tên không được bắt đầu hoặc kết thúc bằng khoảng trắng',
+            value => value && value.trim() === value)
+          .test('valid-dot', 'Dấu chấm chỉ được xuất hiện sau chữ cái',
+            value => !/\.(?![a-zA-Z])/.test(value) && !/^\./.test(value))
+          .test('valid-hyphen-and-ampersand', 'Dấu gạch ngang và dấu "&" phải có khoảng trắng trước và sau, và không ở đầu hoặc cuối',
+            value => {
+              if (!value) return true;
+              return !/(?<!\s)-|-(?!\s)/.test(value) && 
+                     !/(?<!\s)&|&(?!\s)/.test(value) &&
+                     !value.startsWith('-') && 
+                     !value.endsWith('-') &&
+                     !value.startsWith('&') && 
+                     !value.endsWith('&');
+            })
+          .test('no-special-characters', 'Tên không được chứa ký tự đặc biệt ngoài dấu chấm, gạch ngang và "&"',
+            value => /^[a-zA-Z0-9\s\u00C0-\u1EF9.&-]*$/.test(value))
+          .test('valid-characters', 'Tên chỉ được chứa chữ cái, số, dấu chấm, dấu gạch ngang, "&" và khoảng trắng',
+            value => /^[a-zA-Z0-9\s\u00C0-\u1EF9.&-]*$/.test(value))
+          .test('no-consecutive-spaces', 'Tên không được chứa nhiều khoảng trắng liên tiếp',
+            value => value && !value.includes('  '))
+          .test('not-only-spaces', 'Tên không thể chỉ chứa khoảng trắng',
+            value => value && value.trim().length > 0)
+      });
 
 
 
