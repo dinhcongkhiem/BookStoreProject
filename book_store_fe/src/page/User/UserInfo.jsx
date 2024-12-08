@@ -39,8 +39,10 @@ function UserInfo({ onClose }) {
             toast.success('Thêm mới khách hàng thành công!');
             onClose();
         },
-        onError: (error) => {
-            console.log(error);
+        onError: (err) => {
+            if (err.response.status === 409) {
+                toast.warn(err.response.data, { position: 'top-center' });
+            }
         },
     });
     const validationSchema = Yup.object({

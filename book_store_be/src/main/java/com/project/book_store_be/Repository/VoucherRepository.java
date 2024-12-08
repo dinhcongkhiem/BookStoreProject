@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface VoucherRepository extends JpaRepository<Voucher, Long> {
@@ -34,8 +35,20 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
                                       OR (:status = 0 AND v.start_date  > CURRENT_TIMESTAMP )
                                       OR (:status = 1 AND v.start_date  <= CURRENT_TIMESTAMP  AND v.end_date  >= CURRENT_TIMESTAMP )
                                       OR (:status = -1 AND v.end_date < CURRENT_TIMESTAMP ))
-                          and ((:user_id is NULL) or (vu.user_id = :user_id))
+                          and ((:user_id is NULL) or (vu.user_id = :user_id and v.quantity > 0 ))
                           group by  v.id
                               """, nativeQuery = true)
     Page<Voucher> searchVoucher(String keyword, Integer status,Long user_id, Pageable pageable);
+
+
+    @Query(value = """
+            SELECT v.*
+                      FROM voucher v
+                      LEFT JOIN voucher_user vu ON v.id = vu.voucher_id\s
+                      where\s
+                      (:status = 1 AND v.start_date  <= CURRENT_TIMESTAMP  AND v.end_date  >= CURRENT_TIMESTAMP )
+                      and v.quantity > 0
+                            group by  v.id
+                                """, nativeQuery = true)
+    List<Voucher> getAllVouchersActive();
 }

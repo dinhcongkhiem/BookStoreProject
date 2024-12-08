@@ -16,10 +16,9 @@ import {
 import { LocalOffer as LocalOfferIcon, Cancel as CancelIcon, Info as InfoIcon } from '@mui/icons-material';
 import classNames from 'classnames/bind';
 import styles from './ChooseVoucherModal.module.scss';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import VoucherService from '../../../service/VoucherService';
 import { formatDate } from '../../../utills/ConvertData';
-
 const cx = classNames.bind(styles);
 
 const CustomTooltip = styled(({ className, ...props }) => <Tooltip {...props} classes={{ popper: className }} />)(
@@ -35,38 +34,44 @@ const CustomTooltip = styled(({ className, ...props }) => <Tooltip {...props} cl
 );
 
 function ChooseVoucherModal({ open, setOpen, setVoucher, voucher, grandTotal }) {
+    const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [displayedPromos, setDisplayedPromos] = useState([]);
-    const [filteredPromos, setFilteredPromos] = useState([]);
-    const [showAll, setShowAll] = useState(false);
     const observer = useRef();
 
     const {
         data: vouchers,
         error,
+        refetch,
         isLoading,
     } = useQuery({
         queryKey: ['vouchers', page],
-        queryFn: () => VoucherService.getByUser({page: page}).then((res) => {
-            setDisplayedPromos((prev) => [...prev, ...res.data.content]);
-            return res.data;
-        }),
+        queryFn: () =>
+            VoucherService.getByUser({ page: page, keyword: searchTerm.trim() }).then((res) => {
+                if (page !== 1) {
+                    setDisplayedPromos((prev) => [...prev, ...res.data.content]);
+                    return res.data;
+                }
+                setDisplayedPromos([...res.data.content]);
+                return res.data;
+            }),
         retry: 1,
+        refetchOnWindowFocus: false,
     });
 
     const lastPromoElementRef = useCallback(
         (node) => {
             if (isLoading) return;
             if (observer.current) observer.current.disconnect();
-            observer.current = new IntersectionObserver((entries) => {                
+            observer.current = new IntersectionObserver((entries) => {
                 if (entries[0].isIntersecting && page < vouchers.totalPages) {
                     setPage((prevPage) => prevPage + 1);
                 }
             });
             if (node) observer.current.observe(node);
         },
-        [isLoading, vouchers]
+        [isLoading, vouchers],
     );
 
     const handleApplyPromo = (promo) => {
@@ -78,6 +83,16 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, voucher, grandTotal }) 
             setOpen(false);
         }
     };
+
+    const handleSearch = () => {
+        setPage(1);
+        refetch();
+    };
+    useEffect(() => {
+        if (searchTerm === '') {
+            queryClient.invalidateQueries('vouchers');
+        }
+    }, [searchTerm]);
 
     return (
         <Dialog open={open} onClose={() => setOpen(false)}>
@@ -111,8 +126,13 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, voucher, grandTotal }) 
                             style: { width: '42.5rem' },
                         }}
                     />
-                    <Button className={cx('search-button')} variant="outlined" disabled={searchTerm === ''}>
-                        Xác nhận
+                    <Button
+                        className={cx('search-button')}
+                        variant="outlined"
+                        disabled={searchTerm.trim() === ''}
+                        onClick={handleSearch}
+                    >
+                        Tìm kiếm
                     </Button>
                 </div>
                 {displayedPromos.length > 0 ? (
@@ -185,15 +205,10 @@ function ChooseVoucherModal({ open, setOpen, setVoucher, voucher, grandTotal }) 
                                         >
                                             {promo.id === voucher?.id ? 'Bỏ chọn' : 'Áp dụng'}
                                         </Button>
-                                     )} 
+                                    )}
                                 </div>
                             </div>
                         ))}
-                        {filteredPromos.length > 3 && (
-                            <Button onClick={() => setShowAll(!showAll)} className={cx('show-more-button')}>
-                                {showAll ? 'Thu gọn' : 'Xem thêm'}
-                            </Button>
-                        )}
                     </>
                 ) : (
                     <p>Không có mã giảm giá nào.</p>

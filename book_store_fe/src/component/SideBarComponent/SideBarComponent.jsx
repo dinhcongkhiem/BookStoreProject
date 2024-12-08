@@ -183,7 +183,7 @@ function SideBarComponent() {
             </div>
 
             <div className={cx('publisher')}>
-                <h4>Nhà cung cấp</h4>
+                <h4>Nhà phát hành</h4>
                 <Collapse in={isShowMoreBublisher} collapsedSize={225}>
                     {publishers?.map((pusher, index) => {
                         return (

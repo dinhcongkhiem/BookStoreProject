@@ -44,6 +44,7 @@ function Order() {
         enabled: !!page && !!activeTab,
     });
     const handleSearchOrder = () => {
+        setPage(1);
         refetch();
     };
 

@@ -3,6 +3,7 @@ package com.project.book_store_be.Services;
 import com.project.book_store_be.Enum.Role;
 import com.project.book_store_be.Exception.UserAlreadyExistsException;
 import com.project.book_store_be.Interface.AuthenticationService;
+import com.project.book_store_be.Interface.VoucherService;
 import com.project.book_store_be.Model.Address;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.UserRepository;
@@ -20,6 +21,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.SecureRandom;
@@ -37,11 +39,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
     private final SendMailService sendMailService;
+    private final VoucherService voucherService;
 
     @Value("${client.url}")
     private String clientUrl;
 
     @Override
+    @Transactional
     public void register(RegisterRequest request) {
         Optional<User> user = userRepository.findByEmail(request.getEmail());
         if (user.isPresent()) {
@@ -63,6 +67,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         userRepository.save(newUser);
         sendMailService.sendEmail(newUser, "Kích hoạt tài khoản",
                 "verifyAccountTemplate", Map.of("clientUrl", clientUrl));
+        this.voucherService.updateWhenCreateNewUser(newUser);
     }
 
     @Override

@@ -120,7 +120,7 @@ function Register() {
                     }
                 })
                 .catch((err) => {
-                    if (err.response.status === 400) {
+                    if (err.response.status === 409) {
                         toast.warn(err.response.data, { position: 'top-center' });
                     }
                 })

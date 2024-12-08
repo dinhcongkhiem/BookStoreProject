@@ -14,6 +14,7 @@ import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.project.book_store_be.Enum.*;
+import com.project.book_store_be.Exception.VoucherQuantityNotEnough;
 import com.project.book_store_be.Interface.AddressService;
 import com.project.book_store_be.Interface.OrderService;
 import com.project.book_store_be.Interface.PaymentService;
@@ -272,6 +273,9 @@ public class OrderServiceImpl implements OrderService {
             voucher = optionalVoucher.get();
             if (voucher.getStartDate().isAfter(LocalDateTime.now()) || voucher.getEndDate().isBefore(LocalDateTime.now())) {
                 throw new IllegalArgumentException("Voucher đã hết hạn.");
+            }
+            if(voucher.getQuantity() == 0) {
+                throw new VoucherQuantityNotEnough("Phiếu giảm giá này đã hết, vui lòng chọn phiếu giảm giá khác!");
             }
             if (voucher.getCondition() != null && totalPrice[0].compareTo(voucher.getCondition()) < 0) {
                 throw new IllegalArgumentException("Không đủ điều kiện để áp dụng voucher.");

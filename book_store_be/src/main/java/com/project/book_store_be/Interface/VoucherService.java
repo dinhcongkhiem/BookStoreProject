@@ -15,6 +15,9 @@ public interface VoucherService {
     Voucher createVoucher(VoucherRequest voucherRequest);
     Voucher getVoucherById(Long id);
     Voucher updateVoucher(Long id, VoucherRequest voucherRequest);
+
+    void updateWhenCreateNewUser(User user);
+
     void deleteVoucher(Long id);
     void validateVoucherRequest(VoucherRequest voucherRequest);
     Page<?> searchVouchers(String keyword, Integer status, int page, int size, String sort, Boolean forUser);

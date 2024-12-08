@@ -49,7 +49,10 @@ function AddProduct() {
     const navigate = useNavigate();
     const [indexRemove, setIndexRemove] = useState(null);
     const validationSchema = Yup.object({
-        name: Yup.string().trim().required('Vui lòng nhập tên sách.').max(255, 'Tên sản phẩm không được vượt quá 255 ký tự.'),
+        name: Yup.string()
+            .trim()
+            .required('Vui lòng nhập tên sách.')
+            .max(255, 'Tên sản phẩm không được vượt quá 255 ký tự.'),
         size: Yup.object({
             x: Yup.number().required('x is required').min(1, 'min is 200').max(500, 'max is 500'),
             y: Yup.number().required('y is required').min(1, 'min is 200').max(500, 'max is 500'),
@@ -94,7 +97,7 @@ function AddProduct() {
             .required('Vui lòng nhập ISBN.')
             .matches(/^\d+$/, 'ISBN chỉ được chứa số.')
             .test('isbn-length', 'ISBN phải dài 10 hoặc 13 ký tự.', (value) =>
-                value ? value.length === 10 || value.length === 13 : false
+                value ? value.length === 10 || value.length === 13 : false,
             ),
     });
 
@@ -423,9 +426,9 @@ function AddProduct() {
                                 value={
                                     yearOfPublicationData.includes(formik.values.yearOfPublication)
                                         ? {
-                                            label: String(formik.values.yearOfPublication),
-                                            code: formik.values.yearOfPublication,
-                                        }
+                                              label: String(formik.values.yearOfPublication),
+                                              code: formik.values.yearOfPublication,
+                                          }
                                         : null
                                 }
                                 getOptionLabel={(option) => option.label}
@@ -452,14 +455,33 @@ function AddProduct() {
                                 )}
 
                                 <FormHelperText sx={{ color: '#d32f2f' }}>
-                                    {formik.errors.size ? `Kích thước là bắt buộc và phải nằm trong khoảng 0 - 500` : ''}
+                                    {formik.errors.size
+                                        ? `Kích thước là bắt buộc và phải nằm trong khoảng 0 - 500`
+                                        : ''}
                                 </FormHelperText>
                             </div>
-                            {renderTextField('weight', 'KL(gram)', 'number', true, null, {
-                                flex: '1',
-                                margin: '0',
-                                padding: '0',
-                            })}
+                            <TextField
+                                size="small"
+                                fullWidth
+                                label={'KL(gram)'}
+                                name={'weight'}
+                                type={'text'}
+                                value={formik.values['weight']}
+                                onChange={(event) => {
+                                    const value = event.target.value;
+                                    if (/^\d*$/.test(value)) {
+                                        formik.setFieldValue('weight', value);
+                                    }
+                                }}
+                                onBlur={formik.handleBlur}
+                                error={Boolean(formik.errors.weight)}
+                                helperText={formik.errors.weight}
+                                required={true}
+                                margin="normal"
+                                variant="outlined"
+                                inputRef={(el) => (formRefs.current['weight'] = el)}
+                                sx={{ flex: '1', margin: '0', padding: '0' }}
+                            />
                         </div>
                         <div className="row gap-3 m-0 my-3">
                             {renderTextField('quantity', 'Số lượng', 'number', true, null, {
@@ -479,10 +501,15 @@ function AddProduct() {
                                 <InputLabel htmlFor="cost-price">Giá nhập</InputLabel>
                                 <OutlinedInput
                                     id="cost-price"
-                                    type={'number'}
+                                    type={'text'}
                                     endAdornment={<InputAdornment position="end">₫</InputAdornment>}
                                     value={formik.values.cost || ''}
-                                    onChange={formik.handleChange}
+                                    onChange={(event) => {
+                                        const value = event.target.value;
+                                        if (/^\d*$/.test(value)) {
+                                            formik.setFieldValue('cost', value);
+                                        }
+                                    }}
                                     onBlur={formik.handleBlur}
                                     name="cost"
                                     label="Giá nhập"
@@ -504,7 +531,12 @@ function AddProduct() {
                                     type={'number'}
                                     endAdornment={<InputAdornment position="end">₫</InputAdornment>}
                                     value={formik.values.originalPrice || ''}
-                                    onChange={formik.handleChange}
+                                    onChange={(event) => {
+                                        const value = event.target.value;
+                                        if (/^\d*$/.test(value)) {
+                                            formik.setFieldValue('originalPrice', value);
+                                        }
+                                    }}
                                     onBlur={formik.handleBlur}
                                     name="originalPrice"
                                     label="Giá bán"
@@ -620,13 +652,17 @@ function AddProduct() {
                                 type="text"
                                 required
                                 value={formik.values.isbn}
-                                onChange={formik.handleChange}
+                                onChange={(event) => {
+                                    const value = event.target.value;
+                                    if (/^\d*$/.test(value)) {
+                                        formik.setFieldValue('isbn', value);
+                                    }
+                                }}
                                 error={Boolean(formik.errors.isbn)}
                                 helperText={formik.errors.isbn}
                                 size="small"
                                 style={{ flex: 1 }}
                             />
-
                         </div>
                         <div className="row gap-3 m-0 my-3">
                             <Autocomplete

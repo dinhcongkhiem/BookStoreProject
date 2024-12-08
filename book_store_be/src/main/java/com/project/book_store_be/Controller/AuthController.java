@@ -32,7 +32,7 @@ public class AuthController {
             return ResponseEntity.ok("Please check your email to active account");
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("User with email " + request.getEmail() + " already exists");
+                    .body("Email " + request.getEmail() + " đã được sử dụng, vui lòng thử lại với email khác!");
         }
     }
 
@@ -43,8 +43,8 @@ public class AuthController {
             authenticationService.registerByAdmin(request);
             return ResponseEntity.ok("Please check your email to active account");
         } catch (UserAlreadyExistsException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("User with email " + request.getEmail() + " already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Email " + request.getEmail() + " đã được sử dụng, vui lòng thử lại với email khác!");
         }
     }
 

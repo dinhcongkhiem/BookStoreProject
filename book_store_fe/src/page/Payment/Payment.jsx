@@ -114,11 +114,14 @@ function Payment() {
         mutationFn: (data) => OrderService.createOrder(data),
         onError: (error) => {
             if (error.response.status === 409) {
-                localStorage.removeItem('cartIdsForPayment');
-                localStorage.removeItem('productForPayment');
-                localStorage.removeItem('selectedVoucher');
-                toast.error('Sản phẩm đã hết hàng hoặc số lượng không đủ, xin thông cảm!');
-                navigate('/');
+                if (error.response.data !== 'Phiếu giảm giá này đã hết, vui lòng chọn phiếu giảm giá khác!') {
+                    localStorage.removeItem('cartIdsForPayment');
+                    localStorage.removeItem('productForPayment');
+                    localStorage.removeItem('selectedVoucher');
+                    toast.error(error.response.data);
+                    navigate('/product');
+                }
+                toast.error(error.response.data);
             }
         },
         onSuccess: (data) => {

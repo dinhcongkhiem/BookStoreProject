@@ -148,6 +148,9 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public void updateQuantity(Long id, Integer quantity) {
         Voucher voucher = getVoucherById(id);
+        if(voucher.getQuantity() < quantity) {
+            throw new IllegalArgumentException("Số lượng voucher không đủ");
+        }
         voucher.setQuantity(voucher.getQuantity() - quantity);
         voucherRepository.save(voucher);
     }
@@ -158,6 +161,15 @@ public class VoucherServiceImpl implements VoucherService {
                 .orElseThrow(() -> new IllegalArgumentException("Voucher không tìm thấy với id: " + id));
     }
 
+    @Override
+    public void updateWhenCreateNewUser(User user) {
+        List<Voucher> vouchers = voucherRepository.getAllVouchersActive();
+        vouchers.forEach(v -> {
+            v.getUsers().add(user);
+            voucherRepository.save(v);
+        });
+
+    }
 
     @Override
     public void deleteVoucher(Long id) {

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChartSimple, faFile, faFileLines, faSquarePollVertical } from '@fortawesome/free-solid-svg-icons';
-import { Table, TableContainer, TableHead, TableRow, TableCell, TableBody, Stack, Button } from '@mui/material';
+import {Stack, Button } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import StatisticalService from '../../../service/StatisticService';
 const cx = classNames.bind(style);
@@ -15,6 +15,11 @@ const areaChartOptions = {
         type: 'area',
         toolbar: {
             show: false,
+        },
+    },
+    legend: {
+        onItemClick: {
+            toggleDataSeries: false,
         },
     },
     dataLabels: {
@@ -167,7 +172,7 @@ function Dashboard() {
                     </Stack>
                 </div>
                 <div className={cx('chart')}>
-                    <ReactApexChart options={options} series={series} type="area" height={500} />
+                    <ReactApexChart options={options} series={series} type="area" height={500}  />
                 </div>
             </div>
             {/* <div className={cx('recent-order', 'mt-5')}>

@@ -2,6 +2,7 @@ package com.project.book_store_be.Services;
 
 
 import com.project.book_store_be.Enum.Role;
+import com.project.book_store_be.Interface.VoucherService;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -26,6 +27,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
     private final SendMailService sendMailService;
     private final PasswordEncoder passwordEncoder;
+    private final VoucherService voucherService;
+
 
 
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -48,6 +51,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             Map<String, Object> emailVariables = new HashMap<>();
             emailVariables.put("newPassword", defaultPassword);
             sendMailService.sendEmail(newUser, "Thông báo mật khẩu", "notificationPasswordTemplate.html", emailVariables);
+            this.voucherService.updateWhenCreateNewUser(newUser);
         }
         return user;
     }

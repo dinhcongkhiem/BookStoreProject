@@ -3,6 +3,7 @@ package com.project.book_store_be.Controller;
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Enum.PaymentType;
 import com.project.book_store_be.Exception.ProductQuantityNotEnough;
+import com.project.book_store_be.Exception.VoucherQuantityNotEnough;
 import com.project.book_store_be.Interface.OrderService;
 import com.project.book_store_be.Request.OrderRequest;
 import com.project.book_store_be.Request.UpdateOrderRequest;
@@ -53,6 +54,12 @@ public class OrderController {
         }catch (ProductQuantityNotEnough e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Số lượng sản phẩm không đủ, vui lòng thử lại sau!");
+        }catch (VoucherQuantityNotEnough e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Phiếu giảm giá này đã hết, vui lòng chọn phiếu giảm giá khác!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra");
         }
     }
 

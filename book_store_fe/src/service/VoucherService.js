@@ -21,7 +21,7 @@ class VoucherServiceClass {
         return httpRequest.request(config);
     };
 
-    getByUser = ({ page = 1, size = 20 }) => {
+    getByUser = ({ page = 1, size = 20, keyword}) => {
         let config = {
             method: 'get',
             url: VOUCHER_URL + '/by-user',
@@ -31,6 +31,7 @@ class VoucherServiceClass {
             params: {
                 page: page - 1,
                 size,
+                keyword
             },
             withCredentials: true,
         };
