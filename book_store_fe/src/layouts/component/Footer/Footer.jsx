@@ -45,8 +45,8 @@ function Footer() {
                                 </div>
                                 <div className={cx('footerTittle')}>
                                     <p>
-                                        Get the breathing space now, and we’ll extend your term at the other end year
-                                        for go.
+                                        Hãy tận hưởng không gian riêng của bạn và chúng tôi sẽ giúp bạn kéo dài thời hạn
+                                        ở cuối kỳ.
                                     </p>
                                 </div>
                             </div>
@@ -54,22 +54,22 @@ function Footer() {
                         <div className={cx('colMedium', 'colSmall')}>
                             <div className={cx('singleFooterCaption')}>
                                 <div className={cx('footerTittle')}>
-                                    <h4>Book Category</h4>
+                                    <h4>Thể Loại Sách</h4>
                                     <ul>
                                         <li>
-                                            <a href="#">History</a>
+                                            <a href="#">Lịch Sử</a>
                                         </li>
                                         <li>
-                                            <a href="#">Horror - Thriller</a>
+                                            <a href="#">Kinh Dị - Giật Gân</a>
                                         </li>
                                         <li>
-                                            <a href="#">Love Stories</a>
+                                            <a href="#">Chuyện Tình Yêu</a>
                                         </li>
                                         <li>
-                                            <a href="#">Science Fiction</a>
+                                            <a href="#">Khoa Học Viễn Tưởng</a>
                                         </li>
                                         <li>
-                                            <a href="#">Business</a>
+                                            <a href="#">Kinh Doanh</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -78,22 +78,22 @@ function Footer() {
                         <div className={cx('colMedium', 'colSmall')}>
                             <div className={cx('singleFooterCaption')}>
                                 <div className={cx('footerTittle')}>
-                                    <h4>Other Categories</h4>
+                                    <h4>Danh Mục Khác</h4>
                                     <ul>
                                         <li>
-                                            <a href="#">Biography</a>
+                                            <a href="#">Tiểu Sử</a>
                                         </li>
                                         <li>
-                                            <a href="#">Astrology</a>
+                                            <a href="#">Chiêm Tinh</a>
                                         </li>
                                         <li>
-                                            <a href="#">Digital Marketing</a>
+                                            <a href="#">Marketing Kỹ Thuật Số</a>
                                         </li>
                                         <li>
-                                            <a href="#">Software Development</a>
+                                            <a href="#">Phát Triển Phần Mềm</a>
                                         </li>
                                         <li>
-                                            <a href="#">Ecommerce</a>
+                                            <a href="#">Thương Mại Điện Tử</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -102,22 +102,22 @@ function Footer() {
                         <div className={cx('colLarge', 'colMedium', 'colSmall')}>
                             <div className={cx('singleFooterCaption')}>
                                 <div className={cx('footerTittle')}>
-                                    <h4>Site Map</h4>
+                                    <h4>Bản Đồ Trang</h4>
                                     <ul>
                                         <li>
-                                            <a href="#">Home</a>
+                                            <a href="#">Trang Chủ</a>
                                         </li>
                                         <li>
-                                            <a href="#">About Us</a>
+                                            <a href="#">Về Chúng Tôi</a>
                                         </li>
                                         <li>
-                                            <a href="#">FAQs</a>
+                                            <a href="#">Câu Hỏi Thường Gặp</a>
                                         </li>
                                         <li>
                                             <a href="#">Blog</a>
                                         </li>
                                         <li>
-                                            <a href="#">Contact</a>
+                                            <a href="#">Liên Hệ</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -132,8 +132,9 @@ function Footer() {
                         <div className={cx('customRow')}>
                             <div className={cx('colFull')}>
                                 <div className={cx('footerCopyRight')}>
-                                    &copy; 2024 All rights reserved | This template is made with{' '}
-                                    <i className="fa fa-heart" aria-hidden="true"></i> by <Link to="/">Book Bazaar</Link>
+                                    &copy; 2024 Bản quyền thuộc về | Được thực hiện với{' '}
+                                    <i className="fa fa-heart" aria-hidden="true"></i> bởi{' '}
+                                    <Link to="/">Book Bazaar</Link>
                                 </div>
                             </div>
                         </div>
