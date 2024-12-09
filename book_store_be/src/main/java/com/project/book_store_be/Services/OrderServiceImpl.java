@@ -748,13 +748,15 @@ public class OrderServiceImpl implements OrderService {
 
     private Map<String, Object> prepareEmailVariables(Order order) {
         User user = order.getUser();
-        User currentUser = userService.getCurrentUser();
         if (user == null) {
             throw new IllegalArgumentException("Không tìm thấy thông tin khách hàng cho đơn hàng");
         }
         Order currentOrder = orderRepository.findById(order.getId()).orElseThrow(
                 () -> new NoSuchElementException("Not found order id : " + order.getId())
         );
+        String userName = order.getUser().getFullName();
+        String userPhone = order.getUser().getPhoneNum();
+        String userMail = order.getUser().getEmail();
         Address address = user.getAddress();
         String fullAddress = (address != null)
                 ? address.getAddressDetail() + ", " +
@@ -762,7 +764,6 @@ public class OrderServiceImpl implements OrderService {
                 (address.getCommune() != null && address.getCommune().getLabel() != null ? address.getCommune().getLabel() : "") + ", " +
                 (address.getProvince() != null && address.getProvince().getLabel() != null ? address.getProvince().getLabel() : "")
                 : "Địa chỉ không có";
-
         Address address1 = order.getAddress();
         String fullAddress1 = (address1 != null)
                 ? address1.getAddressDetail() + ", " +
@@ -809,6 +810,12 @@ public class OrderServiceImpl implements OrderService {
 
         String formattedVoucherAmount = formatPrice(voucherAmount.negate());
         String formattedTotalAmount = formatPrice(totalAmount);
+        String paymentStatus;
+        if (order.getPaymentType() == PaymentType.cash_on_delivery) {
+            paymentStatus = "Chờ thanh toán";
+        } else {
+            paymentStatus = "Thanh toán thành công";
+        }
         String frontendBaseUrl = "http://localhost:3000";
         String adminLink = String.format("%s/admin/orderMng/%d", frontendBaseUrl, order.getId());
         String userLink = String.format("%s/order/detail/%d", frontendBaseUrl, order.getId());
@@ -816,7 +823,10 @@ public class OrderServiceImpl implements OrderService {
         Map<String, Object> emailVariables = new HashMap<>();
         emailVariables.put("orderCode", order.getId());
         emailVariables.put("orderDate", order.getOrderDate());
-        emailVariables.put("user1", currentUser);
+        emailVariables.put("userName", userName);
+        emailVariables.put("userPhone", userPhone);
+        emailVariables.put("userMail", userMail);
+        emailVariables.put("paymentStatus", paymentStatus);
         emailVariables.put("adminLink", adminLink);
         emailVariables.put("userLink", userLink);
         emailVariables.put("cancelLink", cancelLink);

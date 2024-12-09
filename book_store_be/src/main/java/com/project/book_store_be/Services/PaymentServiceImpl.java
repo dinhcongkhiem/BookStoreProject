@@ -2,6 +2,7 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Enum.OrderStatus;
+import com.project.book_store_be.Enum.PaymentType;
 import com.project.book_store_be.Enum.VoucherType;
 import com.project.book_store_be.Interface.PaymentService;
 import com.project.book_store_be.Model.*;
@@ -45,13 +46,15 @@ public class PaymentServiceImpl implements PaymentService {
 
     private Map<String, Object> prepareEmailVariables(Order order) {
         User user = order.getUser();
-        User currentUser = userService.getCurrentUser();
         if (user == null) {
             throw new IllegalArgumentException("Không tìm thấy thông tin khách hàng cho đơn hàng");
         }
         Order currentOrder = orderRepository.findById(order.getId()).orElseThrow(
                 () -> new NoSuchElementException("Not found order id : " + order.getId())
         );
+        String userName = order.getUser().getFullName();
+        String userPhone = order.getUser().getPhoneNum();
+        String userMail = order.getUser().getEmail();
         Address address = user.getAddress();
         String fullAddress = (address != null)
                 ? address.getAddressDetail() + ", " +
@@ -117,6 +120,12 @@ public class PaymentServiceImpl implements PaymentService {
 
         String formattedVoucherAmount = formatPrice(voucherAmount.negate());
         String formattedTotalAmount = formatPrice(totalAmount);
+        String paymentStatus;
+        if (order.getPaymentType() == PaymentType.cash_on_delivery) {
+            paymentStatus = "Chờ thanh toán";
+        } else {
+            paymentStatus = "Thanh toán thành công";
+        }
         String frontendBaseUrl = "http://localhost:3000";
         String adminLink = String.format("%s/admin/orderMng/%d", frontendBaseUrl, order.getId());
         String userLink = String.format("%s/order/detail/%d", frontendBaseUrl, order.getId());
@@ -124,8 +133,11 @@ public class PaymentServiceImpl implements PaymentService {
         Map<String, Object> emailVariables = new HashMap<>();
         emailVariables.put("orderCode", order.getId());
         emailVariables.put("orderDate", order.getOrderDate());
-        emailVariables.put("user1", currentUser);
         emailVariables.put("adminLink", adminLink);
+        emailVariables.put("paymentStatus", paymentStatus);
+        emailVariables.put("userName", userName);
+        emailVariables.put("userPhone", userPhone);
+        emailVariables.put("userMail", userMail);
         emailVariables.put("userLink", userLink);
         emailVariables.put("cancelLink", cancelLink);
         emailVariables.put("fullAddress1", fullAddress1);
