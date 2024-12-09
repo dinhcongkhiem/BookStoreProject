@@ -59,15 +59,27 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(cb.or(discountPredicate, noDiscountPredicate));
 
-        Expression<BigDecimal> discountedPrice = cb.diff(
-                productRoot.get("original_price"),
-                cb.quot(
-                        cb.prod(
+        Expression<BigDecimal> discountedPrice = cb.selectCase()
+                .when(
+                        cb.and(
+                                cb.isNotNull(discountJoin.get("discountRate")),
+                                cb.greaterThanOrEqualTo(cb.currentTimestamp(), discountJoin.get("startDate")),
+                                cb.lessThanOrEqualTo(cb.currentTimestamp(), discountJoin.get("endDate"))
+                        ),
+                        cb.diff(
                                 productRoot.get("original_price"),
-                                cb.coalesce(discountJoin.get("discountRate"), cb.literal(BigDecimal.ZERO))),
-                        cb.literal(BigDecimal.valueOf(100))
+                                cb.quot(
+                                        cb.prod(
+                                                productRoot.get("original_price"),
+                                                cb.coalesce(discountJoin.get("discountRate"), cb.literal(BigDecimal.ZERO))
+                                        ),
+                                        cb.literal(BigDecimal.valueOf(100))
+                                )
+                        )
                 )
-        ).as(BigDecimal.class);
+                .otherwise(productRoot.get("original_price"))
+                .as(BigDecimal.class);
+
 
         if (minPrice != null && maxPrice != null) {
             predicates.add(cb.between(discountedPrice, minPrice, maxPrice));
@@ -96,7 +108,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
 
         predicates.add(spec.toPredicate(productRoot, query, cb));
         query.where(cb.and(predicates.toArray(new Predicate[0])));
-        query.groupBy(productRoot.get("id"), discountJoin.get("discountRate"));
+        query.groupBy(productRoot.get("id"), discountJoin.get("discountRate"), discountJoin.get("startDate"), discountJoin.get("endDate"));
 
         jakarta.persistence.criteria.Order orderToSort = switch (Objects.requireNonNull(sort)) {
             case "top_seller" -> cb.desc(countInTimeRange);
