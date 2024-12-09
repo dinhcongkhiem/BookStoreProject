@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class PaymentServiceImpl implements PaymentService {
     private final SendMailService sendMailService;
     private final OrderRepository orderRepository;
+    private  final ProductService productService;
     private final NotificationService notificationService;
     private final ImageProductService imageProductService;
     private final UserService userService;
@@ -194,6 +195,7 @@ public class PaymentServiceImpl implements PaymentService {
 
                 orderItems.forEach(o -> {
                     Product product = o.getProduct();
+                    productService.updateQuantity(product, product.getQuantity() - o.getQuantity());
                     BigDecimal discount = o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO;
                     totalPrice[0] = totalPrice[0].add(product.getOriginal_price().subtract(discount)
                             .multiply(BigDecimal.valueOf(o.getQuantity())));

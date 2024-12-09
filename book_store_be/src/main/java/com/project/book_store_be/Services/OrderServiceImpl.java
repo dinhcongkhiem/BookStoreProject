@@ -260,7 +260,9 @@ public class OrderServiceImpl implements OrderService {
                     .discount(discountVal)
                     .build();
             orderDetailRepository.save(orderDetail);
-            productService.updateQuantity(product, product.getQuantity() - item.getQty());
+            if(order.getPaymentType() == PaymentType.cash_on_delivery) {
+                productService.updateQuantity(product, product.getQuantity() - item.getQty());
+            }
             orderDetailList.add(orderDetail);
         });
         totalPrice[0] = totalPrice[0].add(order.getShippingFee());

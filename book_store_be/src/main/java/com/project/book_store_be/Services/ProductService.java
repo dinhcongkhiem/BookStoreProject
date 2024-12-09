@@ -75,8 +75,6 @@ public class ProductService {
         SoftProductType sortType = SoftProductType.fromValue(sort);
 
         Sort sortValue = switch (sortType) {
-            case PRICE_DESC -> Sort.by(Sort.Direction.DESC, "price");
-            case PRICE_ASC -> Sort.by(Sort.Direction.ASC, "price");
             case ID_ASC -> Sort.by(Sort.Direction.ASC, "id");
             case ID_DESC -> Sort.by(Sort.Direction.DESC, "id");
             case NAME_ASC -> Sort.by(Sort.Direction.ASC, "name");
@@ -89,7 +87,7 @@ public class ProductService {
             default -> Sort.by(Sort.Direction.DESC, "createDate");
         };
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize, sortValue);
-        if (sortType == SoftProductType.TOP_SELLER) {
+        if (sortType == SoftProductType.TOP_SELLER || sortType == SoftProductType.PRICE_DESC || sortType == SoftProductType.PRICE_ASC) {
             Specification<Product> spec = ProductSpecification.getProduct(
                     null, null, null, null);
             Page<Tuple> dtoPage = productRepositoryCustom.findProductsWithQtySold(spec, pageRequest, sort, null);

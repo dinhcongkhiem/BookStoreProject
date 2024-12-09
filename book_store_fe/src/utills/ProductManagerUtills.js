@@ -9,6 +9,7 @@ const getYearsFromCurrentTo1900 = () => {
 const statusData = [
     { code: 0, label: 'Còn hàng' },
     { code: 1, label: 'Hết hàng' },
+    { code: 2, label: 'Ngừng bán' },
 ];
 const corverTypeData =  [
   { code: 0, label: 'Bìa cứng' },

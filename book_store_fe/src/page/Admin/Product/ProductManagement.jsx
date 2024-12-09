@@ -350,14 +350,22 @@ const Product = () => {
                                 </TableCell>
                                 <TableCell size="small" sx={{ padding: '.5rem' }}>
                                     <Chip
-                                        label={product?.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
+                                        label={
+                                            product?.status === 'AVAILABLE'
+                                                ? 'Còn hàng'
+                                                : product?.status === 'STOP_SELL'
+                                                  ? 'Ngừng bán'
+                                                  : 'Hết hàng'
+                                        }
                                         color={product?.status === 'AVAILABLE' ? 'success' : 'error'}
                                         size="small"
                                         className={cx1('status', {
                                             'in-stock': product.status === 'AVAILABLE',
-                                            'out-of-stock': product.status !== 'AVAILABLE',
+                                            'out-of-stock': product.status === 'UNAVAILABLE',
+                                            'stop-sell': product.status === 'STOP_SELL',
                                         })}
                                     />
+                                    
                                 </TableCell>
                                 <TableCell size="small" sx={{ padding: '.5rem' }}>
                                     {new Date(product?.createDate).toLocaleDateString()}
@@ -440,13 +448,20 @@ const Product = () => {
                                             Trạng thái:
                                         </Typography>
                                         <Chip
-                                            label={productDetailRes?.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
+                                            label={
+                                                productDetailRes?.status === 'AVAILABLE'
+                                                    ? 'Còn hàng'
+                                                    : productDetailRes?.status === 'STOP_SELL'
+                                                      ? 'Ngừng bán'
+                                                      : 'Hết hàng'
+                                            }
                                             color={productDetailRes?.status === 'AVAILABLE' ? 'success' : 'error'}
                                             size="small"
                                             sx={{ width: 'fit-content', padding: '0 1rem' }}
                                             className={cx1('status', {
                                                 'in-stock': productDetailRes.status === 'AVAILABLE',
-                                                'out-of-stock': productDetailRes.status !== 'AVAILABLE',
+                                                'out-of-stock': productDetailRes.status === 'UNAVAILABLE',
+                                                'stop-sell': productDetailRes.status === 'STOP_SELL',
                                             })}
                                         />
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
