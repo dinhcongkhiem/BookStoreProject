@@ -5,9 +5,27 @@ import { useEffect, useState } from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChartSimple, faFile, faFileLines, faSquarePollVertical } from '@fortawesome/free-solid-svg-icons';
-import {Stack, Button } from '@mui/material';
+import {
+    Stack,
+    Button,
+    Paper,
+    TableContainer,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableSortLabel,
+    TableBody,
+    Box,
+    Avatar,
+    Chip,
+    IconButton,
+} from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import StatisticalService from '../../../service/StatisticService';
+import styly1 from '../Admin.module.scss';
+import ProductService from '../../../service/ProductService';
+const cx1 = classNames.bind(styly1);
 const cx = classNames.bind(style);
 const areaChartOptions = {
     chart: {
@@ -111,6 +129,18 @@ function Dashboard() {
         }));
     }, [slot]);
 
+
+    const {
+        data: productRes,
+    } = useQuery({
+        queryKey: ['productsHotSell'],
+        queryFn: () =>
+            ProductService.getAllProductForMng({ page: 1,pageSize: 10, sort: "top_seller"}).then(
+                (response) => response.data,
+            ),
+        retry: 1,
+    });
+
     return (
         <div className={cx('wrapper')}>
             <h3>Dashboard</h3>
@@ -172,57 +202,93 @@ function Dashboard() {
                     </Stack>
                 </div>
                 <div className={cx('chart')}>
-                    <ReactApexChart options={options} series={series} type="area" height={500}  />
+                    <ReactApexChart options={options} series={series} type="area" height={500} />
                 </div>
             </div>
-            {/* <div className={cx('recent-order', 'mt-5')}>
-                <h4>Đơn đặt hàng gần đây</h4>
-                <div>
-                    <TableContainer
-                        sx={{
-                            width: '100%',
-                            overflowX: 'auto',
-                            position: 'relative',
-                            display: 'block',
-                            maxWidth: '100%',
-                            '& td, & th': { whiteSpace: 'nowrap' },
-                        }}
-                    >
-                        <Table aria-labelledby="tableTitle">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell align="center">ID</TableCell>
-                                    <TableCell align="center">Tên khách hàng</TableCell>
-                                    <TableCell align="right" padding="none">
-                                        Calories
-                                    </TableCell>
-                                    <TableCell align="right">Fat&nbsp;(g)</TableCell>
-                                    <TableCell align="right">Carbs&nbsp;(g)</TableCell>
-                                    <TableCell align="right">Protein&nbsp;(g)</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                <TableRow
-                                    hover
-                                    role="checkbox"
-                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                    tabIndex={-1}
+
+            <h4 className='mt-5' style={{marginLeft: '2rem'}}>Sản phẩm bán chạy</h4>
+            <TableContainer component={Paper} className={cx('product-table', 'mt-3')}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell size="small" sx={{ paddingRight: '.5rem', width: '78px' }}>
+                                <b>ID</b>
+                            </TableCell>
+                            <TableCell
+                                size="small"
+                                sx={{
+                                    width: '589px',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                }}
+                            >
+                                <b>Tên sách</b>
+                            </TableCell>
+                            <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                <b>Giá bán</b>
+                            </TableCell>
+                            <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                <b>Số lượng</b>
+                            </TableCell>
+                            <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                <b>Trạng thái</b>
+                            </TableCell>
+                            <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                <b>Ngày tạo</b>
+                            </TableCell>
+
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {productRes?.content.map((product) => (
+                            <TableRow key={product.id}>
+                                <TableCell size="small" sx={{ paddingRight: '.5rem', width: '78px' }}>
+                                    {product.id}
+                                </TableCell>
+                                <TableCell
+                                    size="small"
+                                    sx={{
+                                        width: '589px',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'wrap',
+                                    }}
                                 >
-                                    <TableCell component="th" scope="row">
-                                        123123123
-                                    </TableCell>
-                                    <TableCell>{123123}</TableCell>
-                                    <TableCell align="right">123123123</TableCell>
-                                    <TableCell>
-                                        <p>123123</p>
-                                    </TableCell>
-                                    <TableCell align="right">123123123</TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </div>
-            </div> */}
+                                    <Box display="flex" alignItems="center" sx={{ fontWeight: '700' }}>
+                                        <Avatar
+                                            alt={product.name}
+                                            src={product.thumbnail_url}
+                                            sx={{ width: 50, height: 80, mr: 2, borderRadius: 0 }}
+                                        />
+                                        {product.name}
+                                    </Box>
+                                </TableCell>
+                                <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                    {product?.price.toLocaleString('vi-VN')} <strong>₫</strong>
+                                </TableCell>
+                                <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                    {product?.quantity}
+                                </TableCell>
+                                <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                    <Chip
+                                        label={product?.status === 'AVAILABLE' ? 'Còn hàng' : 'Hết hàng'}
+                                        color={product?.status === 'AVAILABLE' ? 'success' : 'error'}
+                                        size="small"
+                                        className={cx1('status', {
+                                            'in-stock': product.status === 'AVAILABLE',
+                                            'out-of-stock': product.status !== 'AVAILABLE',
+                                        })}
+                                    />
+                                </TableCell>
+                                <TableCell size="small" sx={{ padding: '.5rem' }}>
+                                    {new Date(product?.createDate).toLocaleDateString()}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
         </div>
     );
 }

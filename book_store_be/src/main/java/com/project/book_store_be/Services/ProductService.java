@@ -90,7 +90,9 @@ public class ProductService {
         };
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize, sortValue);
         if (sortType == SoftProductType.TOP_SELLER) {
-            Page<Tuple> dtoPage = productRepositoryCustom.findProductsWithQtySold(null, pageRequest, sort, null);
+            Specification<Product> spec = ProductSpecification.getProduct(
+                    null, null, null, null);
+            Page<Tuple> dtoPage = productRepositoryCustom.findProductsWithQtySold(spec, pageRequest, sort, null);
             return dtoPage.map(d -> {
                 Product product = d.get(0, Product.class);
                 return this.convertToForManagerRes(product);
