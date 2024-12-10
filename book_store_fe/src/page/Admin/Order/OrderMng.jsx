@@ -294,7 +294,7 @@ export default function OrderMng() {
                                 <TableCell>{order.orderId}</TableCell>
                                 <TableCell>{order.buyerName}</TableCell>
                                 <TableCell>{formatDate(order?.orderDate)}</TableCell>
-                                <TableCell>{order.finalPrice.toLocaleString('vi-VN')} đ</TableCell>
+                                <TableCell>{order.finalPrice.toLocaleString('vi-VN')} ₫</TableCell>
                                 <TableCell align="center">
                                     <Chip
                                         label={convertTypeOrderToVN(order.type)}

@@ -206,7 +206,7 @@ function Dashboard() {
                 </div>
             </div>
 
-            <h4 className='mt-5' style={{marginLeft: '2rem'}}>Sản phẩm bán chạy</h4>
+            <h4 className='mt-5' style={{marginLeft: '2rem'}}>Sách nổi bật</h4>
             <TableContainer component={Paper} className={cx('product-table', 'mt-3')}>
                 <Table>
                     <TableHead>
