@@ -191,15 +191,14 @@ public class OrderServiceImpl implements OrderService {
         request.forEach(item -> {
             Product product = productService.findProductById(item.getProductId());
             OrderDetail orderDetailContains = orderDetailRepository.findByOrderIdAndProductId(orderId, item.getProductId()).orElse(null);
+            BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
+            BigDecimal price = product.getOriginal_price().subtract(discountVal);
+            totalPrice[0] = totalPrice[0].add(price.multiply(BigDecimal.valueOf(item.getQty())));
             if (orderDetailContains != null) {
                 orderDetailContains.setQuantity(orderDetailContains.getQuantity() + item.getQty());
                 orderDetailRepository.save(orderDetailContains);
                 return;
             } else {
-                BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
-                BigDecimal price = product.getOriginal_price().subtract(discountVal);
-                totalPrice[0] = totalPrice[0].add(price.multiply(BigDecimal.valueOf(item.getQty())));
-
                 OrderDetail orderDetail = OrderDetail.builder()
                         .product(product)
                         .quantity(item.getQty())
