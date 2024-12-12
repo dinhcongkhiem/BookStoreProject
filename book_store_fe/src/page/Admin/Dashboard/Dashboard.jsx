@@ -229,9 +229,6 @@ function Dashboard() {
                                 <b>Giá bán</b>
                             </TableCell>
                             <TableCell size="small" sx={{ padding: '.5rem' }}>
-                                <b>Số lượng</b>
-                            </TableCell>
-                            <TableCell size="small" sx={{ padding: '.5rem' }}>
                                 <b>Trạng thái</b>
                             </TableCell>
                             <TableCell size="small" sx={{ padding: '.5rem' }}>
@@ -266,9 +263,6 @@ function Dashboard() {
                                 </TableCell>
                                 <TableCell size="small" sx={{ padding: '.5rem' }}>
                                     {product?.price.toLocaleString('vi-VN')} <strong>₫</strong>
-                                </TableCell>
-                                <TableCell size="small" sx={{ padding: '.5rem' }}>
-                                    {product?.quantity}
                                 </TableCell>
                                 <TableCell size="small" sx={{ padding: '.5rem' }}>
                                     <Chip

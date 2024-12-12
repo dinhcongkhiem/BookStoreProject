@@ -37,7 +37,7 @@ public class OrderSpecification {
                 Join<OrderDetail, Product> productJoin = orderDetailJoin.join("product", JoinType.INNER);
 
                 Predicate buyerName = criteriaBuilder.like(criteriaBuilder.lower(root.get("buyerName")), likePattern);
-                Predicate phoneNum = criteriaBuilder.like(criteriaBuilder.lower(root.get("phoneNum")), likePattern);
+                Predicate phoneNum = criteriaBuilder.like(criteriaBuilder.lower(root.get("buyerPhoneNum")), likePattern);
                 Predicate orderCode = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("id").as(String.class)),
                         likePattern);
