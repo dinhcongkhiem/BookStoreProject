@@ -1,6 +1,7 @@
 package com.project.book_store_be.Controller;
 
 import com.project.book_store_be.Enum.OrderStatus;
+import com.project.book_store_be.Enum.OrderType;
 import com.project.book_store_be.Enum.PaymentType;
 import com.project.book_store_be.Exception.ProductQuantityNotEnough;
 import com.project.book_store_be.Exception.VoucherQuantityNotEnough;
@@ -108,11 +109,12 @@ public class OrderController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) LocalDateTime start,
             @RequestParam(required = false) LocalDateTime end,
+            @RequestParam(required = false) OrderType type,
             @RequestParam(required = false) OrderStatus status
     ) {
         try {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(orderService.findAllOrders(page, pageSize, status, start,end, keyword));
+                    .body(orderService.findAllOrders(page, pageSize, status, start,end,type, keyword));
 
         } catch (Exception e) {
             e.printStackTrace();

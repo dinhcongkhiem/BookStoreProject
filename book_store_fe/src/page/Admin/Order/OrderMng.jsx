@@ -22,6 +22,9 @@ import {
     Pagination,
     Card,
     CardContent,
+    FormControl,
+    Select,
+    MenuItem,
 } from '@mui/material';
 import {
     Search as SearchIcon,
@@ -53,6 +56,11 @@ import style1 from '../Admin.module.scss';
 const cx1 = classNames.bind(style1);
 const cx = classNames.bind(style);
 
+const types = [
+    { value: 'all', label: 'Tất cả' },
+    { value: 'ONLINE', label: 'Trực tuyến (Online)' },
+    { value: 'IN_STORE', label: 'Tại cửa hàng' },
+];
 export default function OrderMng() {
     const navigate = useNavigate();
     const endDateRef = useRef(null);
@@ -65,6 +73,7 @@ export default function OrderMng() {
 
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [type, setType] = useState('all');
 
     const [currentStatus, setCurrentStatus] = useState('all');
     const [page, setPage] = useState(1);
@@ -81,13 +90,14 @@ export default function OrderMng() {
         error,
         isLoading,
     } = useQuery({
-        queryKey: ['orderMng', currentStatus, debounceSearchTerm, startDate, endDate, page],
+        queryKey: ['orderMng', currentStatus, debounceSearchTerm, startDate, endDate, page, type],
         queryFn: () =>
             OrderService.getAllOrders({
                 page,
                 status: currentStatus,
                 start: startDate.trim().length > 0 ? convertToISOString(startDate) : '',
                 end: endDate.trim().length > 0 ? convertToISOString(endDate) : '',
+                type,
                 keyword: debounceSearchTerm,
             }).then((res) => res.data),
         retry: 1,
@@ -179,95 +189,119 @@ export default function OrderMng() {
                 ))}
             </Grid>
             <Paper className={cx('searchContainer')} elevation={2}>
-                <div className="d-flex align-items-center gap-5">
-                    <div className="flex-grow-1">
-                        <TextField
-                            size="small"
-                            fullWidth
-                            label="Tìm kiếm"
-                            variant="outlined"
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <SearchIcon />
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
+                <div className="d-flex align-items-center mb-3">
+                    <label htmlFor="search">Tìm kiếm: </label>
+                    <TextField
+                        size="small"
+                        id="search"
+                        sx={{ flexBasis: '50%' }}
+                        placeholder="Id, tên khách hàng, số điện thoại..."
+                        variant="outlined"
+                        value={searchTerm}
+                        onChange={handleSearch}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <SearchIcon />
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
+                </div>
+                <div className="d-flex gap-5 align-items-center">
+                    <div className={cx('filter-input')}>
+                        <label htmlFor="search">Loại: </label>
+                        <FormControl fullWidth size="small">
+                            <Select
+                                sx={{ borderRadius: '2rem' }}
+                                defaultValue={'Hàng mới'}
+                                value={type}
+                                onChange={(e) => setType(e.target.value)}
+                            >
+                                {types.map((type, index) => {
+                                    return (
+                                        <MenuItem key={index} value={type.value}>
+                                            {type.label}
+                                        </MenuItem>
+                                    );
+                                })}
+                            </Select>
+                        </FormControl>
                     </div>
-                    <div className={cx('input-date', 'flex-grow-1')}>
-                        <TextField
-                            slotProps={{
-                                input: {
-                                    readOnly: true,
-                                },
-                            }}
-                            size="small"
-                            fullWidth
-                            label="Từ ngày..."
-                            type="text"
-                            autoComplete="off"
-                            margin="normal"
-                            placeholder="dd/MM/yyyy"
-                            variant="outlined"
-                            onClick={() => {
-                                startDateRef.current && startDateRef.current.showPicker();
-                            }}
-                            value={startDate}
-                            sx={{ margin: 0 }}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <div className={cx('custom-datepicker')}>
-                                            <CalendarToday />
-                                        </div>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                        <input
-                            type="date"
-                            ref={startDateRef}
-                            value={startDateValue}
-                            onChange={(e) => handleDateChange(e, 1)}
-                        />
-                        <TextField
-                            slotProps={{
-                                input: {
-                                    readOnly: true,
-                                },
-                            }}
-                            size="small"
-                            fullWidth
-                            label="Đến ngày"
-                            type="text"
-                            autoComplete="off"
-                            margin="normal"
-                            placeholder="dd/MM/yyyy"
-                            variant="outlined"
-                            onClick={() => {
-                                endDateRef.current && endDateRef.current.showPicker();
-                            }}
-                            value={endDate}
-                            sx={{ margin: 0 }}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <div className={cx('custom-datepicker')}>
-                                            <CalendarToday />
-                                        </div>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                        <input
-                            type="date"
-                            ref={endDateRef}
-                            value={endDateValue}
-                            onChange={(e) => handleDateChange(e, 2)}
-                        />
+                    <div className={cx('filter-input')}>
+                        <label>Ngày đặt hàng: </label>
+                        <div className={cx('input-date')}>
+                            <TextField
+                                slotProps={{
+                                    input: {
+                                        readOnly: true,
+                                    },
+                                }}
+                                size="small"
+                                fullWidth
+                                label="Từ ngày..."
+                                type="text"
+                                autoComplete="off"
+                                margin="normal"
+                                placeholder="dd/MM/yyyy"
+                                variant="outlined"
+                                onClick={() => {
+                                    startDateRef.current && startDateRef.current.showPicker();
+                                }}
+                                value={startDate}
+                                sx={{ margin: 0 }}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <div className={cx('custom-datepicker')}>
+                                                <CalendarToday />
+                                            </div>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                            <input
+                                type="date"
+                                ref={startDateRef}
+                                value={startDateValue}
+                                onChange={(e) => handleDateChange(e, 1)}
+                            />
+                            <TextField
+                                slotProps={{
+                                    input: {
+                                        readOnly: true,
+                                    },
+                                }}
+                                size="small"
+                                fullWidth
+                                label="Đến ngày"
+                                type="text"
+                                autoComplete="off"
+                                margin="normal"
+                                placeholder="dd/MM/yyyy"
+                                variant="outlined"
+                                onClick={() => {
+                                    endDateRef.current && endDateRef.current.showPicker();
+                                }}
+                                value={endDate}
+                                sx={{ margin: 0 }}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <div className={cx('custom-datepicker')}>
+                                                <CalendarToday />
+                                            </div>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                            <input
+                                type="date"
+                                ref={endDateRef}
+                                value={endDateValue}
+                                onChange={(e) => handleDateChange(e, 2)}
+                            />
+                        </div>
                     </div>
                 </div>
             </Paper>
@@ -285,7 +319,9 @@ export default function OrderMng() {
                             <TableCell align="center" sx={{ width: '13rem' }}>
                                 Trạng thái
                             </TableCell>
-                            <TableCell align="center" sx={{width : '145px'}}>Hành động</TableCell>
+                            <TableCell align="center" sx={{ width: '145px' }}>
+                                Hành động
+                            </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -294,12 +330,9 @@ export default function OrderMng() {
                                 <TableCell>{order.orderId}</TableCell>
                                 <TableCell>{order.buyerName}</TableCell>
                                 <TableCell>{formatDate(order?.orderDate)}</TableCell>
-                                <TableCell>{order.finalPrice.toLocaleString('vi-VN')} đ</TableCell>
+                                <TableCell>{order.finalPrice.toLocaleString('vi-VN')} ₫</TableCell>
                                 <TableCell align="center">
-                                    <Chip
-                                        label={convertTypeOrderToVN(order.type)}
-                                        className={cx1('status')}
-                                    />
+                                    <Chip label={convertTypeOrderToVN(order.type)} className={cx1('status')} />
                                 </TableCell>
                                 <TableCell align="center">
                                     <Chip
@@ -307,7 +340,7 @@ export default function OrderMng() {
                                         className={cx1('status', getStatusOrderClass(order.status))}
                                     />
                                 </TableCell>
-                             
+
                                 <TableCell align="center">
                                     <IconButton size="small" color="primary" onClick={() => handleViewDetails(order)}>
                                         <VisibilityIcon />

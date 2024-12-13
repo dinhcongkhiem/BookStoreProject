@@ -56,7 +56,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -82,14 +81,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null, null, keyword);
+        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null, null,null, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
 
     @Override
-    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(null, status, start, end, keyword);
+    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, OrderType orderType, String keyword) {
+        Specification<Order> spec = OrderSpecification.getOrders(null, status, start, end,orderType, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         Page<GetAllOrderResponse> ordersPage = orderRepository.findAll(spec, pageable).map(this::convertToResMng);
         Tuple count = orderRepository.countOrder();
@@ -192,15 +191,14 @@ public class OrderServiceImpl implements OrderService {
         request.forEach(item -> {
             Product product = productService.findProductById(item.getProductId());
             OrderDetail orderDetailContains = orderDetailRepository.findByOrderIdAndProductId(orderId, item.getProductId()).orElse(null);
+            BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
+            BigDecimal price = product.getOriginal_price().subtract(discountVal);
+            totalPrice[0] = totalPrice[0].add(price.multiply(BigDecimal.valueOf(item.getQty())));
             if (orderDetailContains != null) {
                 orderDetailContains.setQuantity(orderDetailContains.getQuantity() + item.getQty());
                 orderDetailRepository.save(orderDetailContains);
                 return;
             } else {
-                BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
-                BigDecimal price = product.getOriginal_price().subtract(discountVal);
-                totalPrice[0] = totalPrice[0].add(price.multiply(BigDecimal.valueOf(item.getQty())));
-
                 OrderDetail orderDetail = OrderDetail.builder()
                         .product(product)
                         .quantity(item.getQty())

@@ -50,6 +50,20 @@
         margin-bottom: 3.2rem;
         padding: 2rem 3rem;
         border-radius: 1.2rem;
+
+        .filter-input {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            label {
+                flex-basis: 25%;
+            }
+            // gap: 2rem;
+            // margin-bottom: 2rem;
+        }
+        label {
+            flex-basis: 10%;
+        }
     }
 
     .tableContainer {

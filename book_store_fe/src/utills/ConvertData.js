@@ -43,7 +43,7 @@ export const convertTypeOrderToVN = (type) => {
         case 'ONLINE':
             return 'Trực tuyến (Online)';
         case 'IN_STORE':
-            return 'Tại của hàng';
+            return 'Tại cửa hàng';
         default:
             return '';
     }

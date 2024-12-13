@@ -1,6 +1,7 @@
 package com.project.book_store_be.Interface;
 
 import com.project.book_store_be.Enum.OrderStatus;
+import com.project.book_store_be.Enum.OrderType;
 import com.project.book_store_be.Enum.PaymentType;
 import com.project.book_store_be.Request.OrderRequest;
 import com.project.book_store_be.Request.UpdateOrderRequest;
@@ -16,7 +17,6 @@ import java.util.Map;
 public interface OrderService {
     Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword);
 
-    OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, String keyword);
 
     CreateOrderResponse createOrder(OrderRequest request);
 
@@ -25,6 +25,8 @@ public interface OrderService {
     OrderDetailResponse getOrderDetailById(Long id);
 
     CreateOrderResponse rePaymentOrder(Long orderId, PaymentType paymentType);
+
+    OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, OrderType orderType, String keyword);
 
     Map<?, ?> createOrderCounterSales();
 

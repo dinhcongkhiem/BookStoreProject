@@ -88,7 +88,7 @@ function Home() {
             </div>
             <div className={cx('bestSelling')}>
                 <div className={cx('headerSection')}>
-                    <h3>Sách bán chạy</h3>
+                    <h3>Sách nổi bật</h3>
                     <Link to="/product?sort=top_seller">
                         Xem thêm
                         <span>
