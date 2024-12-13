@@ -16,7 +16,7 @@ public class PublisherService {
     private PublisherRepository repo;
 
     public List<Publisher> getAllPublisher() {
-        return repo.findAll(Sort.by(Sort.Direction.ASC, "id"));
+        return repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
     }
 
     public List<Publisher> searchPublishersByName(String keyword) {

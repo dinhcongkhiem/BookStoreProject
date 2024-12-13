@@ -28,7 +28,7 @@ public class AuthorServiceImpl implements AuthorService {
     @Override
     public List<Author> getAllAuthor() {
 
-        return repo.findAll(Sort.by(Sort.Direction.ASC, "id"));
+        return repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
     }
 
     @Override

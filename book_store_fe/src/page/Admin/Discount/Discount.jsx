@@ -224,7 +224,7 @@ const Discount = () => {
                                         className={cx1('status', convertStatus(discount).class)}
                                     />
                                 </TableCell>
-                                <TableCell>
+                                <TableCell align="center">
                                     <IconButton
                                         onClick={() => navigate(`/admin/discount/update/${discount.id}`)}
                                         aria-label="edit"
@@ -232,7 +232,7 @@ const Discount = () => {
                                     >
                                         <EditIcon />
                                     </IconButton>
-                                    <IconButton
+                                    {/* <IconButton
                                         aria-label="delete"
                                         sx={{ color: 'red' }}
                                         onClick={() => {
@@ -241,7 +241,7 @@ const Discount = () => {
                                         }}
                                     >
                                         <DeleteIcon />
-                                    </IconButton>
+                                    </IconButton> */}
                                 </TableCell>
                             </TableRow>
                         ))}

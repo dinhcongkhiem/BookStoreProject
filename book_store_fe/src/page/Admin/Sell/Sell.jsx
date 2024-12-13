@@ -844,6 +844,7 @@ export default function Sell() {
                             <TableHead>
                                 <TableRow>
                                     <TableCell padding="checkbox"></TableCell>
+                                    <TableCell>ID</TableCell>
                                     <TableCell>Sản phẩm</TableCell>
                                     <TableCell align="right">Giá</TableCell>
                                     <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
@@ -860,6 +861,7 @@ export default function Sell() {
                                                 onChange={() => handleSelectProduct(product)}
                                             />
                                         </TableCell>
+                                        <TableCell>{product.id}</TableCell>
                                         <TableCell sx={{ maxWidth: '45rem' }}>
                                             <Box display="flex" alignItems="center">
                                                 <img

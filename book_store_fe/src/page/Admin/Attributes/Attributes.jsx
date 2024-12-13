@@ -311,7 +311,7 @@ function Attributes() {
                                                                 <EditIcon />
                                                             </IconButton>
                                                         </Tooltip>
-                                                        <Tooltip title="Xóa" arrow>
+                                                        {/* <Tooltip title="Xóa" arrow>
                                                             <IconButton
                                                                 size="small"
                                                                 className={cx('deleteButton')}
@@ -324,7 +324,7 @@ function Attributes() {
                                                             >
                                                                 <DeleteIcon />
                                                             </IconButton>
-                                                        </Tooltip>
+                                                        </Tooltip> */}
                                                     </TableCell>
                                                 </TableRow>
                                             ))
@@ -401,7 +401,7 @@ function Attributes() {
                                                                 <EditIcon />
                                                             </IconButton>
                                                         </Tooltip>
-                                                        <Tooltip title="Xóa" arrow>
+                                                        {/* <Tooltip title="Xóa" arrow>
                                                             <IconButton
                                                                 size="small"
                                                                 className={cx('deleteButton')}
@@ -414,7 +414,7 @@ function Attributes() {
                                                             >
                                                                 <DeleteIcon />
                                                             </IconButton>
-                                                        </Tooltip>
+                                                        </Tooltip> */}
                                                     </TableCell>
                                                 </TableRow>
                                             ))
@@ -491,7 +491,7 @@ function Attributes() {
                                                                 <EditIcon />
                                                             </IconButton>
                                                         </Tooltip>
-                                                        <Tooltip title="Xóa" arrow>
+                                                        {/* <Tooltip title="Xóa" arrow>
                                                             <IconButton
                                                                 size="small"
                                                                 className={cx('deleteButton')}
@@ -504,7 +504,7 @@ function Attributes() {
                                                             >
                                                                 <DeleteIcon />
                                                             </IconButton>
-                                                        </Tooltip>
+                                                        </Tooltip> */}
                                                     </TableCell>
                                                 </TableRow>
                                             ))

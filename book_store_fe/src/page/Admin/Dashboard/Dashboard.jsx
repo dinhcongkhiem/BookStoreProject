@@ -143,12 +143,12 @@ function Dashboard() {
 
     return (
         <div className={cx('wrapper')}>
-            <h3>Dashboard</h3>
+            <h3>Thống kê</h3>
             <div className={cx('analyst-wrapper')}>
                 <div>
                     <FontAwesomeIcon icon={faSquarePollVertical} style={{ opacity: 0.8 }} />
                     <div className={cx('info')}>
-                        <p>Số lượng đơn hàng trong ngày</p>
+                        <p>Đơn hàng hoàn thành trong ngày</p>
                         <p className={cx('quantity')}>{statistic?.statistics.ordersPerDay}</p>
                     </div>
                 </div>

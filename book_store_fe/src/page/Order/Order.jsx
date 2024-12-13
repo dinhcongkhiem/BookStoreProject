@@ -269,7 +269,7 @@ function Order() {
                     message={'Bạn đang muốn hủy đơn hàng này?'}
                 />
             )}
-            <ModalLoading isLoading={isLoading || isFetching} />
+            <ModalLoading isLoading={isLoading || isFetching || updateStatusOrderMutation.isPending} />
         </div>
     );
 }
