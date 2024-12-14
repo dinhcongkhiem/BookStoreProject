@@ -213,10 +213,8 @@ public class PaymentServiceImpl implements PaymentService {
                             .multiply(BigDecimal.valueOf(o.getQuantity())));
                 });
 
-                BigDecimal finalPrice = totalPrice[0]
-                        .add(order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO);
                 String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(),
-                        this.formatPrice(finalPrice));
+                        this.formatPrice(totalPrice[0]));
                 notificationService.sendAdminNotification("Thanh toán đơn hàng", message, NotificationType.ORDER,
                         "/admin/orderMng/" + order.getId());
 
