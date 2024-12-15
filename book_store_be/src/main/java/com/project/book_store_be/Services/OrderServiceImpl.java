@@ -337,7 +337,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalPrice = order.getTotalPrice();
         BigDecimal voucherDiscount = this.calculateVoucherDiscount(order.getVoucher(), totalPrice, order.getShippingFee());
 
-        BigDecimal finalPrice = totalPrice.add(order.getShippingFee()).subtract(voucherDiscount);
+        BigDecimal finalPrice = totalPrice.subtract(voucherDiscount);
 
         PaymentResponse paymentResponse = null;
         if (paymentType == PaymentType.bank_transfer) {
@@ -448,6 +448,7 @@ public class OrderServiceImpl implements OrderService {
                             .isReviewed(mapCheckReviewed.get(product.getId()))
                             .build();
                 })
+                .sorted(Comparator.comparing(OrderItemsDetailResponse::getId).reversed())
                 .toList();
 
 
@@ -587,7 +588,6 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(orderStatus);
         orderRepository.save(order);
     }
-
 
     @Override
     public byte[] successOrderInCounter(Long id, UpdateOrderRequest request) {
