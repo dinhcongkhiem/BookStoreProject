@@ -2,6 +2,7 @@ package com.project.book_store_be.Services;
 
 import com.project.book_store_be.Enum.ProductStatus;
 import com.project.book_store_be.Enum.SoftProductType;
+import com.project.book_store_be.Exception.ProductCodeAlreadyExistsException;
 import com.project.book_store_be.Exception.ProductNameAlreadyExistsException;
 import com.project.book_store_be.Exception.ProductQuantityNotEnough;
 import com.project.book_store_be.Interface.AuthorService;
@@ -122,10 +123,18 @@ public class ProductService {
     private Boolean isValidateProductName(String name) {
         return productRepository.findByNameIgnoreCase(name).isPresent();
     }
+
+    private Boolean isValidProductCode(String productCode) {
+        return productRepository.findByProductCode(productCode).isPresent();
+    }
     public void addProduct(ProductRequest request, List<MultipartFile> images, Integer indexThumbnail) {
         Map<String, Integer> size = Map.of("x", request.getLength(), "y", request.getWidth(), "z", request.getHeight());
         if (isValidateProductName(request.getName())) {
             throw new ProductNameAlreadyExistsException("Sản phẩm tên " + request.getName() + " đã tồn tại, vui lòng thử lại!");
+        }
+
+        if (isValidProductCode(request.getIsbn())) {
+            throw new ProductCodeAlreadyExistsException("Sản phẩm có mã ISBN " + request.getIsbn() + " đã tồn tại, vui lòng thử lại!");
         }
 
         Product product = Product.builder()

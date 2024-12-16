@@ -2,16 +2,12 @@ package com.project.book_store_be.Controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.book_store_be.Exception.ProductCodeAlreadyExistsException;
 import com.project.book_store_be.Exception.ProductNameAlreadyExistsException;
-import com.project.book_store_be.Model.Product;
-import com.project.book_store_be.Request.ProductFilterRequest;
 import com.project.book_store_be.Request.ProductRequest;
-import com.project.book_store_be.Services.BarcodeService;
 import com.project.book_store_be.Services.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -74,7 +70,7 @@ public class ProductController {
             }
             productService.addProduct(productRequest, images, indexThumbnail);
             return ResponseEntity.status(HttpStatus.CREATED).body("Thành công");
-        }catch (ProductNameAlreadyExistsException e){
+        }catch (ProductNameAlreadyExistsException | ProductCodeAlreadyExistsException e){
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (JsonProcessingException e) {
             e.printStackTrace();

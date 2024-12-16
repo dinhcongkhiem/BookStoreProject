@@ -8,7 +8,6 @@ import com.project.book_store_be.Interface.PaymentService;
 import com.project.book_store_be.Model.*;
 import com.project.book_store_be.Repository.OrderRepository;
 import com.project.book_store_be.Request.PaymentRequest;
-import com.project.book_store_be.Response.OrderRes.OrderItemsResponse;
 import com.project.book_store_be.Response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -18,6 +17,7 @@ import vn.payos.type.*;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -37,11 +37,13 @@ public class PaymentServiceImpl implements PaymentService {
     private final PayOS payOS;
     private static final String CANCEL_URL = "http://localhost:3000/profile";
     private static final String RETURN_URL = "http://localhost:3000/cart";
-    private Set<String> sentEmailOrderCodes = new HashSet<>();
+    private final Set<String> sentEmailOrderCodes = new HashSet<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private String formatPrice(BigDecimal price) {
-        DecimalFormat formatter = new DecimalFormat("#,###");
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.getDefault());
+        symbols.setGroupingSeparator('.');
+        DecimalFormat formatter = new DecimalFormat("#,###", symbols);
         return formatter.format(price) + " ₫";
     }
 
@@ -214,7 +216,7 @@ public class PaymentServiceImpl implements PaymentService {
                 });
 
                 String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(),
-                        this.formatPrice(totalPrice[0]));
+                        this.formatPrice(order.getTotalPrice()));
                 notificationService.sendAdminNotification("Thanh toán đơn hàng", message, NotificationType.ORDER,
                         "/admin/orderMng/" + order.getId());
 
