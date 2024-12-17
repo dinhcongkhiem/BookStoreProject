@@ -214,9 +214,13 @@ public class PaymentServiceImpl implements PaymentService {
                     totalPrice[0] = totalPrice[0].add(product.getOriginal_price().subtract(discount)
                             .multiply(BigDecimal.valueOf(o.getQuantity())));
                 });
-
+                Voucher voucher = order.getVoucher();
+                BigDecimal finalPrice = order.getTotalPrice();
+                if (voucher != null) {
+                    finalPrice = finalPrice.subtract(this.calculateVoucherDiscount(voucher, order.getTotalPrice()));
+                }
                 String message = String.format("Người dùng %s đã đặt đơn hàng mới với giá trị %s", user.getFullName(),
-                        this.formatPrice(order.getTotalPrice()));
+                        this.formatPrice(finalPrice));
                 notificationService.sendAdminNotification("Thanh toán đơn hàng", message, NotificationType.ORDER,
                         "/admin/orderMng/" + order.getId());
 
@@ -243,5 +247,23 @@ public class PaymentServiceImpl implements PaymentService {
         } catch (Exception e) {
             throw new Exception("Failed to cancel payment with third-party: " + e.getMessage());
         }
+    }
+
+    private BigDecimal calculateVoucherDiscount(Voucher voucher, BigDecimal totalPrice) {
+        BigDecimal voucherDiscount = BigDecimal.ZERO;
+        if (voucher == null) {
+            return voucherDiscount;
+        }
+        if (voucher.getType() == VoucherType.PERCENT) {
+            BigDecimal voucherVal = voucher.getValue().multiply(totalPrice).divide(BigDecimal.valueOf(100));
+            if (voucher.getMaxValue() != null) {
+                voucherDiscount = voucherVal.compareTo(voucher.getMaxValue()) <= 0 ? voucherVal : voucher.getMaxValue();
+            } else {
+                voucherDiscount = voucherVal;
+            }
+        } else if (voucher.getType() == VoucherType.CASH) {
+            voucherDiscount = voucher.getValue();
+        }
+        return voucherDiscount;
     }
 }

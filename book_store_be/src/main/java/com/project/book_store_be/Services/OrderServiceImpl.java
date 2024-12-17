@@ -170,6 +170,7 @@ public class OrderServiceImpl implements OrderService {
         orderDetail.setQuantity(quantity);
         order.setTotalPrice(order.getTotalPrice().add(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(quantity))));
         orderDetailRepository.save(orderDetail);
+        orderRepository.save(order);
     }
 
     @Transactional
@@ -177,7 +178,10 @@ public class OrderServiceImpl implements OrderService {
     public void deleteOrderDetail(Long orderDetailId) {
         OrderDetail orderDetail = orderDetailRepository.findById(orderDetailId)
                 .orElseThrow(() -> new NoSuchElementException("Order detail not found with ID: " + orderDetailId));
+        Order order = orderDetail.getOrder();
+        order.setTotalPrice(order.getTotalPrice().subtract(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(orderDetail.getQuantity()))));
         orderDetailRepository.delete(orderDetail);
+        orderRepository.save(order);
     }
 
     @Transactional
