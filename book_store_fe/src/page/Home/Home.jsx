@@ -76,11 +76,6 @@ function Home() {
                                     src={imgSlide.url}
                                     alt={imgSlide.alt}
                                 />
-                                <Carousel.Caption className={cx('carouselCaptionCustom')}>
-                                    <Button variant="contained" color="primary">
-                                        Browse Store
-                                    </Button>
-                                </Carousel.Caption>
                             </Carousel.Item>
                         );
                     })}
