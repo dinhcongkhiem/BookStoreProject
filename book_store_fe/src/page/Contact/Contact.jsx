@@ -4,15 +4,58 @@ import style from './Contact.module.scss';
 import image1 from '../../assets/image/banner.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse, faPhone, faMessage } from '@fortawesome/free-solid-svg-icons';
-
+import * as Yup from 'yup';
+import { useFormik } from 'formik';
+import { useMutation } from '@tanstack/react-query';
+import UserService from '../../service/UserService';
+import { styled, TextField } from '@mui/material';
+const ResizableTextField = styled(TextField)({
+    '& .MuiInputBase-inputMultiline': {
+        resize: 'vertical',
+        overflow: 'auto',
+        minHeight: '115px',
+        maxHeight: '300px',
+    },
+});
 const cx = classNames.bind(style);
 
 function Contact() {
     const form = useRef();
+    const sendContactMutation = useMutation({
+        mutationFn: (data) => {
+            return UserService.sendContactMail(data);
+        },
+        onError: (error) => {
+            console.log(error);
+        },
+    });
 
-    const sendEmail = (e) => {
-        e.preventDefault();
-    };
+    const validationSchema = Yup.object({
+        content: Yup.string().trim().required('Vui lòng nhập nội dung').max(255, 'Tối đa 255 ký tự'),
+        email: Yup.string()
+            .trim()
+            .required('Vui lòng nhập email')
+            .max(50, 'Tối đa 255 ký tự')
+            .email('Email không hợp lệ'),
+        name: Yup.string().trim().required('Vui lòng nhập tên').max(50, 'Tối đa 255 ký tự'),
+        title: Yup.string().trim().required('Vui lòng nhập tiêu đề').max(50, 'Tối đa 255 ký tự'),
+    });
+
+    const formik = useFormik({
+        initialValues: {
+            content: '',
+            email: '',
+            name: '',
+            title: '',
+        },
+        validationSchema: validationSchema,
+        onSubmit: (values) => {
+            const data = values;
+            sendContactMutation.mutate(data);
+        },
+        validateOnBlur: false,
+        validateOnChange: false,
+    });
 
     return (
         <div className={cx('page-container')}>
@@ -33,13 +76,70 @@ function Contact() {
                 <h1>Liên hệ</h1>
             </div>
             <div className={cx('content')}>
-                <form ref={form} onSubmit={sendEmail} className={cx('input-contact')}>
-                    <textarea name="message" placeholder="Nhập nội dung phản hồi" required />
+                <form ref={form} onSubmit={formik.handleSubmit} className={cx('input-contact')}>
+                    <ResizableTextField
+                        name="content"
+                        label="Nội dung"
+                        variant="outlined"
+                        type="text"
+                        multiline
+                        fullWidth
+                        rows={1}
+                        value={formik.values.content}
+                        onChange={formik.handleChange}
+                        margin="normal"
+                        size="small"
+                        error={formik.touched.content && Boolean(formik.errors.content)}
+                        helperText={formik.touched.content && formik.errors.content}
+                    />
                     <div className={cx('name-email-row')}>
-                        <input type="text" name="name" placeholder="Nhập tên của bạn" required />
-                        <input type="email" name="email" placeholder="Nhập địa chỉ email" required />
+                        <TextField
+                            name="name"
+                            label="Họ và Tên"
+                            variant="outlined"
+                            type="text"
+                            multiline
+                            fullWidth
+                            value={formik.values.name}
+                            onChange={formik.handleChange}
+                            margin="normal"
+                            size="small"
+                            error={formik.touched.name && Boolean(formik.errors.name)}
+                            sx={{margin: 0}}
+                            helperText={formik.touched.name && formik.errors.name}
+                        />
+                        <TextField
+                            name="email"
+                            label="Email"
+                            variant="outlined"
+                            type="text"
+                            multiline
+                            fullWidth
+                            value={formik.values.email}
+                            onChange={formik.handleChange}
+                            margin="normal"
+                            size="small"
+                            error={formik.touched.email && Boolean(formik.errors.email)}
+                            helperText={formik.touched.email && formik.errors.email}
+                            sx={{margin: 0}}
+                        />
                     </div>
-                    <input type="text" name="subject" placeholder="Nhập tiêu đề phản hồi" required />
+                    <TextField
+                        name="title"
+                        label="Tiêu đề"
+                        variant="outlined"
+                        type="text"
+                        multiline
+                        fullWidth
+                        value={formik.values.title}
+                        onChange={formik.handleChange}
+                        margin="normal"
+                        size="small"
+                        error={formik.touched.title && Boolean(formik.errors.title)}
+                        helperText={formik.touched.title && formik.errors.title}
+                        sx={{margin: 0, marginTop: '1rem'}}
+
+                    />
                     <button type="submit" className={cx('submit-button')}>
                         Gửi
                     </button>

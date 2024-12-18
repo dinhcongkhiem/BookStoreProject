@@ -59,6 +59,19 @@ class UserServiceClass {
         };
         return httpRequest.request(config);
     };
+
+    sendContactMail = (data) => {
+        let config = {
+            method: 'post',
+            url: "http://localhost:8080/api/v1/contact",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+            data: data,
+        };
+        return httpRequest.request(config);
+    }
 }
 const UserService = new UserServiceClass();
 export default UserService;
