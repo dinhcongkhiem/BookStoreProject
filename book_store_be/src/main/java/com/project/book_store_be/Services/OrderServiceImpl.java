@@ -91,9 +91,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, OrderType orderType, String keyword) {
+    public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, OrderType orderType, String keyword, Integer sort) {
         Specification<Order> spec = OrderSpecification.getOrders(null, status, start, end, orderType, keyword);
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
+        Sort sortType = Sort.by(Sort.Direction.DESC, "orderDate");
+        if(sort == 1) {
+            sortType = Sort.by(Sort.Direction.ASC, "id");
+        }else if(sort == 2){
+            sortType = Sort.by(Sort.Direction.DESC, "id");
+        }
+
+        Pageable pageable = PageRequest.of(page, pageSize, sortType);
         Page<GetAllOrderResponse> ordersPage = orderRepository.findAll(spec, pageable).map(this::convertToResMng);
         Tuple count = orderRepository.countOrder();
         OrderStatusResponse orderStatusCountDTO = new OrderStatusResponse(

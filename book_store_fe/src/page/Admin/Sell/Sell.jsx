@@ -33,6 +33,7 @@ import {
     RadioGroup,
     FormControlLabel,
     Radio,
+    TableSortLabel,
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -62,6 +63,7 @@ import UserInfo from '../../User/UserInfo';
 const cx = classNames.bind(styles);
 
 export default function Sell() {
+    const [orderBy, setOrderBy] = useState('newest');
     const [invoices, setInvoices] = useState([]);
     const [activeInvoice, setActiveInvoice] = useState(null);
     const [activeInvoiceData, setActiveInvoiceData] = useState(null);
@@ -91,13 +93,14 @@ export default function Sell() {
         error,
         isLoading: isLoadingProducts,
     } = useQuery({
-        queryKey: ['productsMng', debouncedSearchValue, page, isProductDialogOpen],
+        queryKey: ['productsMng', debouncedSearchValue, page, isProductDialogOpen, orderBy],
         queryFn: () =>
             ProductService.getAllProductForMng({
                 page: page,
                 pageSize: 20,
                 keyword: debouncedSearchValue,
                 status: 1,
+                sort: orderBy,
             }).then((res) => res.data),
         retry: 1,
         enabled: !!isProductDialogOpen,
@@ -283,7 +286,7 @@ export default function Sell() {
         setInvoices((prevInvoices) =>
             prevInvoices.map((invoice) => (invoice.orderId === activeInvoice ? newData : invoice)),
         );
-    }
+    };
     useEffect(() => {
         const storedInvoices = localStorage.getItem('invoices');
         try {
@@ -298,7 +301,7 @@ export default function Sell() {
         if (invoices?.length > 0) {
             localStorage.setItem('invoices', JSON.stringify(invoices));
             const activeInvoiceData = invoices.find((invoice) => invoice.orderId === activeInvoice);
-            if (amout) {
+            if (amout || paymentType !== 'cash') {
                 setTotalUserPayment(
                     activeInvoiceData?.payment
                         ? activeInvoiceData?.payment.reduce((total, item) => total + item.amount, 0)
@@ -405,6 +408,19 @@ export default function Sell() {
         retry: 1,
     });
 
+    const handleChangeSort = (prop) => {
+        if (prop === 'newest' && orderBy === prop) {
+            setOrderBy('oldest');
+        } else if (prop === 'newest') {
+            setOrderBy(prop);
+        } else if (orderBy.split('_')[0] !== prop) {
+            setOrderBy(`${prop}_asc`);
+        } else {
+            setOrderBy(`${prop}_${orderBy.split('_')[1] !== 'desc' ? 'desc' : 'asc'}`);
+        }
+        setPage(1);
+    };
+    
     return (
         <div className={cx('root')}>
             <AppBar position="static" className={cx('appBar')}>
@@ -895,7 +911,15 @@ export default function Sell() {
                             <TableHead>
                                 <TableRow>
                                     <TableCell padding="checkbox"></TableCell>
-                                    <TableCell>ID</TableCell>
+                                    <TableCell>
+                                        <TableSortLabel
+                                            active={orderBy.split('_')[0] === 'id'}
+                                            direction={orderBy.split('_')[1]}
+                                            onClick={() => handleChangeSort('id')}
+                                        >
+                                            ID
+                                        </TableSortLabel>
+                                    </TableCell>
                                     <TableCell>Sản phẩm</TableCell>
                                     <TableCell align="right">Giá</TableCell>
                                     <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>

@@ -20,7 +20,7 @@ class OrderServiceClass {
         return httpRequest.request(config);
     };
 
-    getAllOrders = ({ page, status,start, end, keyword, type }) => {
+    getAllOrders = ({ page, status,start, end, keyword, type, sort }) => {
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
@@ -35,6 +35,7 @@ class OrderServiceClass {
                 end: end.trim().length > 0 ? end.trim() : null,
                 type: type === 'all' ? null : type,
                 keyword: keyword.trim().length > 0 ? keyword.trim() : null,
+                sort: sort ? sort : null,
             },
             withCredentials: true,
         };

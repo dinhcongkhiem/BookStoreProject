@@ -10,8 +10,6 @@ import com.project.book_store_be.Exception.VoucherQuantityNotEnough;
 import com.project.book_store_be.Interface.OrderService;
 import com.project.book_store_be.Request.OrderRequest;
 import com.project.book_store_be.Request.UpdateOrderRequest;
-import com.project.book_store_be.Response.OrderRes.OrderStatusResponse;
-import com.project.book_store_be.Services.OrderServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -44,7 +41,7 @@ public class OrderController {
         try {
             orderService.createOrderDetail(items, orderId);
             return ResponseEntity.status(HttpStatus.CREATED).build();
-        }catch (MaxFinalPriceOrderException e) {
+        } catch (MaxFinalPriceOrderException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
@@ -57,10 +54,10 @@ public class OrderController {
     public ResponseEntity<?> createOrder(@RequestBody OrderRequest request) {
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(request));
-        }catch (ProductQuantityNotEnough e) {
+        } catch (ProductQuantityNotEnough e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Số lượng sản phẩm không đủ, vui lòng thử lại sau!");
-        }catch (VoucherQuantityNotEnough | PriceHasChangedException | MaxFinalPriceOrderException e) {
+        } catch (VoucherQuantityNotEnough | PriceHasChangedException | MaxFinalPriceOrderException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
@@ -115,11 +112,12 @@ public class OrderController {
             @RequestParam(required = false) LocalDateTime start,
             @RequestParam(required = false) LocalDateTime end,
             @RequestParam(required = false) OrderType type,
-            @RequestParam(required = false) OrderStatus status
+            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false, defaultValue = "-1") Integer sort
     ) {
         try {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(orderService.findAllOrders(page, pageSize, status, start,end,type, keyword));
+                    .body(orderService.findAllOrders(page, pageSize, status, start, end, type, keyword, sort));
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -159,7 +157,7 @@ public class OrderController {
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(pdfFile);
-        }catch (ProductQuantityNotEnough e) {
+        } catch (ProductQuantityNotEnough e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Số lượng sản phẩm không đủ, vui lòng thử lại sau!");
         } catch (NoSuchElementException e) {
@@ -175,7 +173,7 @@ public class OrderController {
         try {
             orderService.updateQuantity(quantity, id);
             return ResponseEntity.ok().build();
-        }catch (MaxFinalPriceOrderException e) {
+        } catch (MaxFinalPriceOrderException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (NoSuchElementException e) {

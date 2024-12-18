@@ -365,7 +365,11 @@ function AddProduct() {
                 name={name}
                 type={type}
                 value={isSizeField ? formik.values.size?.[fieldKey] : formik.values[fieldKey]}
-                onChange={formik.handleChange}
+                onChange={(e) => {
+                    if (type === 'number' && /^[0-9]*$/.test(e.target.value)) {
+                        formik.handleChange(e);
+                    }
+                }}
                 onBlur={formik.handleBlur}
                 error={isSizeField ? Boolean(formik.errors.size?.[fieldKey]) : Boolean(formik.errors[fieldKey])}
                 helperText={isSizeField ? null : formik.errors[fieldKey]}

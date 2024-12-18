@@ -26,7 +26,7 @@ public interface OrderService {
 
     CreateOrderResponse rePaymentOrder(Long orderId, PaymentType paymentType);
 
-    OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, OrderType orderType, String keyword);
+    OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, OrderType orderType, String keyword, Integer sort);
 
     Map<?, ?> createOrderCounterSales();
 

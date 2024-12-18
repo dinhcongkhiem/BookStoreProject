@@ -25,6 +25,7 @@ import {
     FormControl,
     Select,
     MenuItem,
+    TableSortLabel,
 } from '@mui/material';
 import {
     Search as SearchIcon,
@@ -65,6 +66,7 @@ export default function OrderMng() {
     const navigate = useNavigate();
     const endDateRef = useRef(null);
     const startDateRef = useRef(null);
+    const [orderBy, setOrderBy] = useState();
 
     const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState('');
@@ -90,7 +92,7 @@ export default function OrderMng() {
         error,
         isLoading,
     } = useQuery({
-        queryKey: ['orderMng', currentStatus, debounceSearchTerm, startDate, endDate, page, type],
+        queryKey: ['orderMng', currentStatus, debounceSearchTerm, startDate, endDate, page, type, orderBy],
         queryFn: () =>
             OrderService.getAllOrders({
                 page,
@@ -99,6 +101,7 @@ export default function OrderMng() {
                 end: endDate.trim().length > 0 ? convertToISOString(endDate) : '',
                 type,
                 keyword: debounceSearchTerm,
+                sort: orderBy,
             }).then((res) => res.data),
         retry: 1,
         enabled: !!page && !!currentStatus,
@@ -309,7 +312,15 @@ export default function OrderMng() {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>ID</TableCell>
+                            <TableCell>
+                                <TableSortLabel
+                                    active={orderBy === 1}
+                                    direction={orderBy === 1 ? 'asc' : 'desc'}
+                                    onClick={() => setOrderBy((prev => prev === 1 ? 2 : 1))}
+                                >
+                                    ID
+                                </TableSortLabel>
+                            </TableCell>
                             <TableCell>Khách hàng</TableCell>
                             <TableCell>Ngày đặt hàng</TableCell>
                             <TableCell>Tổng tiền</TableCell>
