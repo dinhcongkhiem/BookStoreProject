@@ -75,49 +75,22 @@ function Footer() {
                                 </div>
                             </div>
                         </div>
-                        <div className={cx('colMedium', 'colSmall')}>
-                            <div className={cx('singleFooterCaption')}>
-                                <div className={cx('footerTittle')}>
-                                    <h4>Danh Mục Khác</h4>
-                                    <ul>
-                                        <li>
-                                            <a href="#">Tiểu Sử</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Chiêm Tinh</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Marketing Kỹ Thuật Số</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Phát Triển Phần Mềm</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Thương Mại Điện Tử</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
                         <div className={cx('colLarge', 'colMedium', 'colSmall')}>
                             <div className={cx('singleFooterCaption')}>
                                 <div className={cx('footerTittle')}>
-                                    <h4>Bản Đồ Trang</h4>
+                                    <h4>Về chúng tôi</h4>
                                     <ul>
                                         <li>
-                                            <a href="#">Trang Chủ</a>
+                                            <a href="#">Số điện thoại: 0842888559</a>
                                         </li>
                                         <li>
-                                            <a href="#">Về Chúng Tôi</a>
+                                            <a href="#">Email: bookbazaar@gmail.com</a>
                                         </li>
                                         <li>
-                                            <a href="#">Câu Hỏi Thường Gặp</a>
+                                            <a href="#">Địa chỉ: Cao Đẳng FPT Polytechnic Hà Nội</a>
                                         </li>
                                         <li>
-                                            <a href="#">Blog</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Liên Hệ</a>
+                                            <a href="#">Ngày thành lập: 04/09/2024</a>
                                         </li>
                                     </ul>
                                 </div>
