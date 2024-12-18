@@ -368,6 +368,8 @@ function AddProduct() {
                 onChange={(e) => {
                     if (type === 'number' && /^[0-9]*$/.test(e.target.value)) {
                         formik.handleChange(e);
+                    }else {
+                        formik.handleChange(e);
                     }
                 }}
                 onBlur={formik.handleBlur}
