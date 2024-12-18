@@ -78,6 +78,11 @@ function Cart() {
             console.log(error);
         },
         onSuccess: (data, d) => {
+            if(selectedVoucher) {
+                if(grandTotal - totalDiscount < selectedVoucher.condition) {
+                    setSelectedVoucher(null);
+                }
+            }
             queryClient.setQueryData(['productsInCart'], (oldData) => {
                 return {
                     ...oldData,
