@@ -355,7 +355,7 @@ export default function Sell() {
                         const newQuantity = value >= 1 ? Math.min(value, item.productQuantity) : 0;
                         if ((product.originalPrice - product.discount) * newQuantity > 100000000) {
                             toast.error('Giá trị đơn hàng quá lớn, vui lòng thử lại');
-                            return;
+                            return item;
                         }
                         debouncedUpdate(item.id, newQuantity);
 
