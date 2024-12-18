@@ -94,9 +94,9 @@ public class OrderServiceImpl implements OrderService {
     public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, OrderType orderType, String keyword, Integer sort) {
         Specification<Order> spec = OrderSpecification.getOrders(null, status, start, end, orderType, keyword);
         Sort sortType = Sort.by(Sort.Direction.DESC, "orderDate");
-        if(sort == 1) {
+        if (sort == 1) {
             sortType = Sort.by(Sort.Direction.ASC, "id");
-        }else if(sort == 2){
+        } else if (sort == 2) {
             sortType = Sort.by(Sort.Direction.DESC, "id");
         }
 
@@ -157,6 +157,8 @@ public class OrderServiceImpl implements OrderService {
             orderDetailList.add(orderDetail);
             orderDetailRepository.save(orderDetail);
         }
+        Product productInOrder = orderDetailContains.getProduct();
+        productService.updateQuantity(productInOrder, productInOrder.getQuantity() - 1);
         order.setOrderDetails(orderDetailList);
         order.setTotalPrice(totalPrice[0]);
         if (totalPrice[0].compareTo(BigDecimal.valueOf(100000000)) > 0) {
@@ -186,6 +188,8 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalPrice(order.getTotalPrice().subtract(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(orderDetail.getQuantity()))));
         orderDetail.setQuantity(quantity);
         order.setTotalPrice(order.getTotalPrice().add(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(quantity))));
+        Product productInOrder = orderDetail.getProduct();
+        productService.updateQuantity(productInOrder, productInOrder.getQuantity() + orderDetail.getQuantity() - quantity);
         if (order.getTotalPrice().compareTo(BigDecimal.valueOf(100000000)) > 0) {
             throw new MaxFinalPriceOrderException("Giá trị đơn hàng quá lớn, vui lòng thử lại!");
         }
@@ -235,6 +239,8 @@ public class OrderServiceImpl implements OrderService {
                 orderDetailRepository.save(orderDetail);
                 orderDetailList.add(orderDetail);
             }
+            productService.updateQuantity(product, product.getQuantity() - item.getQty());
+
         });
         if (totalPrice[0].compareTo(BigDecimal.valueOf(100000000)) > 0) {
             throw new MaxFinalPriceOrderException("Giá trị đơn hàng quá lớn, vui lòng thử lại!");
@@ -635,10 +641,6 @@ public class OrderServiceImpl implements OrderService {
         if (!order.getStatus().canTransitionTo(status)) {
             throw new IllegalArgumentException("Invalid status transition from " + order.getStatus() + " to " + status);
         }
-        order.getOrderDetails().forEach(item -> {
-            Product product = item.getProduct();
-            productService.updateQuantity(product, product.getQuantity() - item.getQuantity());
-        });
         order.setBuyerName(user != null ? user.getFullName() : "Khách lẻ");
         order.setBuyerPhoneNum(user != null ? user.getPhoneNum() : null);
         order.setStatus(status);
