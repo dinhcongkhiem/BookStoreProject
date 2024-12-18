@@ -2,17 +2,28 @@ import classNames from 'classnames/bind';
 import style from './Footer.module.scss';
 import logoBook from '../../../assets/image/Logo-BookBazaar-nobg.png';
 import { Fab } from '@mui/material';
-import { AddIcCallOutlined } from '@mui/icons-material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUp } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import { useQuery } from '@tanstack/react-query';
+import CategoryService from '../../../service/CategoryService';
 const cx = classNames.bind(style);
 
 function Footer() {
     const [active, setActive] = useState(false);
 
+    const {
+        data: categoryData,
+    } = useQuery({
+        queryKey: ['categoryData'],
+        queryFn: () =>
+            CategoryService.getPage({
+                page: 1,
+                size: 4,
+            }).then((res) => res.data),
+        retry: 1,
+    });
     useEffect(() => {
         const handleScroll = () => {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -56,21 +67,11 @@ function Footer() {
                                 <div className={cx('footerTittle')}>
                                     <h4>Thể Loại Sách</h4>
                                     <ul>
-                                        <li>
-                                            <a href="#">Lịch Sử</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Kinh Dị - Giật Gân</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Chuyện Tình Yêu</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Khoa Học Viễn Tưởng</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Kinh Doanh</a>
-                                        </li>
+                                        {categoryData?.map((item) => (
+                                            <li key={item.id}>
+                                                <Link to={`/product?c=${item.id}`}>{item.name}</Link>
+                                            </li>
+                                        ))}
                                     </ul>
                                 </div>
                             </div>

@@ -3,6 +3,8 @@ package com.project.book_store_be.Services;
 import com.project.book_store_be.Model.Category;
 import com.project.book_store_be.Repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,12 @@ public class CategoryService {
 
     public List<Category> getAllCategories() {
         return categoryRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+    }
+
+    public List<Category> getPageCategory(Integer page, Integer size) {
+        System.out.println(size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        return categoryRepository.findAll(pageable).getContent();
     }
 
     public List<Category> searchCategoriesByName(String keyword) {

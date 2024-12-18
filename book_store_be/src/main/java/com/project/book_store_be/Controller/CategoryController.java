@@ -28,6 +28,13 @@ public class CategoryController {
         }
         return ResponseEntity.ok(categories);
     }
+
+    @GetMapping("/api/v1/category/page")
+    public ResponseEntity<List<Category>> getPageCategory(@RequestParam(defaultValue = "0") Integer page,
+                                                          @RequestParam(defaultValue = "10") Integer size) {
+        return ResponseEntity.ok(categoryService.getPageCategory(page, size));
+    }
+
     @GetMapping("/api/v1/category/categoryIds")
     public ResponseEntity<List<Category>> getCategories(@RequestParam List<Long> categoryIds) {
         List<Category> categories = categoryService.getCategories(categoryIds);

@@ -247,30 +247,31 @@ export default function Sell() {
         if (!amount) {
             return;
         }
-        let updatedPayments = [...(activeInvoiceData.payment || [])];
-        const existingPaymentIndex = updatedPayments.findIndex((item) => item.paymentType === type);
 
-        if (existingPaymentIndex !== -1 && isReset !== false && type === 'cash') {
-            updatedPayments[existingPaymentIndex].amount += parseInt(amount);
-        } else {
-            const payment = { paymentType: type, amount: parseInt(amount) };
-            updatedPayments = isReset ? [...updatedPayments, payment] : [payment];
-        }
         if (totalUserPayment + parseFloat(amount) > 150000000 && isReset !== false) {
             toast.warn('Số tiền không được vượt quá 150.000.000 ₫');
             setAmount('');
-            return;
-        }
-        const newData = {
-            ...activeInvoiceData,
-            payment: updatedPayments,
-        };
+        } else {
+            let updatedPayments = [...(activeInvoiceData.payment || [])];
+            const existingPaymentIndex = updatedPayments.findIndex((item) => item.paymentType === type);
 
-        setInvoices((prevInvoices) =>
-            prevInvoices.map((invoice) => (invoice.orderId === activeInvoice ? newData : invoice)),
-        );
-        if (isReset) {
-            setAmount('');
+            if (existingPaymentIndex !== -1 && isReset !== false && type === 'cash') {
+                updatedPayments[existingPaymentIndex].amount += parseInt(amount);
+            } else {
+                const payment = { paymentType: type, amount: parseInt(amount) };
+                updatedPayments = isReset ? [...updatedPayments, payment] : [payment];
+            }
+            const newData = {
+                ...activeInvoiceData,
+                payment: updatedPayments,
+            };
+
+            setInvoices((prevInvoices) =>
+                prevInvoices.map((invoice) => (invoice.orderId === activeInvoice ? newData : invoice)),
+            );
+            if (isReset) {
+                setAmount('');
+            }
         }
     };
 
@@ -420,7 +421,7 @@ export default function Sell() {
         }
         setPage(1);
     };
-    
+
     return (
         <div className={cx('root')}>
             <AppBar position="static" className={cx('appBar')}>

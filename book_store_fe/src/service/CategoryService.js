@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { CATEGORY_URL } from './config';
 class CategoryServiceClass {
-    getAll = ({keyword}) => {        
+    getAll = ({ keyword }) => {
         const config = {
             method: 'get',
             maxBodyLength: Infinity,
@@ -34,6 +34,20 @@ class CategoryServiceClass {
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify(data),
+            withCredentials: true,
+        };
+        return axios.request(config);
+    };
+
+    getPage = ({ page, size }) => {
+        const config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: `http://localhost:8080/api/v1/category/page`,
+            params: {
+                page: page - 1,
+                size: size,
+            },
             withCredentials: true,
         };
         return axios.request(config);

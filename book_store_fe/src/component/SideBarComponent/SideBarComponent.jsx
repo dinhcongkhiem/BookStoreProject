@@ -104,6 +104,9 @@ function SideBarComponent() {
     }, [searchParams, priceRangeRes]);
 
     useEffect(() => {
+        setSelectedCategory(parseInt(searchParams.get('c')) || 0);
+    }, [searchParams]);
+    useEffect(() => {
         if (
             (debounceValue[0] !== priceRangeRes?.min || debounceValue[1] !== priceRangeRes?.max) &&
             debounceValue[0] &&
