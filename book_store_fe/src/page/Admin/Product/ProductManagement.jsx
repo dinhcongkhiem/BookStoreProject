@@ -339,7 +339,16 @@ const Product = () => {
                                             src={product.thumbnail_url}
                                             sx={{ width: 50, height: 80, mr: 2, borderRadius: 0 }}
                                         />
-                                        {product.name}
+                                        <p
+                                            style={{
+                                                display: 'block',
+                                                maxWidth: '45rem',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                            }}
+                                        >
+                                            {product.name}
+                                        </p>
                                     </Box>
                                 </TableCell>
                                 <TableCell size="small" sx={{ padding: '.5rem' }}>

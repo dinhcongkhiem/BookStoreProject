@@ -214,11 +214,22 @@ const Discount = () => {
                         {discounts?.content?.map((discount) => (
                             <TableRow key={discount.id}>
                                 <TableCell>{discount.id}</TableCell>
-                                <TableCell>{discount.name}</TableCell>
+                                <TableCell>
+                                    <p
+                                        style={{
+                                            display: 'block',
+                                            maxWidth: '45rem',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                        }}
+                                    >
+                                        {discount.name}
+                                    </p>
+                                </TableCell>
                                 <TableCell>{discount.discountRate}%</TableCell>
                                 <TableCell>{new Date(discount.startDate).toLocaleDateString()}</TableCell>
                                 <TableCell>{new Date(discount.endDate).toLocaleDateString()}</TableCell>
-                                <TableCell align='center'>
+                                <TableCell align="center">
                                     <Chip
                                         label={convertStatus(discount).label}
                                         className={cx1('status', convertStatus(discount).class)}

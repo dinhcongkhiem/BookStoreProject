@@ -58,8 +58,8 @@ function AddVoucher() {
         }
     };
     const validationSchema = Yup.object({
-        code: Yup.string().trim().required('Vui lòng nhập mã giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
-        name: Yup.string().trim().required('Vui lòng nhập tên đợt giảm giá').max(255, 'Tên không được vượt quá 255 ký tự'),
+        code: Yup.string().trim().required('Vui lòng nhập mã giảm giá').max(50, 'Tên không được vượt quá 50 ký tự'),
+        name: Yup.string().trim().required('Vui lòng nhập tên đợt giảm giá').max(100, 'Tên không được vượt quá 100 ký tự'),
         value: Yup.lazy((value, context) => {
             if (context.parent.type === 'PERCENT') {
                 return Yup.number()

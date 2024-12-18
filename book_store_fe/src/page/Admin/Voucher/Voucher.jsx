@@ -229,8 +229,30 @@ const Voucher = () => {
                         {vouchers?.content?.map((voucher) => (
                             <TableRow key={voucher.id}>
                                 <TableCell>{voucher.id}</TableCell>
-                                <TableCell>{voucher.code}</TableCell>
-                                <TableCell>{voucher.name}</TableCell>
+                                <TableCell>
+                                    <p
+                                        style={{
+                                            display: 'block',
+                                            maxWidth: '13rem',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                        }}
+                                    >
+                                        {voucher.code}
+                                    </p>
+                                </TableCell>
+                                <TableCell>
+                                    <p
+                                        style={{
+                                            display: 'block',
+                                            maxWidth: '20rem',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                        }}
+                                    >
+                                        {voucher.name}
+                                    </p>
+                                </TableCell>
                                 <TableCell>
                                     {voucher.type === 'PERCENT' ? (
                                         <span>{voucher.value}%</span>
@@ -255,7 +277,7 @@ const Voucher = () => {
                                     >
                                         <EditIcon />
                                     </IconButton>
-                                  
+
                                     <CustomTooltip
                                         arrow={false}
                                         title={
