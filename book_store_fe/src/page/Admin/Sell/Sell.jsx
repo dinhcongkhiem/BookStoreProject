@@ -59,6 +59,7 @@ import QRCodeModal from '../../../component/Modal/QRCodeModal/QRCodeModal';
 import ConfirmModal from '../../../component/Modal/ConfirmModal/ConfirmModal';
 import UserService from '../../../service/UserService';
 import UserInfo from '../../User/UserInfo';
+import ModalLoading from '../../../component/Modal/ModalLoading/ModalLoading';
 
 const cx = classNames.bind(styles);
 
@@ -341,14 +342,10 @@ export default function Sell() {
         if (existingCartItem && existingCartItem.initialQuantity !== quantity) {
             updateQuantityMutation.mutate({ qty: quantity, id: id });
         }
-    }, 800);
+    }, 400);
 
     const handleQuantityChange = (productId, value) => {
-        const product = productInOrderRes.items.find((item) => item.productId === productId);
-        if ((product.originalPrice - product.discount) * value > 100000000) {
-            toast.error('Giá trị đơn hàng quá lớn, vui lòng thử lại');
-            return;
-        }
+        const product = productInOrderRes.items.find((item) => item.productId === productId);      
         queryClient.setQueryData(['productInOrder', activeInvoice], (oldData) => {
             if (!oldData) return oldData;
             return {
@@ -356,6 +353,10 @@ export default function Sell() {
                 items: oldData.items.map((item) => {
                     if (item.productId === productId) {
                         const newQuantity = value >= 1 ? Math.min(value, item.productQuantity) : 0;
+                        if ((product.originalPrice - product.discount) * newQuantity > 100000000) {
+                            toast.error('Giá trị đơn hàng quá lớn, vui lòng thử lại');
+                            return;
+                        }
                         debouncedUpdate(item.id, newQuantity);
 
                         return {
@@ -1010,6 +1011,7 @@ export default function Sell() {
                 title="Xác nhận xóa sản phẩm"
                 type="info"
             />
+            <ModalLoading open={createOrderMutation.isPending || successOrderMutation.isPending || updateQuantityMutation.isPending || removeOrderDetailMutation.isPending} />
         </div>
     );
 }
