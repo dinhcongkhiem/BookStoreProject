@@ -42,7 +42,6 @@ function Payment() {
     const selectVoucherInStorage = useMemo(() => {
         return JSON.parse(localStorage.getItem('selectedVoucher'));
     }, []);
-
     useEffect(() => {
         setSelectedVoucher(selectVoucherInStorage);
     }, [selectVoucherInStorage]);
@@ -115,13 +114,16 @@ function Payment() {
         onError: (error) => {
             if (error.response.status === 409) {
                 toast.error(error.response.data);
-                if (error.response.data !== 'Phiếu giảm giá này đã hết, vui lòng chọn phiếu giảm giá khác!' && !error.response.data.startWith('Giá của sản phẩm ')) {
+                if (
+                    error.response.data !== 'Phiếu giảm giá này đã hết, vui lòng chọn phiếu giảm giá khác!' &&
+                    !error.response.data.startWith('Giá của sản phẩm ')
+                ) {
                     localStorage.removeItem('cartIdsForPayment');
                     localStorage.removeItem('productForPayment');
                     localStorage.removeItem('selectedVoucher');
                     // toast.error(error.response.data);
                     navigate('/product');
-                }                
+                }
             }
         },
         onSuccess: (data) => {
@@ -143,7 +145,11 @@ function Payment() {
 
     const rePaymentOrderMutation = useMutation({
         mutationFn: (data) => OrderService.rePaymentOrder(data),
-        onError: (error) => console.log(error),
+        onError: (error) => {
+            if (error.response.status === 409) {
+                toast.error(error.response.data);
+            }
+        },
         onSuccess: (data) => {
             if (data.data.paymentType === 'cash_on_delivery') {
                 localStorage.removeItem('cartIdsForPayment');
@@ -173,7 +179,12 @@ function Payment() {
             buyerName: diffAddress ? diffAddress.fullName : null,
             buyerPhoneNum: diffAddress ? diffAddress.phoneNum : null,
             voucherCode: selectedVoucher?.code,
-            items: checkoutData?.items.map((i) => ({ cartId: i.cartId, productId: i.productId, qty: i.quantity, currentPrice: i.price})),
+            items: checkoutData?.items.map((i) => ({
+                cartId: i.cartId,
+                productId: i.productId,
+                qty: i.quantity,
+                currentPrice: i.price,
+            })),
         };
         createOrderMutation.mutate(data);
     };

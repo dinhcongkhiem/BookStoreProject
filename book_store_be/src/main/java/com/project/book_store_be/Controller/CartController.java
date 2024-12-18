@@ -1,5 +1,6 @@
 package com.project.book_store_be.Controller;
 
+import com.project.book_store_be.Exception.ProductQuantityNotEnough;
 import com.project.book_store_be.Request.CartRequest;
 import com.project.book_store_be.Response.CartResponse;
 import com.project.book_store_be.Services.CartService;
@@ -61,6 +62,9 @@ public class CartController {
         try {
             cartService.reBuyProducts(productsId);
             return ResponseEntity.status(HttpStatus.CREATED).build();
+        }catch (ProductQuantityNotEnough e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "Số lượng sản phẩm không đủ, vui lòng thử lại sau!", "status", HttpStatus.CONFLICT.value()));
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("message", "Không tìm thấy sản phẩm để thêm vào giỏ hàng", "status", HttpStatus.NOT_FOUND.value()));

@@ -70,6 +70,9 @@ public class OrderController {
     public ResponseEntity<?> rePaymentOrder(@RequestParam Long orderId, @RequestParam PaymentType paymentType) {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(orderService.rePaymentOrder(orderId, paymentType));
+        }catch (ProductQuantityNotEnough e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Số lượng sản phẩm không đủ, vui lòng thử lại sau!");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");

@@ -51,7 +51,9 @@ function Order() {
     const reBuyProductsMutation = useMutation({
         mutationFn: (orderCode) => CartService.rebuyProduct(orderCode),
         onError: (error) => {
-            console.log(error);
+            if (error.response?.status === 409) {
+                toast.error('Sản phẩm đã hết hàng');
+            }
         },
         onSuccess: () => {
             navigate('/cart');

@@ -29,6 +29,12 @@ const QRCodePaymentModal = ({ open, handleClose, data }) => {
             navigate('/order');
             localStorage.removeItem('selectedVoucher');
         }
+        if(responseStatus && responseStatus === "CANCELED" && data.qrcodeURL.length > 0) {
+            toast.warn('Số lượng sản phẩm đã hết, chúng tôi sẽ liên hệ để hoàn tiền. Xin thông cảm!');
+            handleClose();
+            navigate('/order');
+            localStorage.removeItem('selectedVoucher');
+        }
     }, [responseStatus]);
     const cancelPaymentMutation = useMutation({
         mutationFn: (orderCode) => OrderService.cancelPayment(orderCode),

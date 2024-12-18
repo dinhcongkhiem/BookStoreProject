@@ -4,6 +4,7 @@ import com.project.book_store_be.Enum.NotificationType;
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Enum.PaymentType;
 import com.project.book_store_be.Enum.VoucherType;
+import com.project.book_store_be.Exception.ProductQuantityNotEnough;
 import com.project.book_store_be.Interface.PaymentService;
 import com.project.book_store_be.Model.*;
 import com.project.book_store_be.Repository.OrderRepository;
@@ -209,6 +210,11 @@ public class PaymentServiceImpl implements PaymentService {
 
                 orderItems.forEach(o -> {
                     Product product = o.getProduct();
+                    if(product.getQuantity() < o.getQuantity()) {
+                        order.setStatus(OrderStatus.CANCELED);
+                        orderRepository.save(order);
+                        throw new ProductQuantityNotEnough("Số lượng sản phẩm không đủ, vui lòng thử lại sau!");
+                    }
                     productService.updateQuantity(product, product.getQuantity() - o.getQuantity());
                     BigDecimal discount = o.getDiscount() != null ? o.getDiscount() : BigDecimal.ZERO;
                     totalPrice[0] = totalPrice[0].add(product.getOriginal_price().subtract(discount)
