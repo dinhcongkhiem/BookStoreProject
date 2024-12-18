@@ -44,6 +44,7 @@ import {
     Search as SearchIcon,
     QrCode,
     ZoomIn,
+    Clear,
 } from '@mui/icons-material';
 import BarcodeScanner from '../../../component/BarcodeScannerComponent/BarcodeScannerComponent';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
@@ -222,7 +223,7 @@ export default function Sell() {
         );
     };
 
-    const handleChangeValueCash = (value) => {        
+    const handleChangeValueCash = (value) => {
         if (value > 150000000) {
             toast.warn('Số tiền không được vượt quá 150.000.000 ₫');
             return;
@@ -269,6 +270,20 @@ export default function Sell() {
             setAmount('');
         }
     };
+
+    const removePaymentType = (type) => {
+        let updatedPayments = [...(activeInvoiceData.payment || [])];
+        const existingPaymentIndex = updatedPayments.findIndex((item) => item.paymentType === type);
+        updatedPayments.splice(existingPaymentIndex, 1);
+        const newData = {
+            ...activeInvoiceData,
+            payment: updatedPayments,
+        };
+
+        setInvoices((prevInvoices) =>
+            prevInvoices.map((invoice) => (invoice.orderId === activeInvoice ? newData : invoice)),
+        );
+    }
     useEffect(() => {
         const storedInvoices = localStorage.getItem('invoices');
         try {
@@ -283,7 +298,7 @@ export default function Sell() {
         if (invoices?.length > 0) {
             localStorage.setItem('invoices', JSON.stringify(invoices));
             const activeInvoiceData = invoices.find((invoice) => invoice.orderId === activeInvoice);
-            if(amout) {
+            if (amout) {
                 setTotalUserPayment(
                     activeInvoiceData?.payment
                         ? activeInvoiceData?.payment.reduce((total, item) => total + item.amount, 0)
@@ -723,7 +738,7 @@ export default function Sell() {
                                                 <Input
                                                     value={amout}
                                                     onChange={(e) => {
-                                                        const value = e.target.value;                                                        
+                                                        const value = e.target.value;
                                                         if (/^\d*$/.test(value)) {
                                                             handleChangeValueCash(value);
                                                         }
@@ -748,7 +763,7 @@ export default function Sell() {
                                                 <Input
                                                     value={amout}
                                                     onChange={(e) => {
-                                                        const value = e.target.value;                                                        
+                                                        const value = e.target.value;
                                                         if (value > 150000000) {
                                                             toast.warn('Số tiền không được vượt quá 150.000.000 ₫');
                                                             return;
@@ -803,6 +818,12 @@ export default function Sell() {
                                                                     <QrCode />
                                                                 </button>
                                                             )}
+                                                            <button
+                                                                className={cx('show-barcode', 'cancel')}
+                                                                onClick={() => removePaymentType(item.paymentType)}
+                                                            >
+                                                                <Clear />
+                                                            </button>
                                                         </span>
                                                         <span>{item.amount.toLocaleString('vi-VN')} ₫</span>
                                                     </div>
