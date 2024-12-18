@@ -297,13 +297,13 @@ public class OrderServiceImpl implements OrderService {
             }
             voucher = optionalVoucher.get();
             if (voucher.getStartDate().isAfter(LocalDateTime.now()) || voucher.getEndDate().isBefore(LocalDateTime.now())) {
-                throw new IllegalArgumentException("Voucher đã hết hạn.");
+                throw new VoucherQuantityNotEnough("Voucher đã hết hạn.");
             }
             if (voucher.getQuantity() == 0) {
                 throw new VoucherQuantityNotEnough("Phiếu giảm giá này đã hết, vui lòng chọn phiếu giảm giá khác!");
             }
             if (voucher.getCondition() != null && totalPrice[0].compareTo(voucher.getCondition()) < 0) {
-                throw new IllegalArgumentException("Không đủ điều kiện để áp dụng voucher.");
+                throw new VoucherQuantityNotEnough("Không đủ điều kiện để áp dụng voucher.");
             }
 
             voucherDiscount[0] = this.calculateVoucherDiscount(voucher, totalPrice[0], order.getShippingFee());
