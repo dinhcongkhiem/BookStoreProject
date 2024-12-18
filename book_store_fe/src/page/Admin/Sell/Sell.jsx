@@ -90,7 +90,7 @@ export default function Sell() {
         error,
         isLoading: isLoadingProducts,
     } = useQuery({
-        queryKey: ['productsMng', debouncedSearchValue, page,isProductDialogOpen],
+        queryKey: ['productsMng', debouncedSearchValue, page, isProductDialogOpen],
         queryFn: () =>
             ProductService.getAllProductForMng({
                 page: page,
@@ -135,7 +135,7 @@ export default function Sell() {
         mutationFn: (data) => OrderService.createOrderDetail({ items: data, orderId: activeInvoice }),
         onError: (error) => {
             console.log(error);
-            if(error.response.status === 409) {
+            if (error.response.status === 409) {
                 toast.error(error.response.data);
             }
         },
@@ -222,7 +222,7 @@ export default function Sell() {
         );
     };
 
-    const handleChangeValueCash = (value) => {
+    const handleChangeValueCash = (value) => {        
         if (value > 150000000) {
             toast.warn('Số tiền không được vượt quá 150.000.000 ₫');
             return;
@@ -243,15 +243,23 @@ export default function Sell() {
         if (!amount) {
             return;
         }
-        
-        if(totalUserPayment + parseFloat(amount) > 150000000 && isReset !== false) {            
+        let updatedPayments = [...(activeInvoiceData.payment || [])];
+        const existingPaymentIndex = updatedPayments.findIndex((item) => item.paymentType === type);
+
+        if (existingPaymentIndex !== -1 && isReset !== false && type === 'cash') {
+            updatedPayments[existingPaymentIndex].amount += parseInt(amount);
+        } else {
+            const payment = { paymentType: type, amount: parseInt(amount) };
+            updatedPayments = isReset ? [...updatedPayments, payment] : [payment];
+        }
+        if (totalUserPayment + parseFloat(amount) > 150000000 && isReset !== false) {
             toast.warn('Số tiền không được vượt quá 150.000.000 ₫');
+            setAmount('');
             return;
         }
-        const payment = [{ paymentType: type, amount: parseInt(amount) }];
         const newData = {
             ...activeInvoiceData,
-            payment: isReset ? [...(activeInvoiceData.payment || []), ...payment] : [...payment],
+            payment: updatedPayments,
         };
 
         setInvoices((prevInvoices) =>
@@ -275,11 +283,13 @@ export default function Sell() {
         if (invoices?.length > 0) {
             localStorage.setItem('invoices', JSON.stringify(invoices));
             const activeInvoiceData = invoices.find((invoice) => invoice.orderId === activeInvoice);
-            setTotalUserPayment(
-                activeInvoiceData?.payment
-                    ? activeInvoiceData?.payment.reduce((total, item) => total + item.amount, 0)
-                    : 0,
-            );
+            if(amout) {
+                setTotalUserPayment(
+                    activeInvoiceData?.payment
+                        ? activeInvoiceData?.payment.reduce((total, item) => total + item.amount, 0)
+                        : 0,
+                );
+            }
             setSelectedUser(activeInvoiceData?.user);
             setActiveInvoiceData(activeInvoiceData);
         }
@@ -289,7 +299,7 @@ export default function Sell() {
         mutationFn: ({ qty, id }) => OrderService.updateQuantiyOrder({ quantity: qty, id: id }),
         onError: (error) => {
             console.log(error);
-            if(error.response.status === 409) {
+            if (error.response.status === 409) {
                 toast.error(error.response.data);
             }
         },
@@ -315,8 +325,8 @@ export default function Sell() {
     }, 800);
 
     const handleQuantityChange = (productId, value) => {
-        const product = productInOrderRes.items.find((item) => item.productId === productId);        
-        if((product.originalPrice - product.discount) * value > 100000000) {
+        const product = productInOrderRes.items.find((item) => item.productId === productId);
+        if ((product.originalPrice - product.discount) * value > 100000000) {
             toast.error('Giá trị đơn hàng quá lớn, vui lòng thử lại');
             return;
         }
@@ -713,7 +723,7 @@ export default function Sell() {
                                                 <Input
                                                     value={amout}
                                                     onChange={(e) => {
-                                                        const value = e.target.value;
+                                                        const value = e.target.value;                                                        
                                                         if (/^\d*$/.test(value)) {
                                                             handleChangeValueCash(value);
                                                         }
@@ -738,10 +748,8 @@ export default function Sell() {
                                                 <Input
                                                     value={amout}
                                                     onChange={(e) => {
-                                                        const value = e.target.value;
+                                                        const value = e.target.value;                                                        
                                                         if (value > 150000000) {
-                                                            console.log("heheh");
-                                                            
                                                             toast.warn('Số tiền không được vượt quá 150.000.000 ₫');
                                                             return;
                                                         }
@@ -939,7 +947,7 @@ export default function Sell() {
             >
                 <DialogTitle>Thêm mới người dùng</DialogTitle>
                 <DialogContent>
-                    <UserInfo onClose={() => setIsAddnewUser(false)}/>
+                    <UserInfo onClose={() => setIsAddnewUser(false)} />
                 </DialogContent>
             </Dialog>
             {openQRCodeModal && (
