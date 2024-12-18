@@ -10,6 +10,7 @@ import { useMutation } from '@tanstack/react-query';
 import UserService from '../../service/UserService';
 import { styled, TextField } from '@mui/material';
 import { toast } from 'react-toastify';
+import ModalLoading from '../../component/Modal/ModalLoading/ModalLoading';
 const ResizableTextField = styled(TextField)({
     '& .MuiInputBase-inputMultiline': {
         resize: 'vertical',
@@ -171,6 +172,7 @@ function Contact() {
                     </div>
                 </div>
             </div>
+            <ModalLoading isLoading={sendContactMutation.isPending} />
         </div>
     );
 }
