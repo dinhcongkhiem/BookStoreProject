@@ -9,6 +9,7 @@ import { useFormik } from 'formik';
 import { useMutation } from '@tanstack/react-query';
 import UserService from '../../service/UserService';
 import { styled, TextField } from '@mui/material';
+import { toast } from 'react-toastify';
 const ResizableTextField = styled(TextField)({
     '& .MuiInputBase-inputMultiline': {
         resize: 'vertical',
@@ -24,6 +25,10 @@ function Contact() {
     const sendContactMutation = useMutation({
         mutationFn: (data) => {
             return UserService.sendContactMail(data);
+        },
+        onSuccess: (data) => {
+            toast.success('Đã gửi phản hồi thành công');
+            formik.resetForm();
         },
         onError: (error) => {
             console.log(error);
