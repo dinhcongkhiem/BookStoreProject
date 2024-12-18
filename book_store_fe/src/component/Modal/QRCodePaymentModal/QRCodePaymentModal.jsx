@@ -5,7 +5,7 @@ import style from './QRCodePaymentModal.module.scss';
 import icon from '../../../assets/icons/bank_transfer_icon.png';
 import { Close, QrCode } from '@mui/icons-material';
 import ConfirmModal from '../ConfirmModal/ConfirmModal';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import OrderService from '../../../service/OrderService';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +14,7 @@ const QRCodePaymentModal = ({ open, handleClose, data }) => {
     const navigate = useNavigate();
     const [timeLeft, setTimeLeft] = useState(300);
     const [isOpenConfirmModal, setIsOpenConfirmModal] = useState(false);
-
+    const queryClient = useQueryClient();
     const { data: responseStatus, error } = useQuery({
         queryKey: ['checkStatusPayment'],
         queryFn: () => OrderService.checkStatusOrder(data?.orderCode).then((res) => res.data),
@@ -28,13 +28,13 @@ const QRCodePaymentModal = ({ open, handleClose, data }) => {
             handleClose();
             navigate('/order');
             localStorage.removeItem('selectedVoucher');
-        }
+            queryClient.removeQueries(['checkStatusPayment']);        }
         if(responseStatus && responseStatus === "CANCELED" && data.qrcodeURL.length > 0) {
             toast.warn('Số lượng sản phẩm đã hết, chúng tôi sẽ liên hệ để hoàn tiền. Xin thông cảm!');
             handleClose();
             navigate('/order');
             localStorage.removeItem('selectedVoucher');
-        }
+            queryClient.removeQueries(['checkStatusPayment']);        }
     }, [responseStatus]);
     const cancelPaymentMutation = useMutation({
         mutationFn: (orderCode) => OrderService.cancelPayment(orderCode),
