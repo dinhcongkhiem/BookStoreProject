@@ -1,5 +1,6 @@
 package com.project.book_store_be.Services;
 
+import com.project.book_store_be.Exception.ProductQuantityNotEnough;
 import com.project.book_store_be.Model.Cart;
 import com.project.book_store_be.Model.Product;
 import com.project.book_store_be.Model.User;
@@ -84,7 +85,7 @@ public class CartService {
                 Cart cart = cartOptional.get();
                 int newQuantity = cart.getCartQuantity() + 1;
                 if (newQuantity > product.getQuantity()) {
-                    throw new IllegalArgumentException("Tổng số lượng trong giỏ hàng vượt quá số lượng có sẵn trong kho.");
+                    throw new ProductQuantityNotEnough("Tổng số lượng trong giỏ hàng vượt quá số lượng có sẵn trong kho.");
                 }
                 cart.setCartQuantity(newQuantity);
                 cart.setUpdateDate(LocalDateTime.now());

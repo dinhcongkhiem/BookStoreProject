@@ -23,7 +23,9 @@ function ButtonInOrder({ status, orderId, onClose, onRefetch, productIds }) {
     const reBuyProductsMutation = useMutation({
         mutationFn: () => CartService.rebuyProduct(productIds),
         onError: (error) => {
-            console.log(error);
+            if (error.response?.status === 409) {
+                toast.error('Sản phẩm đã hết hàng');
+            }
         },
         onSuccess: () => {
             navigate('/cart');

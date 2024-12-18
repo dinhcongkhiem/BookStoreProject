@@ -204,6 +204,8 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new NoSuchElementException("Order detail not found with ID: " + orderDetailId));
         Order order = orderDetail.getOrder();
         order.setTotalPrice(order.getTotalPrice().subtract(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(orderDetail.getQuantity()))));
+        Product product = orderDetail.getProduct();
+        productService.updateQuantity(product, product.getQuantity() + orderDetail.getQuantity());
         orderDetailRepository.delete(orderDetail);
         orderRepository.save(order);
     }
@@ -278,8 +280,9 @@ public class OrderServiceImpl implements OrderService {
 
         request.getItems().forEach(item -> {
             Product product = productService.findProductById(item.getProductId());
-
-
+            if (product.getQuantity() < item.getQty()) {
+                throw new ProductQuantityNotEnough("Số lượng sản phẩm " + product.getName() + " không đủ, vui lòng thử lại sau!");
+            }
             BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
             BigDecimal price = product.getOriginal_price().subtract(discountVal);
             totalPrice[0] = totalPrice[0].add(price.multiply(BigDecimal.valueOf(item.getQty())));
@@ -376,6 +379,12 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public CreateOrderResponse rePaymentOrder(Long orderId, PaymentType paymentType) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new NoSuchElementException("Order not found"));
+        order.getOrderDetails().forEach(orderDetail -> {
+            Product product = orderDetail.getProduct();
+            if (product.getQuantity() < orderDetail.getQuantity()) {
+                throw new ProductQuantityNotEnough("Sản phẩm ở đơn hàng này đã hết vui lòng thử lại sau!");
+            }
+        });
         BigDecimal totalPrice = order.getTotalPrice();
         BigDecimal voucherDiscount = this.calculateVoucherDiscount(order.getVoucher(), totalPrice, order.getShippingFee());
 
