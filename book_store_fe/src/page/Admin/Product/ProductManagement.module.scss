@@ -19,3 +19,9 @@
     overflow: visible;
     // margin-bottom: 1rem;
 }
+
+.original-price {
+    display: block;
+    text-decoration: line-through;
+    opacity: 0.4;
+}

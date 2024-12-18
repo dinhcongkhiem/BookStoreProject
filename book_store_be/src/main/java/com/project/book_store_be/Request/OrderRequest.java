@@ -24,6 +24,7 @@ public class OrderRequest {
     public static class OrderDetailRequest {
         private Long cartId;
         private Long productId;
+        private BigDecimal currentPrice;
         private Integer qty;
     }
 }

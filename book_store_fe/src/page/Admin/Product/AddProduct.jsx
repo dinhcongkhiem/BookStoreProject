@@ -72,11 +72,11 @@ function AddProduct() {
             .max(2000000000, 'Tối đa là 2.000.000.000'),
         cost: Yup.number()
             .required('Vui lòng nhập giá nhập.')
-            .min(1, 'Phải lớn hơn 0')
+            .min(10000, 'Phải lớn hơn 10.000 ₫')
             .max(2000000000, 'Tối đa là 2.000.000.000 ₫'),
         originalPrice: Yup.number()
             .required('Vui lòng nhập giá bán.')
-            .min(1, 'Phải lớn hơn 0')
+            .min(10000, 'Phải lớn hơn 10.000 ₫')
             .max(2000000000, 'Tối đa là 2.000.000.000 ₫')
             .when('cost', {
                 is: (cost) => cost !== undefined && cost >= 0,

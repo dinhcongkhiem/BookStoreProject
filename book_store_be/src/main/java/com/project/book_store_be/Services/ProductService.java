@@ -298,7 +298,7 @@ public class ProductService {
         return ProductsForManagerResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
-                .originalPrice(product.getOriginal_price())
+                .originalPrice(product.getOriginal_price().setScale(0, RoundingMode.HALF_UP))
                 .price(product.getOriginal_price().subtract(discountVal).setScale(0, RoundingMode.HALF_UP))
                 .quantity(product.getQuantity())
                 .status(product.getStatus())

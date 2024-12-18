@@ -136,6 +136,10 @@ function Cart() {
                     cart: oldData.cart.filter((item) => item.id !== id),
                 };
             });
+            if(selectedItems.includes(id)) {
+                setSelectedVoucher(null);
+            }
+            
             setOpenDialog(false);
         },
     });
@@ -145,9 +149,14 @@ function Cart() {
     };
 
     const handleSelectItem = (id) => {
-        setSelectedItems(
-            selectedItems.includes(id) ? selectedItems.filter((itemId) => itemId !== id) : [...selectedItems, id],
-        );
+        const newSelectedItems = [...selectedItems];
+        if (newSelectedItems.includes(id)) {
+            setSelectedVoucher(null);
+            newSelectedItems.splice(newSelectedItems.indexOf(id), 1);
+        } else {
+            newSelectedItems.push(id);
+        }
+        setSelectedItems(newSelectedItems);
     };
 
     const handleSubmit = () => {

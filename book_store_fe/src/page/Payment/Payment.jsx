@@ -114,14 +114,14 @@ function Payment() {
         mutationFn: (data) => OrderService.createOrder(data),
         onError: (error) => {
             if (error.response.status === 409) {
-                if (error.response.data !== 'Phiếu giảm giá này đã hết, vui lòng chọn phiếu giảm giá khác!') {
+                toast.error(error.response.data);
+                if (error.response.data !== 'Phiếu giảm giá này đã hết, vui lòng chọn phiếu giảm giá khác!' && !error.response.data.startWith('Giá của sản phẩm ')) {
                     localStorage.removeItem('cartIdsForPayment');
                     localStorage.removeItem('productForPayment');
                     localStorage.removeItem('selectedVoucher');
-                    toast.error(error.response.data);
+                    // toast.error(error.response.data);
                     navigate('/product');
-                }
-                toast.error(error.response.data);
+                }                
             }
         },
         onSuccess: (data) => {
@@ -173,7 +173,7 @@ function Payment() {
             buyerName: diffAddress ? diffAddress.fullName : null,
             buyerPhoneNum: diffAddress ? diffAddress.phoneNum : null,
             voucherCode: selectedVoucher?.code,
-            items: checkoutData?.items.map((i) => ({ cartId: i.cartId, productId: i.productId, qty: i.quantity })),
+            items: checkoutData?.items.map((i) => ({ cartId: i.cartId, productId: i.productId, qty: i.quantity, currentPrice: i.price})),
         };
         createOrderMutation.mutate(data);
     };

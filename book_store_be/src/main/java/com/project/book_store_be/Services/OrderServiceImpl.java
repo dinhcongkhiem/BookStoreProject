@@ -14,6 +14,7 @@ import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.project.book_store_be.Enum.*;
+import com.project.book_store_be.Exception.PriceHasChangedException;
 import com.project.book_store_be.Exception.VoucherQuantityNotEnough;
 import com.project.book_store_be.Interface.AddressService;
 import com.project.book_store_be.Interface.OrderService;
@@ -249,9 +250,17 @@ public class OrderServiceImpl implements OrderService {
 
         request.getItems().forEach(item -> {
             Product product = productService.findProductById(item.getProductId());
+
+
             BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
             BigDecimal price = product.getOriginal_price().subtract(discountVal);
             totalPrice[0] = totalPrice[0].add(price.multiply(BigDecimal.valueOf(item.getQty())));
+            System.out.println(price);
+            System.out.println(item.getCurrentPrice());
+            System.out.println(product.getOriginal_price());
+            if(item.getCurrentPrice() != null && item.getCurrentPrice().compareTo(price) != 0) {
+                throw new PriceHasChangedException("Giá của sản phẩm " + product.getName() + " đã có sự thay đổi, vui lòng thử lại!");
+            }
 
             OrderDetail orderDetail = OrderDetail.builder()
                     .product(product)

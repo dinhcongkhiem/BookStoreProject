@@ -344,6 +344,11 @@ const Product = () => {
                                 </TableCell>
                                 <TableCell size="small" sx={{ padding: '.5rem' }}>
                                     {product?.price.toLocaleString('vi-VN')} <strong>₫</strong>
+                                    {product?.originalPrice && product?.originalPrice !== product?.price && (
+                                        <span className={cx('original-price')}>
+                                            {product?.originalPrice.toLocaleString('vi-VN')} <strong>₫</strong>
+                                        </span>
+                                    )}
                                 </TableCell>
                                 <TableCell size="small" sx={{ padding: '.5rem' }}>
                                     {product?.quantity}
@@ -365,7 +370,6 @@ const Product = () => {
                                             'stop-sell': product.status === 'STOP_SELL',
                                         })}
                                     />
-                                    
                                 </TableCell>
                                 <TableCell size="small" sx={{ padding: '.5rem' }}>
                                     {new Date(product?.createDate).toLocaleDateString()}
