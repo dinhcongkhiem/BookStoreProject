@@ -243,7 +243,8 @@ export default function Sell() {
         if (!amount) {
             return;
         }
-        if(amount + totalUserPayment >150000000) {
+        
+        if(totalUserPayment + parseFloat(amount) > 150000000 && isReset !== false) {            
             toast.warn('Số tiền không được vượt quá 150.000.000 ₫');
             return;
         }
@@ -739,6 +740,8 @@ export default function Sell() {
                                                     onChange={(e) => {
                                                         const value = e.target.value;
                                                         if (value > 150000000) {
+                                                            console.log("heheh");
+                                                            
                                                             toast.warn('Số tiền không được vượt quá 150.000.000 ₫');
                                                             return;
                                                         }
