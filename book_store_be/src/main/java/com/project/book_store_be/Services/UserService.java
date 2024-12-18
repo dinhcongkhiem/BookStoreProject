@@ -6,6 +6,7 @@ import com.project.book_store_be.Interface.AddressService;
 import com.project.book_store_be.Model.User;
 import com.project.book_store_be.Repository.UserRepository;
 import com.project.book_store_be.Request.ChangePasswordRequest;
+import com.project.book_store_be.Request.ContactRequest;
 import com.project.book_store_be.Request.UpdateUserRequest;
 import com.project.book_store_be.Response.UserResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -105,4 +103,21 @@ public class UserService {
         Pageable pageable = PageRequest.of(page, size,sort);
         return userRepository.searchByKeyword(keyword, pageable).map(this::getUserInfor);
     }
+
+    public void sendContactEmailToAdmin(ContactRequest contactRequest) {
+        try {
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("name", contactRequest.getName());
+            variables.put("email", contactRequest.getEmail());
+            variables.put("content", contactRequest.getContent());
+            String subject = contactRequest.getTitle();
+            List<User> adminUsers = getAdminUser();
+            for (User admin : adminUsers) {
+                sendMailService.sendEmail(admin, subject, "contactTemplate", variables);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
