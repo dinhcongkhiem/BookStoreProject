@@ -36,7 +36,7 @@ public class PublisherService {
 
     public Publisher updatePublisher(Long id, Publisher publisherDetails) {
         Publisher publisher = repo.findById(id).orElseThrow(() -> new RuntimeException("Publisher not found"));
-        if(repo.findByNameIgnoreCase(publisher.getName()).isPresent() && !publisher.getName().equalsIgnoreCase(publisherDetails.getName())){
+        if(repo.findByNameIgnoreCase(publisherDetails.getName()).isPresent() && !publisher.getName().equalsIgnoreCase(publisherDetails.getName())){
             throw new PublisherAlreadyExistsException("Nhà phát hành " +  publisherDetails.getName() + " đã tồn tại, vui lòng thử lại");
         }
         publisher.setName(publisherDetails.getName());

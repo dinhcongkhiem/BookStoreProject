@@ -40,9 +40,6 @@ public class CategoryService {
         if (category == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục");
         }
-        if (category.getName().equals(categoryDetails.getName())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên danh mục mới phải khác với tên cũ");
-        }
 
         if (categoryRepository.findByNameIgnoreCase(categoryDetails.getName()).isPresent() && !category.getName().equalsIgnoreCase(categoryDetails.getName())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Danh mục " + categoryDetails.getName() + " đã tồn tại");
