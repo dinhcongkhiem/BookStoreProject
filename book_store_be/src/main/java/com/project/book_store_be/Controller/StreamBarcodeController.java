@@ -1,6 +1,7 @@
 package com.project.book_store_be.Controller;
 
 import com.google.zxing.NotFoundException;
+import com.project.book_store_be.Exception.MaxFinalPriceOrderException;
 import com.project.book_store_be.Request.BarcodeRequest;
 import com.project.book_store_be.Services.BarcodeService;
 import com.project.book_store_be.Services.OrderServiceImpl;
@@ -34,7 +35,7 @@ public class StreamBarcodeController {
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(decodedBytes));
             String test = barcodeService.readBarcode(image);
 
-            if(test.length() > 0) {
+            if (test.length() > 0) {
                 orderService.createOrderDetailByBarcode(test, request.getOrderId());
             }
         } catch (NotFoundException | IOException e) {

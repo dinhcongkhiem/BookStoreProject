@@ -3,6 +3,7 @@ package com.project.book_store_be.Controller;
 import com.project.book_store_be.Enum.OrderStatus;
 import com.project.book_store_be.Enum.OrderType;
 import com.project.book_store_be.Enum.PaymentType;
+import com.project.book_store_be.Exception.MaxFinalPriceOrderException;
 import com.project.book_store_be.Exception.PriceHasChangedException;
 import com.project.book_store_be.Exception.ProductQuantityNotEnough;
 import com.project.book_store_be.Exception.VoucherQuantityNotEnough;
@@ -43,6 +44,9 @@ public class OrderController {
         try {
             orderService.createOrderDetail(items, orderId);
             return ResponseEntity.status(HttpStatus.CREATED).build();
+        }catch (MaxFinalPriceOrderException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
@@ -56,7 +60,7 @@ public class OrderController {
         }catch (ProductQuantityNotEnough e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Số lượng sản phẩm không đủ, vui lòng thử lại sau!");
-        }catch (VoucherQuantityNotEnough | PriceHasChangedException e) {
+        }catch (VoucherQuantityNotEnough | PriceHasChangedException | MaxFinalPriceOrderException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
@@ -155,6 +159,9 @@ public class OrderController {
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(pdfFile);
+        }catch (ProductQuantityNotEnough e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Số lượng sản phẩm không đủ, vui lòng thử lại sau!");
         } catch (NoSuchElementException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");
@@ -168,6 +175,9 @@ public class OrderController {
         try {
             orderService.updateQuantity(quantity, id);
             return ResponseEntity.ok().build();
+        }catch (MaxFinalPriceOrderException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (NoSuchElementException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Có lỗi xảy ra");

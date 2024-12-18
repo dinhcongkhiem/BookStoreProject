@@ -133,7 +133,12 @@ export default function Sell() {
 
     const createOrderDetailMutation = useMutation({
         mutationFn: (data) => OrderService.createOrderDetail({ items: data, orderId: activeInvoice }),
-        onError: (error) => console.log(error),
+        onError: (error) => {
+            console.log(error);
+            if(error.response.status === 409) {
+                toast.error(error.response.data);
+            }
+        },
         onSuccess: (data) => {
             queryClient.invalidateQueries(['productInOrder', activeInvoice]);
         },
@@ -218,8 +223,8 @@ export default function Sell() {
     };
 
     const handleChangeValueCash = (value) => {
-        if (value > 2000000000) {
-            toast.warn('Số tiền không được vượt quá 2 tỷ');
+        if (value > 150000000) {
+            toast.warn('Số tiền không được vượt quá 150.000.000 ₫');
             return;
         }
         setAmount(value);
@@ -236,6 +241,10 @@ export default function Sell() {
 
     const handleAddCustomerPayment = (type, amount, isReset) => {
         if (!amount) {
+            return;
+        }
+        if(amount + totalUserPayment >150000000) {
+            toast.warn('Số tiền không được vượt quá 150.000.000 ₫');
             return;
         }
         const payment = [{ paymentType: type, amount: parseInt(amount) }];
@@ -277,7 +286,12 @@ export default function Sell() {
 
     const updateQuantityMutation = useMutation({
         mutationFn: ({ qty, id }) => OrderService.updateQuantiyOrder({ quantity: qty, id: id }),
-        onError: (error) => console.log(error),
+        onError: (error) => {
+            console.log(error);
+            if(error.response.status === 409) {
+                toast.error(error.response.data);
+            }
+        },
         onSuccess: (data, d) => {
             queryClient.invalidateQueries(['productInOrder', activeInvoice]);
         },
@@ -300,6 +314,11 @@ export default function Sell() {
     }, 800);
 
     const handleQuantityChange = (productId, value) => {
+        const product = productInOrderRes.items.find((item) => item.productId === productId);        
+        if((product.originalPrice - product.discount) * value > 100000000) {
+            toast.error('Giá trị đơn hàng quá lớn, vui lòng thử lại');
+            return;
+        }
         queryClient.setQueryData(['productInOrder', activeInvoice], (oldData) => {
             if (!oldData) return oldData;
             return {
@@ -719,8 +738,8 @@ export default function Sell() {
                                                     value={amout}
                                                     onChange={(e) => {
                                                         const value = e.target.value;
-                                                        if (value > 2000000000) {
-                                                            toast.warn('Số tiền không được vượt quá 2 tỷ');
+                                                        if (value > 150000000) {
+                                                            toast.warn('Số tiền không được vượt quá 150.000.000 ₫');
                                                             return;
                                                         }
                                                         if (/^\d*$/.test(value)) {

@@ -85,7 +85,7 @@ function AddVoucher() {
                 return Yup.number()
                     .transform((val, originalVal) => (originalVal ? parseFloat(originalVal) : null))
                     .required('Vui lòng nhập điều kiện sử dụng')
-                    .min(value + 1, `Điều kiện phải lớn hơn giá trị giảm giá`).max(2000000000, 'Giá trị tối đa là 2 tỷ');
+                    .min(value + 10000, `Điều kiện phải lớn hơn giá trị giảm giá 10.000 ₫`).max(2000000000, 'Giá trị tối đa là 2 tỷ');
             }
     
             return Yup.mixed().notRequired();

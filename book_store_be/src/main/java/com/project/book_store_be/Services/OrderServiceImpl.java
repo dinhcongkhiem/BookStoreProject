@@ -14,7 +14,9 @@ import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.project.book_store_be.Enum.*;
+import com.project.book_store_be.Exception.MaxFinalPriceOrderException;
 import com.project.book_store_be.Exception.PriceHasChangedException;
+import com.project.book_store_be.Exception.ProductQuantityNotEnough;
 import com.project.book_store_be.Exception.VoucherQuantityNotEnough;
 import com.project.book_store_be.Interface.AddressService;
 import com.project.book_store_be.Interface.OrderService;
@@ -30,6 +32,7 @@ import com.project.book_store_be.Request.PaymentRequest;
 import com.project.book_store_be.Request.UpdateOrderRequest;
 import com.project.book_store_be.Response.OrderRes.*;
 import com.project.book_store_be.Response.PaymentResponse;
+import com.project.book_store_be.Response.StreamBarcodeResponse;
 import com.project.book_store_be.Response.VoucherRes.VoucherInOrderResponse;
 import jakarta.persistence.Tuple;
 import lombok.RequiredArgsConstructor;
@@ -82,14 +85,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<?> getOrdersByUser(Integer page, Integer pageSize, OrderStatus status, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null, null,null, keyword);
+        Specification<Order> spec = OrderSpecification.getOrders(userService.getCurrentUser(), status, null, null, null, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         return orderRepository.findAll(spec, pageable).map(this::convertOrderResponse);
     }
 
     @Override
     public OrderPageResponse findAllOrders(Integer page, Integer pageSize, OrderStatus status, LocalDateTime start, LocalDateTime end, OrderType orderType, String keyword) {
-        Specification<Order> spec = OrderSpecification.getOrders(null, status, start, end,orderType, keyword);
+        Specification<Order> spec = OrderSpecification.getOrders(null, status, start, end, orderType, keyword);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         Page<GetAllOrderResponse> ordersPage = orderRepository.findAll(spec, pageable).map(this::convertToResMng);
         Tuple count = orderRepository.countOrder();
@@ -149,10 +152,16 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setOrderDetails(orderDetailList);
         order.setTotalPrice(totalPrice[0]);
+        if (totalPrice[0].compareTo(BigDecimal.valueOf(100000000)) > 0) {
+            messagingTemplate.convertAndSend("/stream/barcode",
+                    StreamBarcodeResponse.builder().value("Giá trị đơn hàng quá lớn, vui lòng thử lại!").error(true).build());
+            throw new MaxFinalPriceOrderException("Giá trị đơn hàng quá lớn, vui lòng thử lại!");
+        }
         orderRepository.save(order);
 
         log.info("Successfully read barcode: " + productCode);
-        messagingTemplate.convertAndSend("/stream/barcode", true);
+        messagingTemplate.convertAndSend("/stream/barcode",
+                StreamBarcodeResponse.builder().value("Thêm sản phẩm thành công!").error(false).build());
     }
 
     @Transactional
@@ -170,6 +179,9 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalPrice(order.getTotalPrice().subtract(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(orderDetail.getQuantity()))));
         orderDetail.setQuantity(quantity);
         order.setTotalPrice(order.getTotalPrice().add(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(quantity))));
+        if (order.getTotalPrice().compareTo(BigDecimal.valueOf(100000000)) > 0) {
+            throw new MaxFinalPriceOrderException("Giá trị đơn hàng quá lớn, vui lòng thử lại!");
+        }
         orderDetailRepository.save(orderDetail);
         orderRepository.save(order);
     }
@@ -217,6 +229,9 @@ public class OrderServiceImpl implements OrderService {
                 orderDetailList.add(orderDetail);
             }
         });
+        if (totalPrice[0].compareTo(BigDecimal.valueOf(100000000)) > 0) {
+            throw new MaxFinalPriceOrderException("Giá trị đơn hàng quá lớn, vui lòng thử lại!");
+        }
         order.setTotalPrice(totalPrice[0]);
         orderRepository.save(order);
     }
@@ -255,10 +270,7 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
             BigDecimal price = product.getOriginal_price().subtract(discountVal);
             totalPrice[0] = totalPrice[0].add(price.multiply(BigDecimal.valueOf(item.getQty())));
-            System.out.println(price);
-            System.out.println(item.getCurrentPrice());
-            System.out.println(product.getOriginal_price());
-            if(item.getCurrentPrice() != null && item.getCurrentPrice().compareTo(price) != 0) {
+            if (item.getCurrentPrice() != null && item.getCurrentPrice().compareTo(price) != 0) {
                 throw new PriceHasChangedException("Giá của sản phẩm " + product.getName() + " đã có sự thay đổi, vui lòng thử lại!");
             }
 
@@ -271,7 +283,7 @@ public class OrderServiceImpl implements OrderService {
                     .discount(discountVal)
                     .build();
             orderDetailRepository.save(orderDetail);
-            if(order.getPaymentType() == PaymentType.cash_on_delivery) {
+            if (order.getPaymentType() == PaymentType.cash_on_delivery) {
                 productService.updateQuantity(product, product.getQuantity() - item.getQty());
             }
             orderDetailList.add(orderDetail);
@@ -287,7 +299,7 @@ public class OrderServiceImpl implements OrderService {
             if (voucher.getStartDate().isAfter(LocalDateTime.now()) || voucher.getEndDate().isBefore(LocalDateTime.now())) {
                 throw new IllegalArgumentException("Voucher đã hết hạn.");
             }
-            if(voucher.getQuantity() == 0) {
+            if (voucher.getQuantity() == 0) {
                 throw new VoucherQuantityNotEnough("Phiếu giảm giá này đã hết, vui lòng chọn phiếu giảm giá khác!");
             }
             if (voucher.getCondition() != null && totalPrice[0].compareTo(voucher.getCondition()) < 0) {
@@ -298,6 +310,10 @@ public class OrderServiceImpl implements OrderService {
             order.setVoucher(voucher);
         }
         BigDecimal finalPrice = totalPrice[0].subtract(voucherDiscount[0]);
+
+        if (finalPrice.subtract(order.getShippingFee()).compareTo(BigDecimal.valueOf(100000000)) > 0) {
+            throw new MaxFinalPriceOrderException("Giá trị đơn hàng quá lớn, vui lòng thử lại!");
+        }
         PaymentResponse paymentResponse = null;
         order.setTotalPrice(totalPrice[0]);
         if (order.getPaymentType() == PaymentType.bank_transfer) {

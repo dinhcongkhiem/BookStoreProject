@@ -36,9 +36,14 @@ const BarcodeScanner = ({ orderId, onSuccess }) => {
     const onMessageReceived = async (payload) => {
         const jsonPayload = JSON.parse(payload.body);
         console.log('Received barcode result:', jsonPayload);
-        if (jsonPayload === true) {
-            toast.success('Thêm sản phẩm thành công!');
-            onSuccess();
+        if (jsonPayload) {
+            if(jsonPayload.error){
+                toast.error(jsonPayload.value);
+                return;
+            }else {
+                toast.success(jsonPayload.value);
+                onSuccess();
+            }
         }
     };
 
