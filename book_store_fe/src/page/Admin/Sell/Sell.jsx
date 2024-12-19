@@ -345,7 +345,7 @@ export default function Sell() {
     }, 400);
 
     const handleQuantityChange = (productId, value) => {
-        const product = productInOrderRes.items.find((item) => item.productId === productId);      
+        const product = productInOrderRes.items.find((item) => item.productId === productId);
         queryClient.setQueryData(['productInOrder', activeInvoice], (oldData) => {
             if (!oldData) return oldData;
             return {
@@ -378,7 +378,9 @@ export default function Sell() {
                     paymentType === 'cash' ? 'cash_on_delivery' : paymentType === 'bank' ? 'bank_transfer' : 'both',
                 amountPaid: totalUserPayment,
             }),
-        onError: (error) => console.log(error),
+        onError: (error) => {
+            if (error.response.status === 409) { toast.error(error.response.data) }
+        },
         onSuccess: (res) => {
             setAmount('');
             const url = URL.createObjectURL(res.data);
@@ -644,12 +646,12 @@ export default function Sell() {
                                     options={
                                         userRes
                                             ? [
-                                                  ...userRes.content.map((item) => ({
-                                                      label: `${item.fullName} - ${item.phoneNum}`,
-                                                      id: item.id,
-                                                  })),
-                                                  { label: 'Thêm mới người dùng', id: 'new' },
-                                              ]
+                                                ...userRes.content.map((item) => ({
+                                                    label: `${item.fullName} - ${item.phoneNum}`,
+                                                    id: item.id,
+                                                })),
+                                                { label: 'Thêm mới người dùng', id: 'new' },
+                                            ]
                                             : [{ label: 'Thêm mới người dùng', id: 'new' }]
                                     }
                                     value={selectedUser}

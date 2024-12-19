@@ -186,10 +186,10 @@ public class OrderServiceImpl implements OrderService {
         }
         Order order = orderDetail.getOrder();
         order.setTotalPrice(order.getTotalPrice().subtract(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(orderDetail.getQuantity()))));
-        orderDetail.setQuantity(quantity);
-        order.setTotalPrice(order.getTotalPrice().add(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(quantity))));
         Product productInOrder = orderDetail.getProduct();
         productService.updateQuantity(productInOrder, productInOrder.getQuantity() + orderDetail.getQuantity() - quantity);
+        orderDetail.setQuantity(quantity);
+        order.setTotalPrice(order.getTotalPrice().add(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(quantity))));
         if (order.getTotalPrice().compareTo(BigDecimal.valueOf(100000000)) > 0) {
             throw new MaxFinalPriceOrderException("Giá trị đơn hàng quá lớn, vui lòng thử lại!");
         }
