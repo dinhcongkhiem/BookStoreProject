@@ -176,7 +176,7 @@ public class OrderController {
         try {
             orderService.updateQuantity(quantity, id);
             return ResponseEntity.ok().build();
-        } catch (MaxFinalPriceOrderException e) {
+        } catch (MaxFinalPriceOrderException | ProductQuantityNotEnough e ) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (NoSuchElementException e) {

@@ -342,7 +342,7 @@ export default function Sell() {
         if (existingCartItem && existingCartItem.initialQuantity !== quantity) {
             updateQuantityMutation.mutate({ qty: quantity, id: id });
         }
-    }, 400);
+    }, 0);
 
     const handleQuantityChange = (productId, value) => {
         const product = productInOrderRes.items.find((item) => item.productId === productId);
@@ -352,18 +352,32 @@ export default function Sell() {
                 ...oldData,
                 items: oldData.items.map((item) => {
                     if (item.productId === productId) {
-                        const newQuantity = value >= 1 ? Math.min(value, item.productQuantity) : 0;
+                        console.log(value);
+                        console.log(item.quantity);
+                        console.log(item.productQuantity);
+                        
+
+                        let newQuantity =  value;
+                        if(value  >= item.quantity && item.productQuantity <= 0) {
+                            newQuantity = item.quantity;
+                        }
+                        if (newQuantity < 0) {
+                            toast.error('Số lượng không hợp lệ');
+                            return item;
+                        }
+                        
                         if ((product.originalPrice - product.discount) * newQuantity > 100000000) {
                             toast.error('Giá trị đơn hàng quá lớn, vui lòng thử lại');
+                            console.log("ahhahaha");
                             return item;
                         }
                         debouncedUpdate(item.id, newQuantity);
-
                         return {
                             ...item,
                             quantity: newQuantity,
                         };
                     }
+
                     return item;
                 }),
             };
@@ -544,6 +558,7 @@ export default function Sell() {
                                                                 type="number"
                                                                 className={cx('quantity-input')}
                                                                 value={item.quantity}
+                                                                readOnly
                                                                 onChange={(e) => {
                                                                     const newValue = e.target.value.replace(
                                                                         /[^0-9]/g,

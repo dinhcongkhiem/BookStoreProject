@@ -141,6 +141,8 @@ public class OrderServiceImpl implements OrderService {
         if (orderDetailContains != null) {
             totalPrice[0] = totalPrice[0].add(orderDetailContains.getPriceAtPurchase());
             orderDetailContains.setQuantity(orderDetailContains.getQuantity() + 1);
+            Product productInOrder = orderDetailContains.getProduct();
+            productService.updateQuantity(productInOrder, productInOrder.getQuantity() - 1);
             orderDetailRepository.save(orderDetailContains);
         } else {
             BigDecimal discountVal = (BigDecimal) productService.getDiscountValue(product).get("discountVal");
@@ -157,8 +159,7 @@ public class OrderServiceImpl implements OrderService {
             orderDetailList.add(orderDetail);
             orderDetailRepository.save(orderDetail);
         }
-        Product productInOrder = orderDetailContains.getProduct();
-        productService.updateQuantity(productInOrder, productInOrder.getQuantity() - 1);
+
         order.setOrderDetails(orderDetailList);
         order.setTotalPrice(totalPrice[0]);
         if (totalPrice[0].compareTo(BigDecimal.valueOf(100000000)) > 0) {
@@ -181,9 +182,7 @@ public class OrderServiceImpl implements OrderService {
         if (quantity < 1) {
             throw new IllegalArgumentException("Số lượng không hợp lệ. Phải lớn hơn hoặc bằng 1.");
         }
-        if (quantity > orderDetail.getProduct().getQuantity()) {
-            throw new IllegalArgumentException("Số lượng không hợp lệ. Phải nhỏ hơn hoặc bằng số lượng có sẵn.");
-        }
+
         Order order = orderDetail.getOrder();
         order.setTotalPrice(order.getTotalPrice().subtract(orderDetail.getPriceAtPurchase().multiply(BigDecimal.valueOf(orderDetail.getQuantity()))));
         Product productInOrder = orderDetail.getProduct();
