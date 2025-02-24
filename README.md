@@ -1,5 +1,4 @@
-// o run 
-My Team <3
+
 Quick install 
 1 - Install: database
 
